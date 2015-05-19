@@ -1,0 +1,32 @@
+(ns melos.tools.make-note)
+
+(defn make-note 
+  "Make a representation of a musical note."
+  [& {:keys [pitch onset color delta-dur duration group
+             desired-sustain part count merge-left? merge-right?
+             allow-extension?]
+      :or {pitch 10,
+           delta-dur 1/4
+           duration 1/4
+           desired-sustain nil,
+           group nil
+           merge-left? false
+           merge-right? false
+           allow-extension? true
+           part nil,
+           color nil,
+           count 0,
+           onset 0
+           intensity 1}}]
+  {:pitch pitch
+   :delta-dur delta-dur
+   :duration duration
+   :allow-extension? allow-extension?
+   :color color
+   :merge-left? merge-left?
+   :merge-right? merge-right?
+   :group group
+   :desired-sustain desired-sustain
+   :onset onset
+   :part part
+   :count count})
