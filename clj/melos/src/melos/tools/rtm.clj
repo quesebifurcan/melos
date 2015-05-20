@@ -250,14 +250,14 @@
                     (get-measures [measure-1 measure-2]
                                   durations)))})
 
-(defn print-durations
-  [measure]
-    (clojure.walk/prewalk
-     #(if (not (nil? (:events %)))
-        (do (println (:duration %))
-            %)
-        %)
-     measure))
+;; (defn print-durations
+;;   [measure]
+;;     (clojure.walk/prewalk
+;;      #(if (not (nil? (:events %)))
+;;         (do (println (:duration %))
+;;             %)
+;;         %)
+;;      measure))
 
 (require '[melos.tools.utils :refer [export-to-json]])
 

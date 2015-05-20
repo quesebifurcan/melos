@@ -135,19 +135,19 @@
 ;; Function arguments -- store in state
 ;; Multiple operations on one node -- move chain of commands to function.
 
-(def segment-graph
-  {:eventsmod (fnk [events [:args [:nested-fn a]]]
-                   (simple-nested events a))
-   :parts (fnk [events]
-               (map (partial + 1) events))
-   :jjj (fnk [events eventsmod]
-             [events eventsmod])
-   :asdf (fnk [eventsmod]
-              (do (println "lkjlsdjflksjf") (+ eventsmod 1000)))})
+;; (def segment-graph
+;;   {:eventsmod (fnk [events [:args [:nested-fn a]]]
+;;                    (simple-nested events a))
+;;    :parts (fnk [events]
+;;                (map (partial + 1) events))
+;;    :jjj (fnk [events eventsmod]
+;;              [events eventsmod])
+;;    :asdf (fnk [eventsmod]
+;;               (do (println "lkjlsdjflksjf") (+ eventsmod 1000)))})
                
-(def lazy-segment-graph (graph/lazy-compile segment-graph))
+;; (def lazy-segment-graph (graph/lazy-compile segment-graph))
 
-(:jjj (lazy-segment-graph {:events [1 2 3] :args {:nested-fn {:a 123}}}))
+;; (:jjj (lazy-segment-graph {:events [1 2 3] :args {:nested-fn {:a 123}}}))
 
 ;; (lazy-segment-graph {:events [1 2 3] :args {:nested-fn {:a 123}}})
 
