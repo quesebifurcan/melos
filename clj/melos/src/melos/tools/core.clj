@@ -13,43 +13,12 @@
               [melos.tools.segment-durations :refer [get-durations
                                                   get-segmented-durations
                                                   segment-vertical-moment]]
+              [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
               [melos.tools.onsets :refer [get-melodic-event
                                        get-onsets]]))
 
 ;; ## Initialize Score
-
-(s/defn ^:always-validate make-score
-  ;; "Deep-merge a seq of maps with an initial score state. See
-  ;; src/scores.score.clj for more details."
-  :- [schemata/ScoreSegment]
-  [init :- schemata/ScoreSegment
-   changes :- [schemata/PartialScoreSegment]]
-  (reductions merge-in init changes))
-
-(defn part-events-in-node
-  [part-name node]
-  (let [events (:events node)
-        part-events (filter #(= (:part %) part-name) events)]
-    (if (empty? part-events)
-      [{:pitch "rest" :part part-name}]
-      part-events)))
-
-(defn filter-by-part-names
-  [part-names parts-tree]
-    (clojure.walk/prewalk
-     #(if (and (map? %)
-               (contains? % :events))
-        (-> %
-            (assoc :events (part-events-in-node part-names %))
-            (dissoc :event))
-        %)
-     parts-tree))
-
-(defn split-out-part
-  [tree part-name]
-  (let [all-parts (rtm/calculate-result tree)]
-    (->> (filter-by-part-names part-name all-parts))))
 
 (require '[melos.tools.modify-durations :refer [modify-durations]])
 

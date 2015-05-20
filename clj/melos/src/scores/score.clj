@@ -4,8 +4,9 @@
               [scores.event-seqs :refer [organ]]
               [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
-              [melos.tools.utils :refer [export-to-json]]
-              [melos.tools.core :refer [make-score
+              [melos.tools.utils :refer [export-to-json
+                                         merge-in]]
+              [melos.tools.core :refer [
                                      ;; segment->parts
                                      compose-segment]]))
 
@@ -31,6 +32,14 @@
    custom-print-atom)
 
 ;; ## Score modelling
+
+(s/defn ^:always-validate make-score
+  ;; "Deep-merge a seq of maps with an initial score state. See
+  ;; src/scores.score.clj for more details."
+  :- [schemata/ScoreSegment]
+  [init :- schemata/ScoreSegment
+   changes :- [schemata/PartialScoreSegment]]
+  (reductions merge-in init changes))
 
 ;; Functions for controlling rhythmic aspects of the score.
 (declare rtm-fn)
