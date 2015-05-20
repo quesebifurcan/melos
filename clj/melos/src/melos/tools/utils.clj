@@ -66,3 +66,7 @@
                                      ratio->non-reduced-ratio-vector)
                           form)))
        (write-json-to-file path)))
+
+(defn mapply
+  [f & args]
+  (apply f (apply concat (butlast args) (last args))))
