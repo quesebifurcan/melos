@@ -6,7 +6,7 @@
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [export-to-json
                                          merge-in]]
-              [melos.tools.core :refer [
+              [melos.tools.score-graph :refer [
                                      ;; segment->parts
                                      compose-segment]]))
 

@@ -1,4 +1,4 @@
-(ns melos.tools.core
+(ns melos.tools.score-graph
     (:require [schema.core :as s]
               [plumbing.graph :as graph]
               [plumbing.core :as plumbing]
