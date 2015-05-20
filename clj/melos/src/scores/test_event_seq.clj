@@ -12,15 +12,23 @@
                   [[{:part-name :upper
                      :events ((comp update-children calculate-result) events)}]]))
 
+(defn parse-params
+  [x]
+  (if (vector? x)
+    (repeat (last x) (first x))
+    [x]))
+
 (defn unfold-events
   [m]
-  (->> (map cycle (vals m))
+  (->> (map (fn [x] (mapcat parse-params x))
+            (vals m))
+       (map cycle)
        (apply map vector)
        (map (fn [x] (zipmap (keys m) x)))
        (map #(mapply make-note %))))
 
-(let [c {:pitch [1 2 3]
+(let [c {:pitch [1 [1234 3]]
          :dissonance-contributor? [false]
-         :allow-extension? [false false true]
+         :allow-extension? [true [false 5]]
          :duration [2/4 3/4 7/16 5/4]}]
-  (take 10 (unfold-events c)))
+  (take 20 (unfold-events c)))
