@@ -1,6 +1,6 @@
 (ns scores.test-event-seq
   (:require [scores.event-seqs :refer [pendulum-1 make-melody]]
-            [rtm :refer [calculate-result update-children]]
+            ;; [rtm :refer [calculate-result update-children]]
             [melos.tools.utils :refer [export-to-json]]
             [melos.tools.l-systems :refer [lindenmayer]]
             ))
