@@ -126,9 +126,9 @@
 ;; TODO: chords (simultaneous events) -- group events with ids such that the dissonance calculator removes none or all of them.
 ;; TODO: validate top-level functions.
 
-;; TODO: disallow extensions.
 ;; TODO: unexpected changes.
-;; TODO: make merge, allow-extension, diss-fn optional.
+;; TODO: all time-signatures (DSL?)
+;; TODO: Score presets: "chords", "hoketus", "slow" etc.
 
 ;; TODO: "Cascading" or short-circuiting modifications applied to durations?
 
