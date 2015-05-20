@@ -120,7 +120,8 @@
         melodic-notes (partition-by :part melodic-notes)
         ;; TODO: sort be descending pitch.
         melodic-notes (map first melodic-notes)
-        pitches (filter number? (map :pitch melodic-notes))]
+        pitches (filter number? (map :pitch melodic-notes))
+        ]
     (if (> (scaled-dissonance-value pitches) 2)
       6/4
       nil)))

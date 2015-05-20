@@ -9,20 +9,20 @@
   [vertical-moment limit]
   (if (empty? vertical-moment)
     true
-    (do
-      (println
-    (let [pitches (map :pitch vertical-moment)]
-      (diss-calc/scaled-dissonance-value pitches)))
-    (let [pitches (map :pitch vertical-moment)]
+    ;; (do
+    ;;   (println
+    ;; (let [pitches (map :pitch vertical-moment)]
+    ;;   (diss-calc/scaled-dissonance-value pitches)))
+    (let [pitches (filter number? (map :pitch vertical-moment))]
       (<= (diss-calc/scaled-dissonance-value pitches)
-          limit)))))
+          limit))))
 
 (defn- dissonance-value
   "The dissonance value of a given vertical-moment."
   [vertical-moment]
   (if (<= (count vertical-moment) 1)
     0
-    (let [pitches (map :pitch vertical-moment)]
+    (let [pitches (filter number? (map :pitch vertical-moment))]
       (diss-calc/scaled-dissonance-value pitches))))
 
 (defn- zero-count?
@@ -110,10 +110,10 @@
   [vertical-moment]
   (apply + (map :count vertical-moment)))
 
-(defn print-wait [value]
-  (do (println value)
-      (Thread/sleep 3000)
-      value))
+;; (defn print-wait [value]
+;;   (do (println value)
+;;       (Thread/sleep 3000)
+;;       value))
   
 (defn- filter-by-dissonance-value
   "If *events* can be considered consonant, return *events*.
@@ -190,9 +190,11 @@
          ;; TODO: activate either filter-by-count-aggressive or
          ;; filter-parts-by-count.
          ;; (filter-by-count-aggressive max-count)
+
          (filter-parts-by-count part-counts)
          (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value)
+
          ;; ((fn [x]
          ;;    (do (println x)
          ;;        x)))

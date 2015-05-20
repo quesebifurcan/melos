@@ -79,11 +79,7 @@
 (defn scaled-dissonance-value
   "Scale dissonance-value based on the number of pitches."
   [pitches]
-  (let [divisor (calc-dissonance-divisor pitches)]
-    (/ (dissonance-value pitches) divisor)))
-
-
-
-
-
-
+  (if (empty? pitches)
+    0
+    (let [divisor (calc-dissonance-divisor pitches)]
+      (/ (dissonance-value pitches) divisor))))
