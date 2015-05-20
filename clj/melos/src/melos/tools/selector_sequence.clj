@@ -131,5 +131,5 @@
   ;;       result (map (fn [x] (get-and-rotate events-seqs x))
   ;;                   melodic-indices)]
   ;;   (assoc segment :events result)))
-  (map (fn [x] (get-and-rotate events-seqs x))
+  (mapcat (fn [x] (get-and-rotate events-seqs x))
        melodic-indices))

@@ -8,7 +8,7 @@
   [part pitches durations]
   (map (fn [pitch duration]
          (let [group (gensym "G__")]
-         [
+         [[
           (make-note :pitch pitch
                      :delta-dur duration
                      :duration duration
@@ -17,9 +17,13 @@
                      :merge-right? true
                      :part part
                      :count 0)
-          ;; (make-note :pitch (rand-nth [14 0 12 2])
+          ]
+          ;; [(make-note :pitch 24
           ;;            :delta-dur duration
+          ;;            :duration duration
+          ;;            :allow-extension? true
           ;;            :group group
+          ;;            :merge-right? true
           ;;            :part part
           ;;            :count 0)
           ]))
@@ -29,7 +33,7 @@
   [part pitches durations]
   (map (fn [pitch duration]
          (let [group (gensym "G__")]
-         [
+         [[
           (make-note :pitch pitch
                      :delta-dur duration
                      :duration duration
@@ -43,7 +47,7 @@
           ;;            :group group
           ;;            :part :lower
           ;;            :count 0)
-          ]))
+          ]]))
        pitches durations))
 
 (defn pendulum-1 [part]
