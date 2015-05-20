@@ -3,6 +3,10 @@
             [clojure.math.numeric-tower :as math]
             [melos.tools.dissonance-calculator :as diss-calc]))
 
+(defn dissonance-contributor?
+  [x]
+  (number? x))
+
 (defn- consonant?
   "Given a maximum allowed degree of dissonance (*limit*), test if
   *vertical-moment* is consonant."
@@ -13,7 +17,9 @@
     ;;   (println
     ;; (let [pitches (map :pitch vertical-moment)]
     ;;   (diss-calc/scaled-dissonance-value pitches)))
-    (let [pitches (filter number? (map :pitch vertical-moment))]
+    (let [pitches (filter dissonance-contributor? (map :pitch
+                                                       (filter #(:dissonance-contributor? %)
+                                                               vertical-moment)))]
       (<= (diss-calc/scaled-dissonance-value pitches)
           limit))))
 
@@ -22,7 +28,8 @@
   [vertical-moment]
   (if (<= (count vertical-moment) 1)
     0
-    (let [pitches (filter number? (map :pitch vertical-moment))]
+    (let [pitches (filter dissonance-contributor? (map :pitch (filter #(:dissonance-contributor? %)
+                                                                        vertical-moment)))]
       (diss-calc/scaled-dissonance-value pitches))))
 
 (defn- zero-count?

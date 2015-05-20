@@ -34,6 +34,7 @@
                      :delta-dur duration
                      :duration duration
                      :group group
+                     :dissonance-contributor? true
                      :merge-left? true
                      :part part
                      :count 0)

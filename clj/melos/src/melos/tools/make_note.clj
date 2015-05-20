@@ -4,6 +4,7 @@
   "Make a representation of a musical note."
   [& {:keys [pitch onset color delta-dur duration group
              desired-sustain part count merge-left? merge-right?
+             dissonance-contributor?
              allow-extension?]
       :or {pitch 10,
            delta-dur 1/4
@@ -12,6 +13,7 @@
            group nil
            merge-left? false
            merge-right? false
+           dissonance-contributor? true
            allow-extension? true
            part nil,
            color nil,
@@ -21,6 +23,7 @@
   {:pitch pitch
    :delta-dur delta-dur
    :duration duration
+   :dissonance-contributor? dissonance-contributor?
    :allow-extension? allow-extension?
    :color color
    :merge-left? merge-left?
