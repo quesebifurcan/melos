@@ -323,3 +323,30 @@
 
 ;; TODO: test with real events. Skip onsets?
 
+;;-------------------------------------------------------------------
+;; Convenience functions for creating rhythmic trees.
+
+(defn make-node
+  ([dur]
+  {:dur dur
+   :written-dur dur
+   :children nil})
+  ([dur children]
+  {:dur dur
+   :written-dur dur
+   :children children})
+  ([dur written-dur children]
+  {:dur dur
+   :written-dur written-dur
+   :children children}))
+
+(defn regular-subdivs
+  []
+  (repeat 2 (make-node [1 8]
+                       (repeat 2 (make-node [1 16])))))
+
+(make-node [4 4]
+           [(make-node [2 4] [3 4]
+                      (repeat 3 (make-node [1 4] (regular-subdivs))))
+           (make-node [2 4]
+                      (repeat 2 (make-node [1 4])))])
