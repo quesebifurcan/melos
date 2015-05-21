@@ -18,27 +18,49 @@
 
 (defn parse-params
   [x]
-  (if (vector? x)
+  (if (list? x)
     (repeat (last x) (first x))
     [x]))
 
 (defn unfold-events
   [m]
+  (let [f (:fn m)
+        m (dissoc m :fn)]
   (->> (map (fn [x] (mapcat parse-params x))
             (vals m))
        (map cycle)
        (apply map vector)
        (map (fn [x] (zipmap (keys m) x)))
-       (map #(mapply make-note %))))
+       (map f))))
 
-(let [c {:pitch (mapcat (fn [x] [x "rest"])
-                        (range 0 10))
-         :dissonance-contributor? [false]
-         :part [:upper]
-         :duration [1/4 2/4]}]
-  (->> (take 40 (unfold-events c))
-       (map (fn [x] [x]))
-       (export-single-event-seq :upper)
-       ))
+(defn split-if-chord
+  [events]
+  (clojure.walk/prewalk
+   #(if (and (map? %)
+             (vector? (:pitch %)))
+      (let [pitches (:pitch %)]
+        (into [] (map (fn [x] (assoc % :pitch x)) pitches)))
+      %)
+   events))
 
-;; (take 10 (pendulum-1 :upper))
+(def alternating-pitch-rest
+  {:pitch (mapcat (fn [x] [x "rest"])
+                  (range 0 10))
+   :dissonance-contributor? [false]
+   :part [:upper]
+   :fn (fn [x] [(mapply make-note x)])
+   :duration [1/4 2/4]})
+
+(def chords
+  {:pitch [[0 2 4] [3 10 14]]
+   :dissonance-contributor? [false]
+   :part [:upper]
+   :fn (fn [x] (->> (mapply make-note x)
+                    (split-if-chord)
+                    ;; (map split-if-chord)))
+                    ))
+   :duration [1/4 2/4]})
+
+(->> (take 20 (unfold-events chords))
+     (export-single-event-seq :upper))
+
