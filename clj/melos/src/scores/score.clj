@@ -53,7 +53,7 @@
                       :part-counts {:upper 1
                                     :lower 1
                                     :ped 1}
-                      :max-lingering 10
+                      :max-lingering 7
                       :diss-value 1.6}))
 
 (def part-seq
@@ -82,7 +82,7 @@
    :time-signature-fn time-signature-fn
    :rtm-fn rtm-fn
    :melody-sources (atom (organ))
-   :count 20})
+   :count 50})
 
 (s/defn ^:always-validate changes
   :- [schemata/PartialScoreSegment]

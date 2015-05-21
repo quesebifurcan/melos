@@ -81,8 +81,8 @@
 (defn organ
   []
   ;; TODO: return lazy seqs.
-  ;; {:upper {:a (pendulum-1 :upper)}
-  {:upper {:a (unfold-events chords)}
+  {:upper {:a (pendulum-1 :upper)}
+  ;; {:upper {:a (unfold-events chords)}
    :lower {:a (pendulum-2 :lower)}
    :ped {:a (lindenmayer-1 :ped 10)
          :b (lindenmayer-1 :ped 7)}})
