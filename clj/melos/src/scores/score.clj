@@ -129,6 +129,7 @@
 ;; TODO: unexpected changes.
 ;; TODO: all time-signatures (DSL?)
 ;; TODO: Score presets: "chords", "hoketus", "slow" etc.
+;; TODO: Tempo.
 
 ;; TODO: "Cascading" or short-circuiting modifications applied to durations?
 
