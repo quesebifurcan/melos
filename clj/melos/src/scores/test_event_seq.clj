@@ -7,10 +7,14 @@
             [melos.tools.l-systems :refer [lindenmayer]]
             ))
 
-(defn export-single-event-seq [events]
-  (export-to-json "/Users/fred/Desktop/score.json"
-                  [[{:part-name :upper
-                     :events ((comp update-children calculate-result) events)}]]))
+(defn compose-single-line
+  [events]
+  ((comp update-children calculate-result) events))
+
+(defn export-single-event-seq [part-name events]
+  (let [result (compose-single-line events)]
+    (export-to-json "/Users/fred/Desktop/score.json"
+                    [[{:part-name part-name :events result}]])))
 
 (defn parse-params
   [x]
@@ -27,8 +31,14 @@
        (map (fn [x] (zipmap (keys m) x)))
        (map #(mapply make-note %))))
 
-(let [c {:pitch [1 [1234 3]]
+(let [c {:pitch (mapcat (fn [x] [x "rest"])
+                        (range 0 10))
          :dissonance-contributor? [false]
-         :allow-extension? [true [false 5]]
-         :duration [2/4 3/4 7/16 5/4]}]
-  (take 20 (unfold-events c)))
+         :part [:upper]
+         :duration [1/4 2/4]}]
+  (->> (take 40 (unfold-events c))
+       (map (fn [x] [x]))
+       (export-single-event-seq :upper)
+       ))
+
+;; (take 10 (pendulum-1 :upper))
