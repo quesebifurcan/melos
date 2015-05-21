@@ -1,6 +1,5 @@
 (ns scores.test-event-seq
-  (:require [scores.event-seqs :refer [pendulum-1 make-melody]]
-            [melos.tools.rtm :refer [calculate-result update-children]]
+  (:require [melos.tools.rtm :refer [calculate-result update-children]]
             [melos.tools.make-note :refer [make-note]]
             [melos.tools.utils :refer [export-to-json
                                        mapply]]
@@ -9,7 +8,8 @@
 
 (defn compose-single-line
   [events]
-  ((comp update-children calculate-result) events))
+  ((comp update-children calculate-result)
+   (map first events)))
 
 (defn export-single-event-seq [part-name events]
   (let [result (compose-single-line events)]
@@ -25,13 +25,15 @@
 (defn unfold-events
   [m]
   (let [f (:fn m)
-        m (dissoc m :fn)]
+        partition-fn (:partition m)
+        m (dissoc m :fn :partition)]
   (->> (map (fn [x] (mapcat parse-params x))
             (vals m))
        (map cycle)
        (apply map vector)
        (map (fn [x] (zipmap (keys m) x)))
-       (map f))))
+       (map f)
+       (partition-fn))))
 
 (defn split-if-chord
   [events]
@@ -49,18 +51,23 @@
    :dissonance-contributor? [false]
    :part [:upper]
    :fn (fn [x] [(mapply make-note x)])
+   :partition (fn [x] (partition 1 x))
    :duration [1/4 2/4]})
 
 (def chords
-  {:pitch [[0 2 4] [3 10 14]]
+  {:pitch ['([0 2 4] 1) [3 10 14]]
    :dissonance-contributor? [false]
    :part [:upper]
    :fn (fn [x] (->> (mapply make-note x)
                     (split-if-chord)
                     ;; (map split-if-chord)))
                     ))
+   :partition (fn [x] (partition 1 x))
    :duration [1/4 2/4]})
 
-(->> (take 20 (unfold-events chords))
-     (export-single-event-seq :upper))
+(->> (take 5 (unfold-events alternating-pitch-rest))
+;; (->> (take 5 (unfold-events chords))
+     ;; (map (fn [x] [x]))
+     ;; (export-single-event-seq :upper)
+     )
 
