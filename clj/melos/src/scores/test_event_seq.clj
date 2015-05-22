@@ -65,9 +65,38 @@
    :partition (fn [x] (partition 1 x))
    :duration [1/4 2/4]})
 
-(->> (take 5 (unfold-events alternating-pitch-rest))
+(defn apply-contour
+  [pitches]
+  (->> (map (fn [x] (rem x 12)) pitches)
+       ;; (sort)
+       ;; ((fn [x] (concat x (reverse (butlast (rest x))))))))
+       ))
+
+(defn transpose-motif-gradually
+  [pitches]
+  (let [transpositions (reductions + 0 (repeat 12 7))
+        tails (map (fn [increment]
+                     (map (fn [x] (+ x increment))
+                          (rest pitches))) 
+                   transpositions)
+        result (map (fn [x] (concat [(first pitches)] x))
+                    tails)]
+    (->> (map apply-contour result)
+         (flatten))))
+
+(transpose-motif-gradually [0 2 7])
+
+(def morph
+  {:pitch (transpose-motif-gradually [0 12 14 2])
+   :dissonance-contributor? [true]
+   :part [:upper]
+   :fn (fn [x] [(mapply make-note x)])
+   :partition (fn [x] (partition 1 x))
+   :duration [1/4 1/4]})
+
+(->> (take 400 (unfold-events morph))
 ;; (->> (take 5 (unfold-events chords))
      ;; (map (fn [x] [x]))
-     ;; (export-single-event-seq :upper)
+     (export-single-event-seq :upper)
      )
 

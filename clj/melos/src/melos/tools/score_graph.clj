@@ -40,7 +40,6 @@
    :modified-durations
    (plumbing/fnk [dissonance-filtered-events]
                  (modify-durations dissonance-filtered-events))
-                 ;; dissonance-filtered-events)
    :parts-tree
    (plumbing/fnk [part-names modified-durations]
                  (map (fn [x] {:part-name x
