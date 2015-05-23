@@ -29,7 +29,7 @@
 (defn remove-unisons
   [step]
   (cond (= step 0)
-        100
+        1000
         (> step 12)
         100
         :else
@@ -49,14 +49,26 @@
        x))
 
 (defn score-segment
-  [center-pitches group]
-  (let [distances (map (partial score-distance center-pitches)
+  [old-center-pitches old-group center-pitches group]
+  (let [
+        ;; center-pitches (concat old-center-pitches
+        ;;                        center-pitches)
+        ;; group (concat old-group group)
+        distances (map (fn [x]
+                         (score-distance
+                          (concat old-center-pitches
+                                  center-pitches)
+                          (concat old-group
+                                  x)))
                        group)
         distance-min (apply min distances)
         distance-max (apply max distances)
         distances (normalize distances
                              distance-min distance-max)
-        intervals (map score-interval-sizes group)
+        intervals (map (fn [x]
+                         (score-interval-sizes
+                          (concat old-group x)))
+                       group)
         intervals-min (apply min intervals)
         intervals-max (apply max intervals)
         intervals (normalize intervals
@@ -76,13 +88,33 @@
                 (+ distance interval))
            scores))
 
-(let [mel [0 10 8 7 2 2 2 2 4 3]
-      contour (cycle (range 60 80 3))]
-  (->> (map get-options contour mel)
+(defn find-contour
+  [melody contour old-contour old-melody]
+  (->> (map get-options contour melody)
        (apply combinatorics/cartesian-product)
-       (score-segment contour)
+       (score-segment old-contour old-melody contour)
        (sort-scores)
-       ))
+       (first)
+       (:pitches)))
+
+(defn find-contours
+  [melody contour melody-coll contour-coll]
+  (if (empty? melody)
+    melody-coll
+    (recur (rest melody)
+           (rest contour)
+           (concat melody-coll
+                   (find-contour (first melody)
+                                 (first contour)
+                                 melody-coll
+                                 contour-coll))
+           (concat contour-coll (first contour)))))
+
+(let [mel (partition 4 4 [] [0 2 4 7 0 2 4 7 0 2 4 7 0 2 4 7])
+      ;; contour (partition 4 4 [] (cycle (range 60 80 3)))]
+      contour (partition 4 4 [] (cycle [65 65 65 65 70 70 70]))]
+  (find-contours mel contour [] []))
+
 
 ;; pass in earlier stages to improve result
 ;; (let [a [[0] [987] [1 2] [3 4] [5 6]]]
