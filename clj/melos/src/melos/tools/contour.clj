@@ -18,15 +18,22 @@
 (get-options 62 3)
 
 (defn score-distance
-  [pitches]
-  (let [distance (reduce + 0
-                             (map (fn [x] (Math/abs (- 60 x)))
-                      pitches))]
+  [center-pitches pitches]
+  (let [distance (reduce + 0 (map (fn [x y]
+                                    (Math/abs (- x y)))
+                                  center-pitches
+                                  pitches
+                                  ))]
     distance))
 
 (defn remove-unisons
   [step]
-  (if (= step 0) 100 step))
+  (cond (= step 0)
+        100
+        (> step 12)
+        100
+        :else
+        step))
 
 (defn score-interval-sizes
   [pitches]
@@ -42,8 +49,9 @@
        x))
 
 (defn score-segment
-  [group]
-  (let [distances (map score-distance group)
+  [center-pitches group]
+  (let [distances (map (partial score-distance center-pitches)
+                       group)
         distance-min (apply min distances)
         distance-max (apply max distances)
         distances (normalize distances
@@ -68,13 +76,11 @@
                 (+ distance interval))
            scores))
 
-(let [mel [0 10 8 7 2 2 2 2 4 3]]
-  (->> (map (partial get-options 60) mel)
+(let [mel [0 10 8 7 2 2 2 2 4 3]
+      contour (cycle (range 60 80 3))]
+  (->> (map get-options contour mel)
        (apply combinatorics/cartesian-product)
-       ;; (map (fn [x]
-       ;;    (do (println x "\n")
-       ;;        x)))
-       (score-segment) 
+       (score-segment contour)
        (sort-scores)
        ))
 
