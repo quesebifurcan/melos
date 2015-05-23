@@ -99,29 +99,3 @@
      ;; (map (fn [x] [x]))
      (export-single-event-seq :upper)
      )
-
-(defn pitchclasses-close-to-pitch
-  [p pc]
-  )
-
-;; def myround(x, base=5):
-;;     return int(base * round(float(x)/base))
-
-(require '[clojure.math.numeric-tower :as math])
-(require '[clojure.math.combinatorics :as combinatorics])
-
-(defn round-to-nearest
-  [n base]
-  (int (* base (math/round (/ n base)))))
-  
-(defn get-options
-  [center-pitch pc]
-  (let [pivot (round-to-nearest center-pitch 12)]
-    [(- pivot (- 12 pc)) (+ pivot pc)]))
-
-(get-options 63 6)
-
-;; pass in earlier stages to improve result
-
-(let [a [[0] [987] [1 2] [3 4] [5 6]]]
-  (apply combinatorics/cartesian-product a))
