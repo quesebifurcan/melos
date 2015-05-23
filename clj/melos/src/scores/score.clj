@@ -82,7 +82,7 @@
    :time-signature-fn time-signature-fn
    :rtm-fn rtm-fn
    :melody-sources (atom (organ))
-   :count 50})
+   :count 200})
 
 (s/defn ^:always-validate changes
   :- [schemata/PartialScoreSegment]

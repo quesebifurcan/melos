@@ -52,7 +52,7 @@
 
 (defn pendulum-1 [part]
   (make-melody part
-               (cycle [-3 "rest" -2 5 2 "rest" "rest" "rest"
+               (cycle [-3 -2 5 2
                        3 10 3 2 5 -2])
                ;; (cycle [-5 0 2 0 5 7 2 7 9 0 5 7 5 -2 0 -5 0 2 7 9 7 0 2 -3 2 4])
                (cycle [1/4])))

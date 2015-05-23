@@ -112,23 +112,48 @@
 
 (require '[melos.tools.dissonance-calculator :refer [scaled-dissonance-value]])
 
-(defn dissonant-melody-movement?
-  [pair]
-  (let [melodic-notes (mapcat
+;; (defn dissonant-melody-movement?
+;;   [pair]
+;;   (let [melodic-notes (mapcat
+;;                        (fn [x] (filter #(= (:count %) 0) x))
+;;                        pair)
+;;         melodic-notes (partition-by :part melodic-notes)
+;;         ;; TODO: sort be descending pitch.
+;;         melodic-notes (map first melodic-notes)
+;;         pitches (filter number? (map :pitch melodic-notes))
+;;         ]
+;;     (println (count melodic-notes))
+;;     (if (> (scaled-dissonance-value pitches) 1.2)
+;;       6/4
+;;       nil)))
+
+(defn dissonant-melody-movements
+  [pairs coll]
+  (if (empty? pairs)
+    coll
+  (let [pair (first pairs)
+        melodic-notes (mapcat
                        (fn [x] (filter #(= (:count %) 0) x))
                        pair)
         melodic-notes (partition-by :part melodic-notes)
-        ;; TODO: sort be descending pitch.
-        melodic-notes (map first melodic-notes)
-        pitches (filter number? (map :pitch melodic-notes))
+        ;; TODO: sort by descending pitch.
+        melodic-notes (map
+                       (fn [x]
+                         (first (filter number? (map
+                                                 :pitch
+                                                 x))))
+                           melodic-notes)
+        pitches melodic-notes
         ]
-    (if (> (scaled-dissonance-value pitches) 2)
-      6/4
-      nil)))
+    (if (> (scaled-dissonance-value pitches) 1.6)
+      (recur (rest (rest pairs)) (concat coll [6/4 6/4]))
+      (recur (rest pairs) (concat coll [nil]))))))
 
 (defn get-durations
   [pairs]
-  (map dissonant-melody-movement? pairs))
+  ;; (println (dissonant-melody-movements pairs []))
+  (dissonant-melody-movements pairs [])
+   )
 
 (defn modify-durations
   [events]
@@ -144,3 +169,4 @@
          durations)))
 
 ;; (modify-durations test-sequence)
+

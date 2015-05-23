@@ -56,9 +56,10 @@
         ;; group (concat old-group group)
         distances (map (fn [x]
                          (score-distance
-                          (concat old-center-pitches
+                          (concat (take-last 4
+                                             old-center-pitches)
                                   center-pitches)
-                          (concat old-group
+                          (concat (take-last 4 old-group)
                                   x)))
                        group)
         distance-min (apply min distances)
@@ -67,7 +68,7 @@
                              distance-min distance-max)
         intervals (map (fn [x]
                          (score-interval-sizes
-                          (concat old-group x)))
+                          (concat (take-last 4 old-group) x)))
                        group)
         intervals-min (apply min intervals)
         intervals-max (apply max intervals)
@@ -110,13 +111,18 @@
                                  contour-coll))
            (concat contour-coll (first contour)))))
 
-(let [mel (partition 4 4 [] [0 2 4 7 0 2 4 7 0 2 4 7 0 2 4 7])
-      ;; contour (partition 4 4 [] (cycle (range 60 80 3)))]
-      contour (partition 4 4 [] (cycle [65 65 65 65 70 70 70]))]
-  (find-contours mel contour [] []))
+(defn apply-contour-to-melody
+  [melody contour]
+  (let [mel (partition 4 4 [] melody)
+        contour (partition 4 4 [] contour)]
+    (find-contours mel contour [] [])))
 
+(apply-contour-to-melody
+ [0 2 4 7]
+ [10 10 10 10])
 
 ;; pass in earlier stages to improve result
 ;; (let [a [[0] [987] [1 2] [3 4] [5 6]]]
 ;;   (apply combinatorics/cartesian-product a))
  
+

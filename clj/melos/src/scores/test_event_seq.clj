@@ -86,8 +86,25 @@
 
 (transpose-motif-gradually [0 2 7])
 
+(require '[melos.tools.contour :refer [apply-contour-to-melody]])
+
 (def morph
-  {:pitch (transpose-motif-gradually [0 12 14 2])
+  {:pitch (apply-contour-to-melody
+           (map #(rem % 12)
+                (transpose-motif-gradually [0 2 3 7 5]))
+                ;; [
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+                ;;  0 5 7 12 0 5 7 12 0 5 7 12 0 5 7 12
+
+
+                ;;  ])
+           (cycle (concat (range -10 2)
+                          (reverse (range 1 -9)))))
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(mapply make-note x)])
@@ -95,7 +112,6 @@
    :duration [1/4 1/4]})
 
 (->> (take 400 (unfold-events morph))
-;; (->> (take 5 (unfold-events chords))
-     ;; (map (fn [x] [x]))
      (export-single-event-seq :upper)
      )
+
