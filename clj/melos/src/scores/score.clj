@@ -14,8 +14,6 @@
 
 (require '[clojure.pprint])
 
-(set! *print-length* false)
-
 (defmethod print-method
   clojure.lang.Atom
   [x ^java.io.Writer w]
@@ -115,6 +113,7 @@
        (make-score (initial-score-segment))
        (map compose-segment)
        (map :parts-tree)))
+
 
 (time
 (export-to-json "/Users/fred/Desktop/score.json"
