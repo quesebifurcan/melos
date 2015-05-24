@@ -121,8 +121,9 @@
  [0 2 4 7]
  [10 10 10 10])
 
+;;
+
 ;; pass in earlier stages to improve result
 ;; (let [a [[0] [987] [1 2] [3 4] [5 6]]]
 ;;   (apply combinatorics/cartesian-product a))
  
-
