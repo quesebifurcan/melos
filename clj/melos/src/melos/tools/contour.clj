@@ -6,7 +6,7 @@
 (defn round-to-nearest
   [n base]
   (int (* base (math/round (/ n base)))))
-  
+
 (defn get-options
   [center-pitch pc]
   (let [pivot (round-to-nearest center-pitch 12)]
@@ -15,7 +15,7 @@
           :else
           [(- pivot (- 12 pc)) (+ pivot pc)])))
 
-(get-options 62 3)
+;; (get-options 62 3)
 
 (defn score-distance
   [center-pitches pitches]
@@ -74,7 +74,6 @@
         intervals-max (apply max intervals)
         intervals (normalize intervals
                              intervals-min intervals-max)]
-        
     (map (fn [pitches distance interval]
            {:pitches pitches
             :distance distance
@@ -121,9 +120,3 @@
  [0 2 4 7]
  [10 10 10 10])
 
-;;
-
-;; pass in earlier stages to improve result
-;; (let [a [[0] [987] [1 2] [3 4] [5 6]]]
-;;   (apply combinatorics/cartesian-product a))
- 

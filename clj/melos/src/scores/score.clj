@@ -51,7 +51,7 @@
                       :part-counts {:upper 1
                                     :lower 1
                                     :ped 1}
-                      :max-lingering 7
+                      :max-lingering 5
                       :diss-value 1.6}))
 
 (def part-seq
@@ -94,7 +94,7 @@
    ;; {:count 30 :part-seq [:ped :lower :lower :upper :upper :ped]}
    ])
 
-(defn compose-partial-score 
+(defn compose-partial-score
   []
   (->> (changes)
        (make-score (initial-score-segment))
@@ -114,11 +114,10 @@
        (map compose-segment)
        (map :parts-tree)))
 
-
 (time
-(export-to-json "/Users/fred/Desktop/score.json"
-                (-> (compose-score)
-                    (rtm/update-children))))
+ (export-to-json "/Users/fred/Desktop/score.json"
+                 (-> (compose-score)
+                     (rtm/update-children))))
 
 ;; TODO: rhythms from event-count.
 ;; TODO: attach time-signatures.
@@ -142,7 +141,6 @@
 ;; ScoreSegment -- input to (segment-graph)
 ;; PartialScoreSegment -- output of (changes); input to (make-score)
 
-;; Persist as json. 
+;; Persist as json.
 ;; (export-to-json "/Users/fred/Desktop/score.json"
 ;;                 (compose-score))
-

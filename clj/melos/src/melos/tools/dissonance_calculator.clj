@@ -61,7 +61,7 @@
       (uniquify-pitches-in-chord)
       (count)
       (triangular-n)))
-      
+
 (defn- dissonance-value-fn
   "Given a mapping between intervals and dissonance-values, the
   collection *pitches* can be assigned a dissonance-value."

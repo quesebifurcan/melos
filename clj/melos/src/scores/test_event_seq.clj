@@ -77,7 +77,7 @@
   (let [transpositions (reductions + 0 (repeat 12 7))
         tails (map (fn [increment]
                      (map (fn [x] (+ x increment))
-                          (rest pitches))) 
+                          (rest pitches)))
                    transpositions)
         result (map (fn [x] (concat [(first pitches)] x))
                     tails)]
@@ -89,21 +89,45 @@
 (require '[melos.tools.contour :refer
            [apply-contour-to-melody]])
 
-;;
+(require '[melos.tools.utils :refer [rotate]])
+
+;; tranpose by fifths, one note at a time.
+;; repeat sections (after the contour has been applied).
+
+(defn repeat-segments
+  [motif split repeat-n]
+  (let [segments (partition split motif)]
+    (flatten (mapcat (fn [x] (repeat repeat-n x))
+                     segments))))
+
+(defn transpose-motif-by-fifths
+  [motif index-seq]
+  (let [result (update-in motif
+                          [(rem (first index-seq) (count motif))]
+                          (fn [x] (rem (+ x 7) 12)))]
+    (lazy-seq (cons result (transpose-motif-by-fifths result (rotate index-seq))))))
+
+(def morph-pitches
+  (-> (take 30 (transpose-motif-by-fifths [0 2 7] [1 2]))
+      (flatten)
+      (apply-contour-to-melody (cycle [0.2]))
+      (repeat-segments 6 3)
+      ))
 
 (def morph
-  {:pitch (apply-contour-to-melody
-           (map #(rem % 12)
-                (transpose-motif-gradually [0 2 3 7 5]))
-           (cycle (concat (range -10 2)
-                          (reverse (range 1 -9)))))
+  {:pitch morph-pitches
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(mapply make-note x)])
    :partition (fn [x] (partition 1 x))
    :duration [1/4 1/4]})
 
-(->> (take 400 (unfold-events chords))
+morph-pitches
+
+(->> (take 400 (unfold-events morph))
      (export-single-event-seq :upper)
      )
 
+(apply-contour-to-melody
+ [12 1 12 3]
+ [0 0 0 0])
