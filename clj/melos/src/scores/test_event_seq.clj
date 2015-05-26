@@ -96,6 +96,7 @@
 
 (defn repeat-segments
   [motif split repeat-n]
+  ;; TODO: different ways to partition motif.
   (let [segments (partition split motif)]
     (flatten (mapcat (fn [x] (repeat repeat-n x))
                      segments))))
@@ -109,9 +110,10 @@
 
 (defn morph-pitches
   []
-  (-> (transpose-motif-by-fifths [0 2 7] [1 2])
+  (-> (transpose-motif-by-fifths [0 2 4 7] [1 3])
       (repeat-segments 6 3)
       ;; N.B. gradually rising melody.
+      ;; TODO: cache results.
       (apply-contour-to-melody (cycle (range 0.2 10.2 0.1)))
       (flatten)
       ))
@@ -126,7 +128,7 @@
    :duration [1/4 1/4]})
 
 (time
-(->> (take 100 (unfold-events (morph)))
+(->> (take 1000 (unfold-events (morph)))
      (export-single-event-seq :upper)
      ))
 
