@@ -105,29 +105,31 @@
   (let [result (update-in motif
                           [(rem (first index-seq) (count motif))]
                           (fn [x] (rem (+ x 7) 12)))]
-    (lazy-seq (cons result (transpose-motif-by-fifths result (rotate index-seq))))))
+    (lazy-seq (concat result (transpose-motif-by-fifths result (rotate index-seq))))))
 
-(def morph-pitches
-  (-> (take 30 (transpose-motif-by-fifths [0 2 7] [1 2]))
-      (flatten)
-      (apply-contour-to-melody (cycle [0.2]))
+(defn morph-pitches
+  []
+  (-> (transpose-motif-by-fifths [0 2 7] [1 2])
       (repeat-segments 6 3)
+      ;; N.B. gradually rising melody.
+      (apply-contour-to-melody (cycle (range 0.2 10.2 0.1)))
+      (flatten)
       ))
 
-(def morph
-  {:pitch morph-pitches
+(defn morph
+  []
+  {:pitch (take 1000 (morph-pitches))
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(mapply make-note x)])
    :partition (fn [x] (partition 1 x))
    :duration [1/4 1/4]})
 
-morph-pitches
-
-(->> (take 400 (unfold-events morph))
+(time
+(->> (take 100 (unfold-events (morph)))
      (export-single-event-seq :upper)
-     )
+     ))
 
-(apply-contour-to-melody
- [12 1 12 3]
- [0 0 0 0])
+;; (apply-contour-to-melody
+;;  [12 1 12 3]
+;;  [0 0 0 0])

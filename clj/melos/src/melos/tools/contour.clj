@@ -97,18 +97,34 @@
        (first)
        (:pitches)))
 
+;; (defn find-contours
+;;   [melody contour melody-coll contour-coll]
+;;   (if (empty? melody)
+;;     melody-coll
+;;     (recur (rest melody)
+;;            (rest contour)
+;;            (concat melody-coll
+;;                    (find-contour (first melody)
+;;                                  (first contour)
+;;                                  ;; (take 10 melody-coll)
+;;                                  melody-coll
+;;                                  contour-coll))
+;;            (concat contour-coll (first contour)))))
+
 (defn find-contours
   [melody contour melody-coll contour-coll]
-  (if (empty? melody)
-    melody-coll
-    (recur (rest melody)
-           (rest contour)
-           (concat melody-coll
-                   (find-contour (first melody)
-                                 (first contour)
-                                 melody-coll
-                                 contour-coll))
-           (concat contour-coll (first contour)))))
+    (let [result
+          (find-contour (first melody)
+                        (first contour)
+                        ;; (take 10 melody-coll)
+                        melody-coll
+                        contour-coll)]
+      (lazy-seq (cons result
+                      (find-contours
+                       (rest melody)
+                       (rest contour)
+                       (concat (take-last 3 melody-coll) result)
+                       (concat (take-last 3 contour-coll) (first contour)))))))
 
 (defn apply-contour-to-melody
   [melody contour]
@@ -116,7 +132,9 @@
         contour (partition 4 4 [] contour)]
     (find-contours mel contour [] [])))
 
-(apply-contour-to-melody
- [0 2 4 7]
- [10 10 10 10])
+;; (time
+;; (doall (take 1000 (apply-contour-to-melody
+;;  (cycle [0 2 4 7])
+;;  (cycle [0]))
+;;  )))
 
