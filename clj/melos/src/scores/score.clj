@@ -131,6 +131,8 @@
 
 ;; TODO: "Cascading" or short-circuiting modifications applied to durations?
 
+;; TODO: other dissonant-maps, i.e. treating M3s as dissonances.
+
 ;; Using graphs introduces a clear separation between:
 ;; 1. Values that are *given*, i.e. the compositional interface, and
 ;; 2. Values that are *calculated*, i.e. derived from the compositional interface.

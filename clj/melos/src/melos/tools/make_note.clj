@@ -1,6 +1,6 @@
 (ns melos.tools.make-note)
 
-(defn make-note 
+(defn make-note-
   "Make a representation of a musical note."
   [& {:keys [pitch onset color delta-dur duration group
              desired-sustain part count merge-left? merge-right?
@@ -33,3 +33,6 @@
    :onset onset
    :part part
    :count count})
+
+(def make-note
+  (memoize make-note-))

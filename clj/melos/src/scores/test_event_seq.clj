@@ -110,17 +110,17 @@
 
 (defn morph-pitches
   []
-  (-> (transpose-motif-by-fifths [0 2 4 7] [1 3])
+  (-> (transpose-motif-by-fifths [0 2 7] [1 2])
       (repeat-segments 6 3)
       ;; N.B. gradually rising melody.
       ;; TODO: cache results.
-      (apply-contour-to-melody (cycle (range 0.2 10.2 0.1)))
+      (apply-contour-to-melody (cycle [0.2]))
       (flatten)
       ))
 
 (defn morph
   []
-  {:pitch (take 1000 (morph-pitches))
+  {:pitch (take 40 (morph-pitches))
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(mapply make-note x)])
@@ -128,9 +128,12 @@
    :duration [1/4 1/4]})
 
 (time
-(->> (take 1000 (unfold-events (morph)))
-     (export-single-event-seq :upper)
-     ))
+ (->> (take 40 (unfold-events (morph)))
+      (export-single-event-seq :upper)
+      ))
+
+;; (take 1000 (morph-pitches)))
+
 
 ;; (apply-contour-to-melody
 ;;  [12 1 12 3]

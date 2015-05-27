@@ -97,6 +97,9 @@
        (first)
        (:pitches)))
 
+(def find-contour-memoized
+  (memoize find-contour))
+
 ;; (defn find-contours
 ;;   [melody contour melody-coll contour-coll]
 ;;   (if (empty? melody)
@@ -114,11 +117,11 @@
 (defn find-contours
   [melody contour melody-coll contour-coll]
     (let [result
-          (find-contour (first melody)
-                        (first contour)
-                        ;; (take 10 melody-coll)
-                        melody-coll
-                        contour-coll)]
+          (find-contour-memoized (first melody)
+                                 (first contour)
+                                 ;; (take 10 melody-coll)
+                                 melody-coll
+                                 contour-coll)]
       (lazy-seq (cons result
                       (find-contours
                        (rest melody)
@@ -132,9 +135,9 @@
         contour (partition 4 4 [] contour)]
     (find-contours mel contour [] [])))
 
-;; (time
-;; (doall (take 1000 (apply-contour-to-melody
-;;  (cycle [0 2 4 7])
-;;  (cycle [0]))
-;;  )))
+(time
+(doall (take 1000 (apply-contour-to-melody
+ (cycle [0 2 4 7])
+ (cycle [0]))
+ )))
 
