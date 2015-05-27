@@ -38,7 +38,8 @@
 ;;   (s/both [s/Keyword]
 ;;           (s/pred is-valid-melody-reference?)))
 
-;; (defn is-valid-melody-reference [v]
+(defn is-valid-melody-reference [v]
+  true)
 ;;   (not (nil? (get-in es/organ v))))
 ;;   true)
 
@@ -72,7 +73,8 @@
   (get-in m ks))
 
 (defn is-valid-melody-reference? [v]
-  (not (nil? (get-in (es/organ) v))))
+  true)
+;;   (not (nil? (get-in (es/organ) v))))
 
 (defn are-valid-melody-references?
   [m]

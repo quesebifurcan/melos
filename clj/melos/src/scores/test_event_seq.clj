@@ -107,7 +107,7 @@
   (let [result (update-in motif
                           [(rem (first index-seq) (count motif))]
                           (fn [x] (rem (+ x 7) 12)))]
-    (lazy-seq (concat result (transpose-motif-by-fifths result (rotate index-seq))))))
+    (lazy-seq (concat result (transpose-motif-by-fifths- result (rotate index-seq))))))
 
 (defn transpose-motif-by-fifths
   [motif index-seq]
