@@ -133,6 +133,11 @@
 
 ;; TODO: other dissonant-maps, i.e. treating M3s as dissonances.
 
+;; FORM -- parameters.
+;; Melody-variables: contour (register), expansion-type (applied to melody), repetition-type,
+;; Section-variables: duration-scalar, dissonance-map, dissonance-fn,
+;; melody-sources, count, time-signatures, dissonance-duration modifications
+
 ;; Using graphs introduces a clear separation between:
 ;; 1. Values that are *given*, i.e. the compositional interface, and
 ;; 2. Values that are *calculated*, i.e. derived from the compositional interface.
