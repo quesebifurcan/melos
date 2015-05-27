@@ -115,7 +115,7 @@
 
 (defn morph-pitches
   []
-  (-> (transpose-motif-by-fifths [0 2 7] [1 1 2])
+  (-> (transpose-motif-by-fifths [0 2 7] [1 2])
       (repeat-segments 6 3)
       ;; N.B. gradually rising melody.
       ;; TODO: cache results.
