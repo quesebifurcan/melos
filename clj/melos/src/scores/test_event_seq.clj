@@ -86,6 +86,7 @@
 
 (transpose-motif-gradually [0 2 7])
 
+
 (require '[melos.tools.contour :refer
            [apply-contour-to-melody]])
 
@@ -101,12 +102,16 @@
     (flatten (mapcat (fn [x] (repeat repeat-n x))
                      segments))))
 
-(defn transpose-motif-by-fifths
+(defn transpose-motif-by-fifths-
   [motif index-seq]
   (let [result (update-in motif
                           [(rem (first index-seq) (count motif))]
                           (fn [x] (rem (+ x 7) 12)))]
     (lazy-seq (concat result (transpose-motif-by-fifths result (rotate index-seq))))))
+
+(defn transpose-motif-by-fifths
+  [motif index-seq]
+  (concat motif (transpose-motif-by-fifths- motif index-seq)))
 
 (defn morph-pitches
   []
@@ -120,7 +125,7 @@
 
 (defn morph
   []
-  {:pitch (take 40 (morph-pitches))
+  {:pitch (take 800 (morph-pitches))
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(mapply make-note x)])
@@ -128,7 +133,7 @@
    :duration [1/4 1/4]})
 
 (time
- (->> (take 40 (unfold-events (morph)))
+ (->> (take 800 (unfold-events (morph)))
       (export-single-event-seq :upper)
       ))
 
