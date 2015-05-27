@@ -10,10 +10,10 @@
 (defn get-options
   [center-pitch pc]
   (let [pivot (round-to-nearest center-pitch 12)]
-    (cond (= (rem center-pitch 12) pc)
-          [(- pivot (- 12 pc)) center-pitch (+ center-pitch 12)]
-          :else
-          [(- pivot (- 12 pc)) (+ pivot pc)])))
+    ;; (cond (= (rem center-pitch 12) pc)
+    ;;       [(- pivot (- 12 pc)) center-pitch (+ center-pitch 12)]
+    ;;       :else
+          [(- pivot (- 12 pc)) (+ pivot pc) (+ pivot pc 12)]))
 
 ;; (get-options 62 3)
 
@@ -56,10 +56,10 @@
         ;; group (concat old-group group)
         distances (map (fn [x]
                          (score-distance
-                          (concat (take-last 4
+                          (concat (take-last 5
                                              old-center-pitches)
                                   center-pitches)
-                          (concat (take-last 4 old-group)
+                          (concat (take-last 5 old-group)
                                   x)))
                        group)
         distance-min (apply min distances)
@@ -68,7 +68,7 @@
                              distance-min distance-max)
         intervals (map (fn [x]
                          (score-interval-sizes
-                          (concat (take-last 4 old-group) x)))
+                          (concat (take-last 5 old-group) x)))
                        group)
         intervals-min (apply min intervals)
         intervals-max (apply max intervals)
@@ -126,13 +126,13 @@
                       (find-contours
                        (rest melody)
                        (rest contour)
-                       (concat (take-last 3 melody-coll) result)
-                       (concat (take-last 3 contour-coll) (first contour)))))))
+                       (concat (take-last 5 melody-coll) result)
+                       (concat (take-last 5 contour-coll) (first contour)))))))
 
 (defn apply-contour-to-melody
   [melody contour]
-  (let [mel (partition 4 4 [] melody)
-        contour (partition 4 4 [] contour)]
+  (let [mel (partition 5 5 [] melody)
+        contour (partition 5 5 [] contour)]
     (find-contours mel contour [] [])))
 
 (time
