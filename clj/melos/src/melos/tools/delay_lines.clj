@@ -124,32 +124,24 @@
         (filter zero-count? events)
         (recur limit candidates))))))
 
-(defn- forward-time
-  "Increment :count of all events."
-  [events]
+(s/defn forward-time
+  :- ms/VerticalMoment
+  [events :- ms/VerticalMoment]
   (->> events
-       (map #(update-in % [:count] inc))
-       (filter :allow-extension?)))
+       (filter :allow-extension?)
+       (map #(update-in % [:count] inc))))
 
-(defn distinct-event?
-  "Are events distinct? TODO: more elegance."
-  [a b]
-  (if (not (= (:group a) (:group b)))
-    true
-    (not (and (apply = (map :pitch [a b]))
-              (apply = (map :part [a b]))))))
+(s/defn join-events
+  :- ms/VerticalMoment
+  [new-event :- ms/VerticalMoment
+   events :- ms/VerticalMoment]
+  ;; TODO: filter distinct events.
+  (concat events new-event))
 
-(defn- remove-duplicated-events [events event]
-  (filter #(distinct-event? % event) events))
-
-(defn- join-events
-  "Concat *new-event* and *events*, ensuring that all events are
-  distinct."
-  [new-event events]
-  (let [deduped (remove-duplicated-events events new-event)]
-    (concat deduped new-event)))
-
-(defn filter-parts-by-count [part-counts events]
+(s/defn filter-parts-by-count
+  :- ms/VerticalMoment
+  [part-counts :- ms/PartCountMap
+   events :- ms/VerticalMoment]
   (mapcat (fn [[part-name limit]]
             (filter-by-count-aggressive
              limit
@@ -160,7 +152,8 @@
   "Return a function which can be used to control dissonance values in
   one segment of the piece."
   [{:keys [max-count part-count part-counts
-           diss-value max-lingering]}]
+           diss-value max-lingering] :as m}]
+  (s/validate ms/DissonanceFnParams m)
   (fn [events event]
     (->> events
          (forward-time)
@@ -168,12 +161,6 @@
          ;; TODO: activate either filter-by-count-aggressive or
          ;; filter-parts-by-count.
          ;; (filter-by-count-aggressive max-count)
-
          (filter-parts-by-count part-counts)
          (filter-by-time-in-vertical-moment max-lingering)
-         (filter-by-dissonance-value diss-value)
-
-         ;; ((fn [x]
-         ;;    (do (println x)
-         ;;        x)))
-         )))
+         (filter-by-dissonance-value diss-value))))

@@ -18,14 +18,14 @@
                      :part part
                      :count 0})
           ]
-          ;; [(make-note {:pitch 24
+          ;; (make-note {:pitch 24
           ;;            :delta-dur duration
           ;;            :duration duration
           ;;            :allow-extension? true
           ;;            :group group
           ;;            :merge-right? true
           ;;            :part part
-          ;;            :count 0})
+          ;;            :count 0})]
           ]))
        pitches durations))
 
@@ -87,4 +87,3 @@
    :lower {:a (pendulum-2 :lower)}
    :ped {:a (lindenmayer-1 :ped 10)
          :b (lindenmayer-1 :ped 7)}})
-
