@@ -30,4 +30,3 @@
   (is (= true (zero-count? (make-note {:count 0})))))
 
 (deftest test-part-count-ok?)
-  

@@ -82,7 +82,9 @@
    :intensity s/Num
    :count s/Int})
 
-(def VerticalMoment [Note])
+(def VerticalMoment
+  (s/both (s/pred (complement nil?)) 
+          [Note]))
 
 (defn nested-contains?
   [m ks]
