@@ -36,68 +36,56 @@
   ((complement nil?)
    (some #(= % 0) (map :count vertical-moment))))
 
-;; (s/defn part-count-ok
-;;   :- s/Bool
-;;   [vertical-moment :- ms/VerticalMoment
-;;    part :- ms/PartName
-;;    limit :- s/Num]
-;;   (->> vertical-moment
-;;        (map part)
-;;        (count)
-;;        (>= limit)))
+(s/defn get-candidates
+  [events]
+  (combinatorics/combinations events
+                              (- (count events) 1)))
 
-(defn- find-best-candidate
-  ;; "Helper function for filter-by-count. Finds the least dissonant
-  ;; subset of events."
-  [f events limit]
-  (let [candidates 
-        (combinatorics/combinations events (- (count events) 1))]
+(s/defn find-best-candidate
+  :- ms/VerticalMoment
+  [f :- s/Any
+   events :- ms/VerticalMoment
+   limit :- s/Num]
+  (let [candidates (get-candidates events)]
     (->> candidates
          (filter contains-zero-count)
          (sort-by dissonance-value)
          (first)
          (f limit))))
 
-;; FIXME: steady stream of NullPointerExceptions.
-(defn- filter-parts-by-count [limit events]
-  (->> events
-       (sort-by :part)
-       (partition-by :part)
-       (mapcat #(take limit %))))
-
-(defn- filter-by-count
-  "If *events* contain more elements than *limit* allows, recursively
-  reduce the number of elements until the collection is acceptable."
-  [limit events]
+(s/defn filter-by-count
+  :- ms/VerticalMoment
+  [limit :- s/Num
+   events :- ms/VerticalMoment]
   (if (<= (count events) limit)
     events
     (find-best-candidate filter-by-count events limit)))
 
-(defn- filter-by-count-aggressive
-  "Same as filter-by-count, except that when *events* contain more
-  elements than *limit* allows, only the most recently added elements
-  are kept. The musical effect is quite interesting -- more sudden and
-  radical shifts between consonance and dissonance."
-  [limit events]
+(s/defn filter-by-count-aggressive
+  :- ms/VerticalMoment
+  [limit :- s/Num
+   events :- ms/VerticalMoment]
   (if (<= (count events) limit)
     events
     (filter zero-count? events)))
 
-(defn- filter-by-time-in-vertical-moment
-  "Limit the amount of time an event can be sustained."
-  [limit events]
+(s/defn filter-by-time-in-vertical-moment
+  :- ms/VerticalMoment
+  [limit :- s/Num
+   events :- ms/VerticalMoment]
   (filter #(< (:count %) limit) events))
 
-(defn- all-parts-present?
-  "Are all *part-names* present in *events*?"
-  [part-names events]
-  (= (set part-names) (set (map :part events))))
+(s/defn all-parts-present?
+  :- s/Bool
+  [part-names :- [ms/PartName]
+   events :- ms/VerticalMoment]
+  (= (set part-names)
+     (set (map :part events))))
 
-(defn- best-part-match
-  "If *candidates* (a subset of *events*) contains all parts also
-  present in *events*, return that result. This is the \"preferred\"
-  outcome. Otherwise, return *candidates*."
-  [events candidates]
+(s/defn best-part-match
+  :- [ms/VerticalMoment]
+  [events :- ms/VerticalMoment
+   candidates :- [ms/VerticalMoment]]
   (let [result (filter (partial all-parts-present?
                                 (map :part events))
                        candidates)]
@@ -105,48 +93,35 @@
       candidates
       result)))
 
-(defn- total-count
-  "The sum of all :counts in *vertical-moment*. Indicates the average
-  \"age\" of *vertical-moment*. This value is used for ranking
-  different options. Younger generations are preferred (improves
-  melodic continuity)."
-  [vertical-moment]
-  (apply + (map :count vertical-moment)))
+(s/defn total-count
+  :- s/Int
+  [events :- ms/VerticalMoment]
+  (apply + (map :count events)))
 
-;; (defn print-wait [value]
-;;   (do (println value)
-;;       (Thread/sleep 3000)
-;;       value))
+(s/defn group-events
+  :- [ms/VerticalMoment]
+  [events :- ms/VerticalMoment]
+  (->> events
+       (sort-by :group)
+       (partition-by :group)))
 
-(defn- filter-by-dissonance-value
-  "If *events* can be considered consonant, return *events*.
-  Otherwise, filter *events* recursively until collection is below the
-  dissonance threshold *limit*."
+(s/defn filter-by-dissonance-value
+  :- ms/VerticalMoment
   [limit events]
-  (let [
-          grouped-events (->> events
-                              (sort-by :group)
-                              (partition-by :group))
-        ]
+  (let [grouped-events (group-events events)]
   (if (or (< (count grouped-events) 2)
           (consonant? events limit))
     events
-    (let [
-          candidates (combinatorics/combinations
-                      grouped-events
-                      (- (count grouped-events) 1))
-          candidates (->> candidates
+    (let [candidates (->> (get-candidates grouped-events)
                           (map flatten)
                           (filter contains-zero-count)
                           (best-part-match events)
                           (sort-by total-count)
-                          (first)
-                          )
-          ]
+                          (first))]
       (if (empty? candidates)
         ;; If no candidates are valid, return a vector with the most
         ;; recently added events.
-        (filter #(= 0 (:count %)) events)
+        (filter zero-count? events)
         (recur limit candidates))))))
 
 (defn- forward-time
