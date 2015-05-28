@@ -5,36 +5,25 @@
             [melos.tools.schemata :as ms]
             [melos.tools.dissonance-calculator :as diss-calc]))
 
-(s/defn dissonance-contributor?
-  :- s/Bool
-  [x :- s/Any]
-  (number? x))
+(s/defn filter-dissonance-contributors
+  :- [s/Int]
+  [vertical-moment :- ms/VerticalMoment]
+  (->> vertical-moment
+       (filter #(:dissonance-contributor? %))
+       (map :pitch)
+       (filter number?)))
+
+(s/defn dissonance-value
+  :- s/Num
+  [vertical-moment]
+  (diss-calc/scaled-dissonance-value
+   (filter-dissonance-contributors vertical-moment)))
 
 (s/defn consonant?
   :- s/Bool
   [vertical-moment :- ms/VerticalMoment
    limit :- s/Num]
-  [vertical-moment limit]
-  (if (empty? vertical-moment)
-    true
-    ;; (do
-    ;;   (println
-    ;; (let [pitches (map :pitch vertical-moment)]
-    ;;   (diss-calc/scaled-dissonance-value pitches)))
-    (let [pitches (filter dissonance-contributor? (map :pitch
-                                                       (filter #(:dissonance-contributor? %)
-                                                               vertical-moment)))]
-      (<= (diss-calc/scaled-dissonance-value pitches)
-          limit))))
-
-(defn- dissonance-value
-  "The dissonance value of a given vertical-moment."
-  [vertical-moment]
-  (if (<= (count vertical-moment) 1)
-    0
-    (let [pitches (filter dissonance-contributor? (map :pitch (filter #(:dissonance-contributor? %)
-                                                                        vertical-moment)))]
-      (diss-calc/scaled-dissonance-value pitches))))
+  (<= (dissonance-value vertical-moment) limit))
 
 (defn- zero-count?
   "Test if *event* is the most recently added."
@@ -210,4 +199,3 @@
          ;;    (do (println x)
          ;;        x)))
          )))
-
