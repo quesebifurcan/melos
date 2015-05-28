@@ -24,3 +24,10 @@
       false (consonant? vertical-moment 0)
       true (consonant? vertical-moment 1000)
       true (consonant? [] 0))))
+
+(deftest test-zero-count
+  (is (= false (zero-count? (make-note {:count 8}))))
+  (is (= true (zero-count? (make-note {:count 0})))))
+
+(deftest test-part-count-ok?)
+  

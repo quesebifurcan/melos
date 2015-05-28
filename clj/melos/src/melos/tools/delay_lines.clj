@@ -15,7 +15,7 @@
 
 (s/defn dissonance-value
   :- s/Num
-  [vertical-moment]
+  [vertical-moment :- ms/VerticalMoment]
   (diss-calc/scaled-dissonance-value
    (filter-dissonance-contributors vertical-moment)))
 
@@ -25,30 +25,33 @@
    limit :- s/Num]
   (<= (dissonance-value vertical-moment) limit))
 
-(defn- zero-count?
-  "Test if *event* is the most recently added."
-  [event]
-  (= 0 (:count event)))
+(s/defn zero-count?
+  :- s/Bool
+  [note :- ms/Note]
+  (= 0 (:count note)))
 
-(defn- contains-zero-count
-  "Test if vertical moment contains the most recently added event(s)."
-  [vertical-moment]
-    (some #(= % 0) (map :count vertical-moment)))
+(s/defn contains-zero-count
+  :- s/Bool
+  [vertical-moment :- ms/VerticalMoment]
+  ((complement nil?)
+   (some #(= % 0) (map :count vertical-moment))))
 
-(defn- part-count-ok
-  "Given a maximum part-count *limit*, check if *vertical-moment* is
-  ok."
-  [vertical-moment part limit]
-  (->> vertical-moment
-       (map part)
-       (count)
-       (>= limit)))
+;; (s/defn part-count-ok
+;;   :- s/Bool
+;;   [vertical-moment :- ms/VerticalMoment
+;;    part :- ms/PartName
+;;    limit :- s/Num]
+;;   (->> vertical-moment
+;;        (map part)
+;;        (count)
+;;        (>= limit)))
 
 (defn- find-best-candidate
-  "Helper function for filter-by-count. Finds the least dissonant
-  subset of events."
+  ;; "Helper function for filter-by-count. Finds the least dissonant
+  ;; subset of events."
   [f events limit]
-  (let [candidates (combinatorics/combinations events (- (count events) 1))]
+  (let [candidates 
+        (combinatorics/combinations events (- (count events) 1))]
     (->> candidates
          (filter contains-zero-count)
          (sort-by dissonance-value)
