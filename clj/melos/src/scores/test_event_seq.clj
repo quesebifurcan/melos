@@ -1,10 +1,10 @@
 (ns scores.test-event-seq
-  (:require [melos.tools.rtm :refer [calculate-result update-children]]
-            [melos.tools.make-note :refer [make-note]]
-            [melos.tools.utils :refer [export-to-json
-                                       mapply]]
+  (:require [clojure.walk :as walk]
             [melos.tools.l-systems :refer [lindenmayer]]
-            ))
+            [melos.tools.make-note :refer [make-note]]
+            [melos.tools.rtm :refer [calculate-result update-children]]
+            [melos.tools.utils :refer [export-to-json
+                                       mapply]]))
 
 (defn compose-single-line
   [events]
@@ -132,14 +132,63 @@
    :partition (fn [x] (partition 1 x))
    :duration [1/4 1/4]})
 
-(time
- (->> (take 800 (unfold-events (morph)))
-      (export-single-event-seq :upper)
-      ))
+;; (time
+;;  (->> (take 800 (unfold-events (morph)))
+;;       (export-single-event-seq :upper)
+;;       ))
 
 ;; (take 1000 (morph-pitches)))
-
 
 ;; (apply-contour-to-melody
 ;;  [12 1 12 3]
 ;;  [0 0 0 0])
+
+;; TEST merging of independently evolving parameter-colls.
+
+(set! *print-length* 100)
+
+(require '[clojure.walk :as walk])
+
+(defn is-active-parameter?
+  [form i]
+  (and (map? form)
+       (contains? form :path)
+       (is-part-of-seq (:cycle form) i)))
+
+(defn is-part-of-seq
+  [s i]
+  (let [cycle-dur (apply + s)
+        i (rem i cycle-dur)]
+    (some #{i} (reductions + 0 s))))
+
+(defn current-value [{:keys [path values]}] [path (first values)])
+
+(defn transform-and-collect-event-if-active-at-index
+  [state i]
+  (let [coll (atom [])
+        new-state (walk/postwalk
+                   (fn [form] (if (is-active-parameter? form i)
+                                (do (swap! coll #(concat % (current-value form)))
+                                    (update-in form [:values] rotate))
+                                form))
+                   state)]
+    [new-state coll]))
+
+(defn maybe-coll-change
+  [state i]
+  (let [[new-state coll] (transform-and-collect-event-if-active-at-index state i)]
+    (lazy-seq (cons @coll
+                    (maybe-coll-change new-state (inc i))))))
+
+(let [a [
+         {:path [:part-seq :lower]
+          :cycle [3]
+          :values [1 2 3]}
+         {:path [:part-seq :upper]
+          :cycle [4 5 1 1]
+          :values [4 5 6]}
+         {:path [:diss-fn]
+          :cycle [13]
+          :values ["a" "b"]}
+         ]]
+  (take 40 (maybe-coll-change a 0)))

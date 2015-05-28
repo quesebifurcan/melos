@@ -6,3 +6,4 @@
   [rule depth s]
   (if (zero? depth) s
     (mapcat #(lindenmayer rule (dec depth) (rule % [%])) s)))
+

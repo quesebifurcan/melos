@@ -71,7 +71,7 @@
          (uniquify-pitches-in-chord)
          (all-intervals)
          (inversion-equivalent-pitchclasses)
-         (map mapping)
+         (map (map mapping))
          (apply +))))
 
 (def dissonance-value (dissonance-value-fn dissonance-map))
