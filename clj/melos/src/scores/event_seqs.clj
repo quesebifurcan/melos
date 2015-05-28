@@ -9,23 +9,23 @@
   (map (fn [pitch duration]
          (let [group (gensym "G__")]
          [[
-          (make-note :pitch pitch
+          (make-note {:pitch pitch
                      :delta-dur duration
                      :duration duration
                      :allow-extension? true
                      :group group
                      :merge-right? true
                      :part part
-                     :count 0)
+                     :count 0})
           ]
-          ;; [(make-note :pitch 24
+          ;; [(make-note {:pitch 24
           ;;            :delta-dur duration
           ;;            :duration duration
           ;;            :allow-extension? true
           ;;            :group group
           ;;            :merge-right? true
           ;;            :part part
-          ;;            :count 0)
+          ;;            :count 0})
           ]))
        pitches durations))
 
@@ -34,19 +34,19 @@
   (map (fn [pitch duration]
          (let [group (gensym "G__")]
          [[
-          (make-note :pitch pitch
+          (make-note {:pitch pitch
                      :delta-dur duration
                      :duration duration
                      :group group
                      :dissonance-contributor? true
                      :merge-left? true
                      :part part
-                     :count 0)
-          ;; (make-note :pitch 9
+                     :count 0})
+          ;; (make-note {:pitch 9
           ;;            :delta-dur duration
           ;;            :group group
           ;;            :part :lower
-          ;;            :count 0)
+          ;;            :count 0})
           ]]))
        pitches durations))
 
@@ -74,10 +74,10 @@
                  pitches
                  (cycle [4/4]))))
 
-(require '[scores.test-event-seq :refer [chords
-                                         alternating-pitch-rest
-                                         morph
-                                         unfold-events]])
+;; (require '[scores.test-event-seq :refer [chords
+;;                                          alternating-pitch-rest
+;;                                          morph
+;;                                          unfold-events]])
 
 (defn organ
   []
@@ -87,5 +87,4 @@
    :lower {:a (pendulum-2 :lower)}
    :ped {:a (lindenmayer-1 :ped 10)
          :b (lindenmayer-1 :ped 7)}})
-
 

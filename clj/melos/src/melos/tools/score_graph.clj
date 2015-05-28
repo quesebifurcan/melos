@@ -15,6 +15,7 @@
                                                   segment-vertical-moment]]
               [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
+              [dire.core :refer [with-handler!]]
               [melos.tools.onsets :refer [get-melodic-event
                                        get-onsets]]))
 

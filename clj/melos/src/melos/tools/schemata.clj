@@ -32,7 +32,6 @@
    :delta-dur s/Any
    :color s/Any})
 
-(def VerticalMoment [s/Any])
 
 ;; (def Part->Event
 ;;   (s/both [s/Keyword]
@@ -61,12 +60,29 @@
                (keys ScoreSegment))
           (vals ScoreSegment)))
 
+;; (def Note
+;;   {:pitch Pitch
+;;    :delta-dur s/Num
+;;    :part PartName
+;;    :count s/Num
+;;    :onset s/Num})
+
 (def Note
-  {:pitch Pitch
+  {:pitch s/Int
    :delta-dur s/Num
+   :duration s/Num
+   :dissonance-contributor? s/Bool
+   :allow-extension? s/Bool
+   :color s/Any
+   :merge-left? s/Bool
+   :merge-right? s/Bool
+   :group s/Any
+   :onset s/Num
    :part PartName
-   :count s/Num
-   :onset s/Num})
+   :intensity s/Num
+   :count s/Int})
+
+(def VerticalMoment [Note])
 
 (defn nested-contains?
   [m ks]

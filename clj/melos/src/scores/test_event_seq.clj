@@ -3,8 +3,12 @@
             [melos.tools.l-systems :refer [lindenmayer]]
             [melos.tools.make-note :refer [make-note]]
             [melos.tools.rtm :refer [calculate-result update-children]]
-            [melos.tools.utils :refer [export-to-json
-                                       mapply]]))
+            [melos.tools.contour :refer
+             [apply-contour-to-melody]]
+
+            [melos.tools.utils :refer [rotate]]
+
+            [melos.tools.utils :refer [export-to-json]]))
 
 (defn compose-single-line
   [events]
@@ -50,7 +54,7 @@
                   (range 0 10))
    :dissonance-contributor? [false]
    :part [:upper]
-   :fn (fn [x] [(mapply make-note x)])
+   :fn (fn [x] [(make-note x)])
    :partition (fn [x] (partition 1 x))
    :duration [1/4 2/4]})
 
@@ -58,7 +62,7 @@
   {:pitch ['([0 2 4] 1) [3 10 14]]
    :dissonance-contributor? [false]
    :part [:upper]
-   :fn (fn [x] (->> (mapply make-note x)
+   :fn (fn [x] (->> (make-note x)
                     (split-if-chord)
                     ;; (map split-if-chord)))
                     ))
@@ -86,11 +90,6 @@
 
 (transpose-motif-gradually [0 2 7])
 
-
-(require '[melos.tools.contour :refer
-           [apply-contour-to-melody]])
-
-(require '[melos.tools.utils :refer [rotate]])
 
 ;; tranpose by fifths, one note at a time.
 ;; repeat sections (after the contour has been applied).
@@ -128,14 +127,14 @@
   {:pitch (take 800 (morph-pitches))
    :dissonance-contributor? [true]
    :part [:upper]
-   :fn (fn [x] [(mapply make-note x)])
+   :fn (fn [x] [(make-note x)])
    :partition (fn [x] (partition 1 x))
    :duration [1/4 1/4]})
 
-;; (time
-;;  (->> (take 800 (unfold-events (morph)))
-;;       (export-single-event-seq :upper)
-;;       ))
+(time
+ (->> (take 800 (unfold-events (morph)))
+      (export-single-event-seq :upper)
+      ))
 
 ;; (take 1000 (morph-pitches)))
 
@@ -145,21 +144,19 @@
 
 ;; TEST merging of independently evolving parameter-colls.
 
-(set! *print-length* 100)
-
 (require '[clojure.walk :as walk])
-
-(defn is-active-parameter?
-  [form i]
-  (and (map? form)
-       (contains? form :path)
-       (is-part-of-seq (:cycle form) i)))
 
 (defn is-part-of-seq
   [s i]
   (let [cycle-dur (apply + s)
         i (rem i cycle-dur)]
     (some #{i} (reductions + 0 s))))
+
+(defn is-active-parameter?
+  [form i]
+  (and (map? form)
+       (contains? form :path)
+       (is-part-of-seq (:cycle form) i)))
 
 (defn current-value [{:keys [path values]}] [path (first values)])
 

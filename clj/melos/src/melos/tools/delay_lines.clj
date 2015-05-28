@@ -1,15 +1,19 @@
 (ns melos.tools.delay-lines
   (:require [clojure.math.combinatorics :as combinatorics]
             [clojure.math.numeric-tower :as math]
+            [schema.core :as s]
+            [melos.tools.schemata :as ms]
             [melos.tools.dissonance-calculator :as diss-calc]))
 
-(defn dissonance-contributor?
-  [x]
+(s/defn dissonance-contributor?
+  :- s/Bool
+  [x :- s/Any]
   (number? x))
 
-(defn- consonant?
-  "Given a maximum allowed degree of dissonance (*limit*), test if
-  *vertical-moment* is consonant."
+(s/defn consonant?
+  :- s/Bool
+  [vertical-moment :- ms/VerticalMoment
+   limit :- s/Num]
   [vertical-moment limit]
   (if (empty? vertical-moment)
     true
@@ -121,7 +125,7 @@
 ;;   (do (println value)
 ;;       (Thread/sleep 3000)
 ;;       value))
-  
+
 (defn- filter-by-dissonance-value
   "If *events* can be considered consonant, return *events*.
   Otherwise, filter *events* recursively until collection is below the
@@ -206,3 +210,4 @@
          ;;    (do (println x)
          ;;        x)))
          )))
+

@@ -228,14 +228,14 @@
         %)
      measure))
 
-(def events
-  (let [pitches (range -10 30)
-        durations (cycle [17/4 3/4 1/4 1/4 6/4 3/4])]
-    (into [] (map (fn [x y] [(make-note :pitch x :duration y)
-                             (make-note :pitch 0 :duration y)
-                             ])
-                  pitches
-                  durations))))
+;; (def events
+;;   (let [pitches (range -10 30)
+;;         durations (cycle [17/4 3/4 1/4 1/4 6/4 3/4])]
+;;     (into [] (map (fn [x y] [(make-note :pitch x :duration y)
+;;                              (make-note :pitch 0 :duration y)
+;;                              ])
+;;                   pitches
+;;                   durations))))
 
 (defn get-durations
   [vertical-moments]

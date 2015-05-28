@@ -112,7 +112,10 @@
   (->> (changes)
        (make-score (initial-score-segment))
        (map compose-segment)
-       (map :parts-tree)))
+       (map :parts-tree)
+       ))
+
+(s/set-fn-validation! true)
 
 (time
  (export-to-json "/Users/fred/Desktop/score.json"
