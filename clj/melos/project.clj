@@ -7,7 +7,8 @@
                  [org.clojure/tools.trace "0.7.8"]
                  [prismatic/plumbing "0.4.2"]
                  [com.taoensso/timbre "3.4.0"]
+                 [dire "0.5.3"]
                  [prismatic/schema "0.4.0"]]
-  :global-vars {*print-length* 10}
+  :global-vars {*print-length* 40}
   :plugins [[lein-marginalia "0.8.0"]])
 
