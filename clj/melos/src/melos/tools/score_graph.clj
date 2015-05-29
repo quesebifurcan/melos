@@ -8,11 +8,7 @@
                                       ratio->non-reduced-ratio-vector
                                       merge-in]]
               [melos.tools.selector-sequence :refer [collect-events-in-segment]]
-              [melos.tools.calc-time-signatures :as time-signatures]
               [melos.tools.modify-durations :as mod-dur]
-              [melos.tools.segment-durations :refer [get-durations
-                                                  get-segmented-durations
-                                                  segment-vertical-moment]]
               [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
               [dire.core :refer [with-handler!]]
