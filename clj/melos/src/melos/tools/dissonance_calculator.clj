@@ -31,30 +31,30 @@
                   interval->dissonance)))
 
 (s/defn uniquify-pitches-in-chord
-  :- #{s/Int}
-  [chord :- [s/Int]]
+  :- #{ms/Pitch}
+  [chord :- [ms/Pitch]]
   (into #{} (map #(rem % 12) chord)))
 
 (s/defn inversion-equivalent-pitchclass
-  :- s/Int
-  [pc :- s/Int]
+  :- ms/Pitch
+  [pc :- ms/Pitch]
   (let [pc (rem pc 12)]
     (if (> pc 6) (- 12 pc) pc)))
 
 (s/defn inversion-equivalent-pitchclasses
-  :- [s/Int]
-  [pitches :- [s/Int]]
+  :- [ms/Pitch]
+  [pitches :- [ms/Pitch]]
   (map inversion-equivalent-pitchclass pitches))
 
 (s/defn all-intervals
-  :- [s/Int]
-  [pitches :- #{s/Int}]
+  :- [ms/Pitch]
+  [pitches :- #{ms/Pitch}]
   (map #(math/abs (apply - %))
        (combinatorics/combinations pitches 2)))
 
 (s/defn calc-dissonance-divisor
   :- s/Int
-  [pitches :- [s/Int]]
+  [pitches :- [ms/Pitch]]
   (-> pitches
       (uniquify-pitches-in-chord)
       (count)
@@ -63,7 +63,7 @@
 (s/defn dissonance-value-fn
   [mapping :- ms/DissonanceMapping]
   (s/fn :- s/Num
-    [pitches :- [s/Int]]
+    [pitches :- [ms/Pitch]]
     (->> pitches
          (uniquify-pitches-in-chord)
          (all-intervals)
