@@ -1,7 +1,7 @@
 (ns melos.tools.modify-durations)
 
 ;; "Horizontally" merge adjacent events.
-                                
+
 (defn can-merge?
   [curr next]
     (let [old-curr (filter #(> (:count %) 0) next)
@@ -169,4 +169,3 @@
          durations)))
 
 ;; (modify-durations test-sequence)
-

@@ -47,7 +47,6 @@
 
 (def lazy-segment-graph (graph/lazy-compile segment-graph))
 
-(s/defn ^:always-validate compose-segment
+(defn compose-segment
   [segment]
   (lazy-segment-graph segment))
-
