@@ -2,6 +2,8 @@
   (:require [clojure.math.combinatorics :as combinatorics]
             [clojure.algo.generic.functor :as functor]
             [clojure.math.numeric-tower :as math]
+            [schema.core :as s]
+            [melos.tools.schemata :as ms]
             [melos.tools.utils :refer [triangular-n]]))
 
 (def dissonance-map
@@ -28,45 +30,40 @@
     (functor/fmap #(math/expt % 10/9)
                   interval->dissonance)))
 
-(defn- uniquify-pitches-in-chord
-  "Given a chord, return a set of all its pitchclasses."
-  [chord]
+(s/defn uniquify-pitches-in-chord
+  :- #{s/Int}
+  [chord :- [s/Int]]
   (into #{} (map #(rem % 12) chord)))
 
-(defn- inversion-equivalent-pitchclass
-  "Given a pitchclass *pc*, convert it to an inversion-equivalent
-  pitchclass. See dissonance-map for further explanation."
-  [pc]
+(s/defn inversion-equivalent-pitchclass
+  :- s/Int
+  [pc :- s/Int]
   (let [pc (rem pc 12)]
     (if (> pc 6) (- 12 pc) pc)))
 
-(defn- inversion-equivalent-pitchclasses [pitches]
+(s/defn inversion-equivalent-pitchclasses
+  :- [s/Int]
+  [pitches :- [s/Int]]
   (map inversion-equivalent-pitchclass pitches))
 
-(defn- all-intervals
-  "Return a collection of all intervals which can be formed between
-  *pitches*."
-  [pitches]
+(s/defn all-intervals
+  :- [s/Int]
+  [pitches :- #{s/Int}]
   (map #(math/abs (apply - %))
        (combinatorics/combinations pitches 2)))
 
-(defn- calc-dissonance-divisor
-  "In order to be able to use the same dissonance-values for chords
-  with different numbers of notes, we need to scale the
-  dissonance-value of the chord based on the number of pitches it
-  contains. Turns out that the triangular series is appropriate for
-  that."
-  [pitches]
+(s/defn calc-dissonance-divisor
+  :- s/Int
+  [pitches :- [s/Int]]
   (-> pitches
       (uniquify-pitches-in-chord)
       (count)
       (triangular-n)))
 
-(defn- dissonance-value-fn
-  "Given a mapping between intervals and dissonance-values, the
-  collection *pitches* can be assigned a dissonance-value."
-  [mapping]
-  (fn [pitches]
+(s/defn dissonance-value-fn
+  [mapping :- ms/DissonanceMapping]
+  (s/fn :- s/Num
+    [pitches :- [s/Int]]
     (->> pitches
          (uniquify-pitches-in-chord)
          (all-intervals)
@@ -76,9 +73,9 @@
 
 (def dissonance-value (dissonance-value-fn dissonance-map))
 
-(defn scaled-dissonance-value
-  "Scale dissonance-value based on the number of pitches."
-  [pitches]
+(s/defn scaled-dissonance-value
+  :- s/Num
+  [pitches :- [ms/Pitch]]
   (if (empty? pitches)
     0
     (let [divisor (calc-dissonance-divisor pitches)]

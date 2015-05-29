@@ -20,8 +20,11 @@
                (keys ScoreSegment))
           (vals ScoreSegment)))
 
+(def Pitch
+  (s/both (s/pred (complement nil?)) s/Num))
+
 (def Note
-  {:pitch s/Int
+  {:pitch Pitch
    :delta-dur s/Num
    :duration s/Num
    :dissonance-contributor? s/Bool
@@ -36,8 +39,7 @@
    :count s/Int})
 
 (def VerticalMoment
-  (s/both (s/pred (complement nil?))
-          [Note]))
+  (s/both (s/pred (complement nil?)) [Note]))
 
 (def PartCountMap
   {PartName s/Int})
@@ -48,3 +50,6 @@
    :part-counts {PartName s/Int}
    :max-lingering s/Int
    :diss-value s/Num})
+
+(def DissonanceMapping {s/Num s/Num})
+
