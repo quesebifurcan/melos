@@ -131,10 +131,10 @@
    :partition (fn [x] (partition 1 x))
    :duration [1/4 1/4]})
 
-(time
- (->> (take 800 (unfold-events (morph)))
-      (export-single-event-seq :upper)
-      ))
+;; (time
+;;  (->> (take 800 (unfold-events (morph)))
+;;       (export-single-event-seq :upper)
+;;       ))
 
 ;; (take 1000 (morph-pitches)))
 

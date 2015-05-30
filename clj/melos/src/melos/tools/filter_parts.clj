@@ -22,5 +22,4 @@
 
 (defn split-out-part
   [tree part-name]
-  (let [all-parts (rtm/calculate-result tree)]
-    (->> (filter-by-part-names part-name all-parts))))
+  (filter-by-part-names part-name tree))

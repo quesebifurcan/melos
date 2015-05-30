@@ -139,19 +139,20 @@
   (map (comp :duration get-melodic-event) vertical-moments))
 
 (defn top-measure
-  [durations]
+  [durations measures]
   {:duration :?
    :top-level true
    :children (into []
                    (flatten
-                    (get-measures [measure-1 measure-2]
+                    (get-measures measures
                                   durations)))})
 
 (require '[melos.tools.utils :refer [export-to-json]])
 
 (defn calculate-result
-  [events]
-  (->> (set-events (top-measure (get-durations events))
+  [events time-signatures]
+  (->> (set-events (top-measure (get-durations events)
+                                time-signatures)
                    events)
        (:children)
        ((fn [x] {:children x}))

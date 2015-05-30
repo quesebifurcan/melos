@@ -6,6 +6,7 @@
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
+              [melos.tools.measures :as measures]
               [scores.main :refer [make-score
                                    compose-score]]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
@@ -48,7 +49,7 @@
    :diss-fn diss-fn
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
-   :time-signatures [4/4]
+   :time-signatures [measures/measure-2]
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))
    :count 200})

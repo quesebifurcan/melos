@@ -37,11 +37,14 @@
    :modified-durations
    (plumbing/fnk [dissonance-filtered-events]
                  (modify-durations dissonance-filtered-events))
+   :rhythmic-tree
+   (plumbing/fnk [time-signatures modified-durations]
+                 (rtm/calculate-result modified-durations
+                                       time-signatures))
    :parts-tree
-   (plumbing/fnk [part-names modified-durations]
+   (plumbing/fnk [part-names modified-durations rhythmic-tree]
                  (map (fn [x] {:part-name x
-                               :events (split-out-part
-                                        modified-durations x)
+                               :events (split-out-part rhythmic-tree x)
                                })
                       part-names))})
 
