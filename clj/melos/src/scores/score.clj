@@ -4,44 +4,14 @@
               [scores.event-seqs :refer [organ]]
               [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
-              [melos.tools.utils :refer [export-to-json
-                                         merge-in]]
-              [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
-              [melos.tools.score-graph :refer [
-                                     ;; segment->parts
-                                     compose-segment]]))
-
-;; ## Pretty-printing
-
-(require '[clojure.pprint])
-
-(defmethod print-method
-  clojure.lang.Atom
-  [x ^java.io.Writer w]
-  (.write w (str "#<" x ">")))
-
-(defn custom-print-atom [x]
-  (clojure.pprint/with-pprint-dispatch
-    print
-    (print x)))
-
-(. clojure.pprint/simple-dispatch
-   addMethod
-   clojure.lang.Atom
-   custom-print-atom)
-
-;; ## Score modelling
-
-(s/defn ^:always-validate make-score
-  ;; "Deep-merge a seq of maps with an initial score state. See
-  ;; src/scores.score.clj for more details."
-  :- [schemata/ScoreSegment]
-  [init :- schemata/ScoreSegment
-   changes :- [schemata/PartialScoreSegment]]
-  (->> (reductions merge-in init changes)
-       (rest)))
+              [melos.tools.utils :refer [merge-in
+                                         export-to-json]]
+              [scores.main :refer [make-score
+                                   compose-score]]
+              [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
 
 ;; Functions for controlling rhythmic aspects of the score.
+
 (declare rtm-fn)
 (declare time-signature-fn)
 
@@ -77,14 +47,13 @@
   {:part-seq part-seq
    :diss-fn diss-fn
    :part->event {:lower :a, :upper :a, :ped :a}
+   ;; TODO: pass in via score-graph.
    :time-signatures [4/4]
    :part-names [:upper :lower :ped]
-   :time-signature-fn time-signature-fn
-   :rtm-fn rtm-fn
    :melody-sources (atom (organ))
    :count 200})
 
-(s/defn ^:always-validate changes
+(s/defn changes
   :- [schemata/PartialScoreSegment]
   []
   "Each map represents a musical section. Only the *changes* (in
@@ -96,35 +65,12 @@
    [{:path [:count]
      :cycle [1]
      :values [10 20 30]}]
-   10))
-
-(defn compose-partial-score
-  []
-  (->> (changes)
-       (make-score (initial-score-segment))
-       (map compose-segment)))
-
-(defn compose-score
-  "Compose a score:
-
-  - Merge all changes into a seq of maps.
-  - Collect all melodic events and split the resulting data structure into
-  *segments*.
-  - Compose each segment.
-  "
-  []
-  (->> (changes)
-       (make-score (initial-score-segment))
-       (map compose-segment)
-       (map :parts-tree)
-       ))
-
-(s/set-fn-validation! true)
+   5))
 
 (time
  (export-to-json "/Users/fred/Desktop/score.json"
-                 (-> (compose-score)
-                     (rtm/update-children))))
+                 (compose-score (initial-score-segment)
+                                (changes))))
 
 ;; TODO: rhythms from event-count.
 ;; TODO: attach time-signatures.

@@ -6,9 +6,7 @@
 (def ScoreSegment
   ;; TODO: Annotate.
   {:part-seq [PartName]
-   :rtm-fn s/Any
    :diss-fn s/Any
-   :time-signature-fn s/Any
    :time-signatures s/Any
    :part-names [PartName]
    :part->event s/Any
