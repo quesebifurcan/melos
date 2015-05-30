@@ -37,7 +37,8 @@
   :- [schemata/ScoreSegment]
   [init :- schemata/ScoreSegment
    changes :- [schemata/PartialScoreSegment]]
-  (reductions merge-in init changes))
+  (->> (reductions merge-in init changes)
+       (rest)))
 
 ;; Functions for controlling rhythmic aspects of the score.
 (declare rtm-fn)
@@ -90,6 +91,7 @@
   every parameter which is not explicitly changed will have the same
   value as in the previous section."
   [
+   {:count 40}
    ;; {:count 20 :part->event {:ped :b}}
    ;; {:count 30 :part-seq [:ped :lower :lower :upper :upper :ped]}
    ])
