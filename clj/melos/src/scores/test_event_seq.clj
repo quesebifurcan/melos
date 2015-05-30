@@ -5,15 +5,16 @@
             [melos.tools.rtm :refer [calculate-result update-children]]
             [melos.tools.contour :refer
              [apply-contour-to-melody]]
-
+            [melos.tools.measures :refer [measure-1
+                                          measure-2]]
             [melos.tools.utils :refer [rotate]]
-
             [melos.tools.utils :refer [export-to-json]]))
 
 (defn compose-single-line
   [events]
-  ((comp update-children calculate-result)
-   (map first events)))
+  (-> (map first events)
+      (calculate-result [measure-2])
+      (update-children)))
 
 (defn export-single-event-seq [part-name events]
   (let [result (compose-single-line events)]
@@ -131,10 +132,10 @@
    :partition (fn [x] (partition 1 x))
    :duration [1/4 1/4]})
 
-;; (time
-;;  (->> (take 800 (unfold-events (morph)))
-;;       (export-single-event-seq :upper)
-;;       ))
+(time
+ (->> (take 800 (unfold-events (morph)))
+      (export-single-event-seq :upper)
+      ))
 
 ;; (take 1000 (morph-pitches)))
 
