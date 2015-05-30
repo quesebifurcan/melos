@@ -6,6 +6,7 @@
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [export-to-json
                                          merge-in]]
+              [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
               [melos.tools.score-graph :refer [
                                      ;; segment->parts
                                      compose-segment]]))
@@ -90,11 +91,12 @@
   relationship to the previous section) are notated. In other words:
   every parameter which is not explicitly changed will have the same
   value as in the previous section."
-  [
-   {:count 40}
-   ;; {:count 20 :part->event {:ped :b}}
-   ;; {:count 30 :part-seq [:ped :lower :lower :upper :upper :ped]}
-   ])
+
+  (unfold-parameter-cycles
+   [{:path [:count]
+     :cycle [1]
+     :values [10 20 30]}]
+   10))
 
 (defn compose-partial-score
   []
