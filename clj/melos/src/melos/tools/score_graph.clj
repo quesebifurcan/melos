@@ -11,6 +11,7 @@
               [melos.tools.modify-durations :as mod-dur]
               [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
+              [melos.tools.delay-lines :refer [handle-dissonance]]
               [dire.core :refer [with-handler!]]
               [melos.tools.onsets :refer [get-melodic-event
                                        get-onsets]]))
@@ -28,12 +29,13 @@
    (plumbing/fnk [melodic-indices melody-sources]
         (collect-events-in-segment melodic-indices melody-sources))
    :dissonance-filtered-events
-   (plumbing/fnk [diss-fn collected-events]
-        (->> (rest (reductions diss-fn [] collected-events))
-             ;; ((fn [x] (map mod-dur/maybe-merge
-             ;;               (partition 2 1 [] x))))
-             ;; (filter identity)
-             ))
+   (plumbing/fnk [diss-fn-params collected-events]
+                 (let [fn_ (handle-dissonance diss-fn-params)]
+                 (->> (rest (reductions fn_ [] collected-events))
+                      ;; ((fn [x] (map mod-dur/maybe-merge
+                      ;;               (partition 2 1 [] x))))
+                      ;; (filter identity)
+                      )))
    :modified-durations
    (plumbing/fnk [dissonance-filtered-events]
                  (modify-durations dissonance-filtered-events))

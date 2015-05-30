@@ -19,13 +19,20 @@
 (def diss-fn
   "The main function we are going to use to control the
   treatment of dissonances in this piece."
-  (handle-dissonance {:max-count 4
-                      :part-count 5
-                      :part-counts {:upper 1
-                                    :lower 1
-                                    :ped 1}
-                      :max-lingering 5
-                      :diss-value 1.6}))
+  ;; (handle-dissonance {:max-count 4
+  ;;                     :part-count 5
+  ;;                     :part-counts {:upper 1
+  ;;                                   :lower 1
+  ;;                                   :ped 1}
+  ;;                     :max-lingering 5
+  ;;                     :diss-value 1.6}))
+  {:max-count 4
+   :part-count 5
+   :part-counts {:upper 1
+                 :lower 1
+                 :ped 1}
+   :max-lingering 5
+   :diss-value 1.6})
 
 (def part-seq
   "A seq of part names, in this particular case corresponding to three
@@ -46,7 +53,7 @@
   "
   []
   {:part-seq part-seq
-   :diss-fn diss-fn
+   :diss-fn-params diss-fn
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-2]

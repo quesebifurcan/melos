@@ -3,21 +3,6 @@
 
 (def PartName (s/enum nil :lower :upper :ped))
 
-(def ScoreSegment
-  ;; TODO: Annotate.
-  {:part-seq [PartName]
-   :diss-fn s/Any
-   :time-signatures s/Any
-   :part-names [PartName]
-   :part->event s/Any
-   :melody-sources s/Any
-   :count s/Num})
-
-(def PartialScoreSegment
-  (zipmap (map (fn [k] (s/optional-key k))
-               (keys ScoreSegment))
-          (vals ScoreSegment)))
-
 (def Pitch
   (s/both (s/pred (complement nil?)) s/Num))
 
@@ -50,4 +35,20 @@
    :diss-value s/Num})
 
 (def DissonanceMapping {s/Num s/Num})
+
+(def ScoreSegment
+  ;; TODO: Annotate.
+  {:part-seq [PartName]
+   :diss-fn-params DissonanceFnParams
+   ;; :diss-fn s/Any
+   :time-signatures s/Any
+   :part-names [PartName]
+   :part->event s/Any
+   :melody-sources s/Any
+   :count s/Num})
+
+(def PartialScoreSegment
+  (zipmap (map (fn [k] (s/optional-key k))
+               (keys ScoreSegment))
+          (vals ScoreSegment)))
 
