@@ -1,15 +1,9 @@
 (ns scores.main
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
-              [scores.event-seqs :refer [organ]]
-              [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
-              [melos.tools.utils :refer [export-to-json
-                                         merge-in]]
-              [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
-              [melos.tools.score-graph :refer [
-                                     ;; segment->parts
-                                     compose-segment]]))
+              [melos.tools.utils :refer [merge-in]]
+              [melos.tools.score-graph :refer [compose-segment]]))
 
 ;; ## Pretty-printing
 
