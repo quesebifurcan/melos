@@ -69,13 +69,13 @@
      :values [10]}
     {:path [:diss-fn-params :diss-value]
      :cycle [1]
-     :values [1.6 1.3 2.5]}
+     :values [1.6]}
     {:path [:diss-fn-params :part-counts :lower]
      :cycle [1]
-     :values [1 3]}
+     :values [1]}
     {:path [:duration-scalar]
      :cycle [1]
-     :values [1 2 1 2 4]}
+     :values [1]}
     {:path [:diss-fn-params :max-count]
      :cycle [1]
      :values [5 7 8]}]

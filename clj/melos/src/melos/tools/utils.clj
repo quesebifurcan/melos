@@ -25,13 +25,8 @@
   ;; convert all ratios to a non-reduced vector of numbers."
   :- [s/Int]
   [r]
-  (let [mapping {2 [8 4]
-                 1 [4 4]
-                 1/2 [2 4]
-                 6/4 [6 4]}]
-    (if-let [result (get mapping r)]
-      result
-      [(numerator r) (denominator r)])))
+  (let [r (clojure.lang.Numbers/toRatio (rationalize r))]
+    ((juxt numerator denominator) r)))
 
 (defn- triangular*
   ([] (triangular* 0 1))
