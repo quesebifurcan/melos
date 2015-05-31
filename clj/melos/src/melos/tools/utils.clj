@@ -1,6 +1,7 @@
 (ns melos.tools.utils
   (:require [clojure.java.io :as io]
             [clojure.walk :as walk]
+            [schema.core :as s]
             [clojure.data.json :as json]))
 
 (defn abs [n] (max n (- n)))
@@ -19,11 +20,13 @@
     [& args]
     (reduce merge-in* nil args)))
 
-(defn ratio->non-reduced-ratio-vector 
-  "Since it is not possible to encode ratios as json, we need to
-  convert all ratios to a non-reduced vector of numbers."
+(s/defn ratio->non-reduced-ratio-vector
+  ;; "Since it is not possible to encode ratios as json, we need to
+  ;; convert all ratios to a non-reduced vector of numbers."
+  :- [s/Int]
   [r]
-  (let [mapping {1 [4 4]
+  (let [mapping {2 [8 4]
+                 1 [4 4]
                  1/2 [2 4]
                  6/4 [6 4]}]
     (if-let [result (get mapping r)]

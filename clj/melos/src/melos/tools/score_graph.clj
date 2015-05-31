@@ -20,22 +20,30 @@
 
 (require '[melos.tools.modify-durations :refer [modify-durations]])
 
+(defn scale-durations
+  [events scale-factor]
+  (clojure.walk/postwalk
+   (fn [event]
+     (if (and (map? event)
+              (contains? event :delta-dur))
+       (update-in event [:duration] (fn [x] (* scale-factor x)))
+       event))
+   events))
+
 ;; TODO: improve naming.
 (def segment-graph
   {:melodic-indices
    (plumbing/fnk [part-seq part->event count]
         (sel-seq/get-melodic-segment part-seq part->event count))
    :collected-events
-   (plumbing/fnk [melodic-indices melody-sources]
-        (collect-events-in-segment melodic-indices melody-sources))
+   (plumbing/fnk [melodic-indices melody-sources duration-scalar]
+                 (->> (collect-events-in-segment melodic-indices melody-sources)
+                     (map #(scale-durations % duration-scalar))))
    :dissonance-filtered-events
    (plumbing/fnk [diss-fn-params collected-events]
                  (let [fn_ (handle-dissonance diss-fn-params)]
-                 (->> (rest (reductions fn_ [] collected-events))
-                      ;; ((fn [x] (map mod-dur/maybe-merge
-                      ;;               (partition 2 1 [] x))))
-                      ;; (filter identity)
-                      )))
+                   (->> (rest (reductions fn_ [] collected-events))
+                        )))
    :modified-durations
    (plumbing/fnk [dissonance-filtered-events]
                  (modify-durations dissonance-filtered-events))

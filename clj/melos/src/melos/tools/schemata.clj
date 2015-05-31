@@ -34,14 +34,19 @@
    :max-lingering s/Int
    :diss-value s/Num})
 
+(def PartialDissonanceFnParams 
+  (zipmap (map (fn [k] (s/optional-key k))
+               (keys DissonanceFnParams))
+          (vals DissonanceFnParams)))
 (def DissonanceMapping {s/Num s/Num})
 
 (def ScoreSegment
   ;; TODO: Annotate.
   {:part-seq [PartName]
-   :diss-fn-params DissonanceFnParams
+   :diss-fn-params PartialDissonanceFnParams
    ;; :diss-fn s/Any
    :time-signatures s/Any
+   :duration-scalar s/Int
    :part-names [PartName]
    :part->event s/Any
    :melody-sources s/Any

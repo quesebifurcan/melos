@@ -16,16 +16,9 @@
 (declare rtm-fn)
 (declare time-signature-fn)
 
-(def diss-fn
+(def diss-fn-params
   "The main function we are going to use to control the
   treatment of dissonances in this piece."
-  ;; (handle-dissonance {:max-count 4
-  ;;                     :part-count 5
-  ;;                     :part-counts {:upper 1
-  ;;                                   :lower 1
-  ;;                                   :ped 1}
-  ;;                     :max-lingering 5
-  ;;                     :diss-value 1.6}))
   {:max-count 4
    :part-count 5
    :part-counts {:upper 1
@@ -53,10 +46,11 @@
   "
   []
   {:part-seq part-seq
-   :diss-fn-params diss-fn
+   :diss-fn-params diss-fn-params
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-2]
+   :duration-scalar 1
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))
    :count 200})
@@ -72,7 +66,19 @@
   (unfold-parameter-cycles
    [{:path [:count]
      :cycle [1]
-     :values [10 20 30]}]
+     :values [10]}
+    {:path [:diss-fn-params :diss-value]
+     :cycle [1]
+     :values [1.6 1.3 2.5]}
+    {:path [:diss-fn-params :part-counts :lower]
+     :cycle [1]
+     :values [1 3]}
+    {:path [:duration-scalar]
+     :cycle [1]
+     :values [1 2 1 2 4]}
+    {:path [:diss-fn-params :max-count]
+     :cycle [1]
+     :values [5 7 8]}]
    5))
 
 (time
