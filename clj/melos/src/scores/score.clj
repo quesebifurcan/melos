@@ -77,7 +77,12 @@
      :values [1]}
     {:path [:diss-fn-params :max-count]
      :cycle [1]
-     :values [5 7 8]}]
+     :values [5 7 8]}
+    {:path [:time-signatures]
+     :cycle [1]
+     :values [[measures/measure-2]
+              [measures/measure-1]]}
+    ]
    5))
 
 (time
