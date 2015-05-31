@@ -30,6 +30,18 @@
     (functor/fmap #(math/expt % 10/9)
                   interval->dissonance)))
 
+(def dissonance-map-2
+  (let [interval->dissonance
+        {0 0,
+         1 2,
+         2 1,
+         3 6,
+         4 6,
+         5 6,
+         6 6}]
+    (functor/fmap #(math/expt % 10/9)
+                  interval->dissonance)))
+
 (s/defn uniquify-pitches-in-chord
   :- #{ms/Pitch}
   [chord :- [ms/Pitch]]
@@ -71,7 +83,9 @@
          (map mapping)
          (apply +))))
 
-(def dissonance-value (dissonance-value-fn dissonance-map))
+;; (def dissonance-value (dissonance-value-fn dissonance-map))
+(def dissonance-value
+  (atom (dissonance-value-fn dissonance-map)))
 
 (s/defn scaled-dissonance-value
   :- s/Num
@@ -79,4 +93,4 @@
   (if (empty? pitches)
     0
     (let [divisor (calc-dissonance-divisor pitches)]
-      (/ (dissonance-value pitches) divisor))))
+      (/ (@dissonance-value pitches) divisor))))

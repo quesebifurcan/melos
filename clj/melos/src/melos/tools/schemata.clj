@@ -37,6 +37,7 @@
   (zipmap (map (fn [k] (s/optional-key k))
                (keys DissonanceFnParams))
           (vals DissonanceFnParams)))
+
 (def DissonanceMapping {s/Num s/Num})
 
 (def ScoreSegment
@@ -45,6 +46,7 @@
    :diss-fn-params PartialDissonanceFnParams
    ;; :diss-fn s/Any
    :time-signatures s/Any
+   :interval->diss-map DissonanceMapping
    :duration-scalar s/Int
    :part-names [PartName]
    :part->event s/Any

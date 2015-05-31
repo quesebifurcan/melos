@@ -20,8 +20,8 @@
   "The main function we are going to use to control the
   treatment of dissonances in this piece."
   {:max-count 8
-   :part-counts {:upper 1
-                 :lower 1
+   :part-counts {:upper 3
+                 :lower 2
                  :ped 1}
    :max-lingering 5
    :diss-value 1.6})
@@ -30,6 +30,9 @@
   "A seq of part names, in this particular case corresponding to three
   organ manuals."
   [:lower :upper :upper :upper :lower :upper :upper :upper :ped])
+
+(require '[melos.tools.dissonance-calculator :refer
+           [dissonance-map dissonance-map-2]])
 
 (defn initial-score-segment
   "This map describes the first section of the piece.
@@ -46,6 +49,7 @@
   []
   {:part-seq part-seq
    :diss-fn-params diss-fn-params
+   :interval->diss-map dissonance-map
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-2]
@@ -62,28 +66,31 @@
   every parameter which is not explicitly changed will have the same
   value as in the previous section."
 
-  (unfold-parameter-cycles
-   [{:path [:count]
-     :cycle [1]
-     :values [10]}
-    {:path [:diss-fn-params :diss-value]
-     :cycle [1]
-     :values [1.6]}
-    {:path [:diss-fn-params :part-counts :lower]
-     :cycle [1]
-     :values [1]}
-    {:path [:duration-scalar]
-     :cycle [1]
-     :values [1]}
-    {:path [:diss-fn-params :max-count]
-     :cycle [1]
-     :values [5 7 8]}
-    {:path [:time-signatures]
-     :cycle [1]
-     :values [[measures/measure-2]
-              [measures/measure-1]]}
-    ]
-   5))
+   (unfold-parameter-cycles
+    [{:path [:count]
+      :cycle [1]
+      :values [10]}
+     {:path [:diss-fn-params :diss-value]
+      :cycle [1]
+      :values [2.2 1.6]}
+     {:path [:interval->diss-map]
+      :cycle [1]
+      :values [dissonance-map-2 dissonance-map]}
+     {:path [:diss-fn-params :part-counts :lower]
+      :cycle [1]
+      :values [1]}
+     {:path [:duration-scalar]
+      :cycle [1]
+      :values [1]}
+     {:path [:diss-fn-params :max-count]
+      :cycle [1]
+      :values [5 7 8]}
+     {:path [:time-signatures]
+      :cycle [1]
+      :values [[measures/measure-2]
+               [measures/measure-1]]}
+     ]
+    10))
 
 (time
  (export-to-json "/Users/fred/Desktop/score.json"

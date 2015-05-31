@@ -19,6 +19,8 @@
 ;; ## Initialize Score
 
 (require '[melos.tools.modify-durations :refer [modify-durations]])
+(require '[melos.tools.dissonance-calculator :refer
+           [dissonance-value dissonance-value-fn]])
 
 (defn scale-durations
   [events scale-factor]
@@ -40,7 +42,12 @@
                  (->> (collect-events-in-segment melodic-indices melody-sources)
                      (map #(scale-durations % duration-scalar))))
    :dissonance-filtered-events
-   (plumbing/fnk [diss-fn-params collected-events]
+   (plumbing/fnk [diss-fn-params
+                  collected-events
+                  interval->diss-map]
+                 (swap! dissonance-value (fn [x]
+                                            (dissonance-value-fn
+                                             interval->diss-map)))
                  (let [fn_ (handle-dissonance diss-fn-params)]
                    (->> (rest (reductions fn_ [] collected-events))
                         )))
