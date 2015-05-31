@@ -107,6 +107,8 @@
 ;; TODO: Score presets: "chords", "hoketus", "slow" etc.
 ;; TODO: Tempo.
 
+;; TODO: all-children-same-pitch? does not work with chords.
+
 ;; TODO: "Cascading" or short-circuiting modifications applied to durations?
 
 ;; TODO: other dissonant-maps, i.e. treating M3s as dissonances.
