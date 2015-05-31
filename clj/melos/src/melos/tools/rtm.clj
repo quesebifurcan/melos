@@ -104,7 +104,7 @@
   [node]
   (let [children (:children node)
         events (mapcat :events children)
-        pitches (map :pitch events)
+        pitches (map (fn [x] (set (:pitch x))) events)
     pitches (filter #(not (empty? %))
                      (map (fn [x] (map :pitch x))
                           (map :events children)))]

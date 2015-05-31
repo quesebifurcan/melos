@@ -21,7 +21,6 @@ def make_note(d):
     events = d.get('events')
     pitches = set([x.get('pitch') for x in events])
     if "rest" in pitches:
-        print '***************'
         return Rest(Duration(num, denom))
     else:
         return Chord(pitches, Duration(num, denom))
@@ -37,12 +36,19 @@ def get_child_nodes(node):
     else:
         return []
 
-def interpret_node(parent, node):
+
+
+def interpret_node(parent, node, is_measure=False):
 
     if node.get('events') is not None:
         parent.append(make_note(node))
 
     else:
+        if is_measure:
+            measure = Measure(tuple(node.get('duration')))
+            parent.append(measure)
+            parent = measure
+
         if is_tuplet(node):
             tuplet = make_tuplet(node)
             parent.append(tuplet)
@@ -50,7 +56,8 @@ def interpret_node(parent, node):
 
         for child in get_child_nodes(node):
             if child.get('events') is not None:
-                parent.append(make_note(child))
+                note = make_note(child)
+                parent.append(note)
             else:
                 interpret_node(parent, child)
 
@@ -64,8 +71,8 @@ def main():
         sections = json.load(infile)
 
     staves = {
-        'upper': Staff(), 
-        'lower': Staff(), 
+        'upper': Staff(),
+        'lower': Staff(),
         'ped': Staff(),
         }
 
@@ -77,7 +84,11 @@ def main():
             events = part.get('events')
             top = staves.get(part_name)
             for node in events.get('children'):
-                interpret_node(top, node)
+                if part_name == 'upper':
+                    is_measure = True
+                else:
+                    is_measure = False
+                interpret_node(top, node, is_measure=is_measure)
 
     for staff in staves.values():
         attach(Tie(), staff[:])
@@ -93,4 +104,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

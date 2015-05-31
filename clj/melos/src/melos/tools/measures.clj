@@ -139,11 +139,11 @@
 
 (def measure-3
   (let [measure
-        [[4 4]
-         [[[2 4]
-           (repeat 2 [[1 4]])]
-          [[3 4]
+        [[3 4]
+         ;; [[[2 4]
+         ;;   (repeat 2 [[1 4]])]
+         ;;  [[3 4]
            [[[2 4]
              (repeat 2 [[1 4]])]
-            [[1 4]]]]]]]
+            [[1 4]]]]]
     (parse-rtm-tree-node measure)))

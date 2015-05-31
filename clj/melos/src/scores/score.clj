@@ -87,7 +87,7 @@
       :values [5 7 8]}
      {:path [:time-signatures]
       :cycle [1]
-      :values [[measures/measure-3]
+      :values [[measures/measure-1]
                [measures/measure-3]]}
      ]
     10))
