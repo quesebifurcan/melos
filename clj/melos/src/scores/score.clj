@@ -52,7 +52,7 @@
    :interval->diss-map dissonance-map
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
-   :time-signatures [measures/measure-2]
+   :time-signatures [measures/measure-3]
    :duration-scalar 1
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))
@@ -87,8 +87,8 @@
       :values [5 7 8]}
      {:path [:time-signatures]
       :cycle [1]
-      :values [[measures/measure-2]
-               [measures/measure-1]]}
+      :values [[measures/measure-3]
+               [measures/measure-3]]}
      ]
     10))
 
