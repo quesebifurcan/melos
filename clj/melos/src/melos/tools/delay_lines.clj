@@ -151,7 +151,7 @@
 (defn handle-dissonance
   "Return a function which can be used to control dissonance values in
   one segment of the piece."
-  [{:keys [max-count part-count part-counts
+  [{:keys [max-count part-counts
            diss-value max-lingering] :as m}]
   (s/validate ms/DissonanceFnParams m)
   (fn [events event]

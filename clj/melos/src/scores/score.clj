@@ -19,8 +19,7 @@
 (def diss-fn-params
   "The main function we are going to use to control the
   treatment of dissonances in this piece."
-  {:max-count 4
-   :part-count 5
+  {:max-count 8
    :part-counts {:upper 1
                  :lower 1
                  :ped 1}

@@ -29,12 +29,11 @@
 
 (def DissonanceFnParams
   {:max-count s/Int
-   :part-count s/Int
    :part-counts {PartName s/Int}
    :max-lingering s/Int
    :diss-value s/Num})
 
-(def PartialDissonanceFnParams 
+(def PartialDissonanceFnParams
   (zipmap (map (fn [k] (s/optional-key k))
                (keys DissonanceFnParams))
           (vals DissonanceFnParams)))
@@ -56,4 +55,3 @@
   (zipmap (map (fn [k] (s/optional-key k))
                (keys ScoreSegment))
           (vals ScoreSegment)))
-
