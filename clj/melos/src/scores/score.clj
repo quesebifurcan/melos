@@ -72,10 +72,10 @@
       :values [10]}
      {:path [:diss-fn-params :diss-value]
       :cycle [1]
-      :values [2.2 1.6]}
+      :values [1.6]}
      {:path [:interval->diss-map]
       :cycle [1]
-      :values [dissonance-map-2 dissonance-map]}
+      :values [dissonance-map]}
      {:path [:diss-fn-params :part-counts :lower]
       :cycle [1]
       :values [1]}
@@ -87,8 +87,7 @@
       :values [5 7 8]}
      {:path [:time-signatures]
       :cycle [1]
-      :values [[measures/measure-1]
-               [measures/measure-3]]}
+      :values [[measures/measure-3]]}
      ]
     10))
 

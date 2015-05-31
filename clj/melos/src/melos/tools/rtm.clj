@@ -58,7 +58,7 @@
 
 (defn decrement-duration
   [vertical-moment]
-  (map (fn [x] (update-in x [:duration] (fn [y] (- y 1/4))))
+  (map (fn [x] (update-in x [:duration] (fn [y] (- y 1/8))))
        vertical-moment))
 
 (defn update-events
@@ -68,7 +68,7 @@
   (cond
    (empty? events)
    nil
-   (< (:duration (get-melodic-event (first events))) 1/4)
+   (< (:duration (get-melodic-event (first events))) 1/8)
    (if (empty? (rest events))
      nil
      (let [new-first (first (rest events))
