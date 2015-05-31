@@ -158,9 +158,7 @@
     (->> events
          (forward-time)
          (join-events event)
-         ;; TODO: activate either filter-by-count-aggressive or
-         ;; filter-parts-by-count.
-         ;; (filter-by-count-aggressive max-count)
+         (filter-by-count-aggressive max-count)
          (filter-parts-by-count part-counts)
          (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value))))
