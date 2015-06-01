@@ -1,7 +1,7 @@
 (ns scores.score
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
-              [scores.event-seqs :refer [organ]]
+              [scores.materials.event-seqs :refer [organ]]
               [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
