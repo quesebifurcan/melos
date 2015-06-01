@@ -52,6 +52,34 @@
   (get-next-measure (cycle [measure-seq])
                     duration))
 
+;; Build rhythmic tree.
+
+(defn get-melodic-durations
+  [vertical-moments]
+  (map (comp :duration get-melodic-event)
+       vertical-moments))
+
+(defn duration-sum
+  [events]
+  (reduce + 0 (get-melodic-durations events)))
+
+(defn init-rtm-tree
+  [duration measures]
+  {:duration :?
+   :top-level true
+   :children (cycle-measures-across-duration
+              measures
+              duration)})
+
+(declare insert-events)
+
+(defn make-r-tree
+  [events measures]
+  (let [total-dur (duration-sum events)
+        rtm-tree (init-rtm-tree total-dur measures)]
+  (->> (insert-events rtm-tree events)
+       ((fn [x] {:children (:children x)})))))
+
 ;; Insert events into rhythmic tree.
 
 (defn decrement-duration
@@ -130,49 +158,6 @@
 (defn merge-all-tied
   [measure]
   (clojure.walk/postwalk merge-tied measure))
-
-;; Insert rests at empty nodes.
-
-(defn is-rest?
-  [form]
-  (and (map? form)
-       (contains? form :w-duration)
-       (nil? (:events form))
-       (nil? (:children form))))
-
-(defn maybe-insert-rest
-  [form]
-  (if (is-rest? form)
-    (assoc form :events [{:pitch "rest"}])
-    form))
-
-(defn insert-rests [measure]
-  (clojure.walk/prewalk maybe-insert-rest measure))
-
-;; Build rhythmic tree.
-
-(defn get-melodic-durations
-  [vertical-moments]
-  (map (comp :duration get-melodic-event)
-       vertical-moments))
-
-(defn init-rtm-tree
-  [duration measures]
-  {:duration :?
-   :top-level true
-   :children (cycle-measures-across-duration
-              measures
-              duration)})
-
-(defn make-r-tree
-  [events measures]
-  (let [total-dur (reduce +
-                          0
-                          (get-melodic-durations events))
-        rtm-tree (init-rtm-tree total-dur
-                                measures)]
-  (->> (insert-events rtm-tree events)
-       ((fn [x] {:children (:children x)})))))
 
 ;; TODO: join adjacent tuplets where all notes have the same ids.
 ;; TODO: convert tripleted two-note groups with equal length to eigth notes.
