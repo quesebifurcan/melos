@@ -2,18 +2,6 @@
 
 ;; "Horizontally" merge adjacent events.
 
-(defn can-merge?
-  [curr next]
-    (let [old-curr (filter #(> (:count %) 0) next)
-          news (filter #(= (:count %) 0) next)]
-      (and (= (count curr) (count old-curr))
-           (every? #(:merge-left? %) news)
-           (every? #(:merge-right? %) old-curr))))
-
-(defn maybe-merge
-  [[a b]]
-  (if (can-merge? a b) nil a))
-
 ;; Set durations of "unexpected" sequences.
 
 ;; (require '[melos.tools.dissonance-calculator :refer [scaled-dissonance-value]])
@@ -155,6 +143,14 @@
   (dissonant-melody-movements pairs [])
    )
 
+(defn can-merge?
+  [curr next]
+    (let [old-curr (filter #(> (:count %) 0) next)
+          news (filter #(= (:count %) 0) next)]
+      (and (= (count curr) (count old-curr))
+           (every? #(:merge-left? %) news)
+           (every? #(:merge-right? %) old-curr))))
+
 (defn modify-durations
   [events]
   (let [pairs (partition 2 1 events)
@@ -167,5 +163,30 @@
                  ((fn [x] (map #(assoc % :delta-dur dur) x))))))
          events
          durations)))
+
+(defn can-merge?
+  [a b]
+  (= a b))
+
+(defn merge-elts
+  [a b]
+  a)
+
+(defn maybe-merge
+  ([events]
+   (if (seq events)
+     (maybe-merge (first events)
+                  (rest events))))
+  ([head events]
+   (cond (empty? events)
+         (list head)
+         (can-merge? head (first events))
+         (maybe-merge (merge-elts head
+                                  (first events))
+                      (rest events))
+         :else
+         (cons head (maybe-merge events)))))
+
+(maybe-merge [1 1 2 2 2 1 3 2 1 1 1 3])
 
 ;; (modify-durations test-sequence)
