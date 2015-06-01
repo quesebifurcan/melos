@@ -9,9 +9,6 @@
        (filter #(= (:count %) 0))
        (first)))
 
-;; Tuplets: calculate separately and apply to existing music.
-;; Quantization is applied to a flat list of events.
-
 ;; Single point of truth -- the shortest value at the lowermost layer
 ;; is the "actual duration". It is scaled by all tuplets above
 ;; it. Event-durations are "written" durations.

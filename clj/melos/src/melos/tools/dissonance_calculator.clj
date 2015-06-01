@@ -6,7 +6,7 @@
             [melos.tools.schemata :as ms]
             [melos.tools.utils :refer [triangular-n]]))
 
-(def dissonance-map
+(def dissonance-map-default
   "Map complementary intervals to relative dissonance values.
 
   (\"Complementary intervals\": the minor second is considered equally
@@ -83,9 +83,8 @@
          (map mapping)
          (apply +))))
 
-;; (def dissonance-value (dissonance-value-fn dissonance-map))
 (def dissonance-value
-  (atom (dissonance-value-fn dissonance-map)))
+  (atom (dissonance-value-fn dissonance-map-default)))
 
 (s/defn scaled-dissonance-value
   :- s/Num

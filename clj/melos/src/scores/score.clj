@@ -30,13 +30,13 @@
   [:lower :upper :upper :upper :lower :upper :upper :upper :ped])
 
 (require '[melos.tools.dissonance-calculator :refer
-           [dissonance-map dissonance-map-2]])
+           [dissonance-map-default dissonance-map-2]])
 
 (defn initial-score-segment
   []
   {:part-seq part-seq
    :diss-fn-params diss-fn-params
-   :interval->diss-map dissonance-map
+   :interval->diss-map dissonance-map-default
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
@@ -57,7 +57,7 @@
       :values [1.6]}
      {:path [:interval->diss-map]
       :cycle [1]
-      :values [dissonance-map]}
+      :values [dissonance-map-default]}
      {:path [:diss-fn-params :part-counts :lower]
       :cycle [1]
       :values [1]}
