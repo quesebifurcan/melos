@@ -56,8 +56,8 @@
                  (modify-durations dissonance-filtered-events))
    :rhythmic-tree
    (plumbing/fnk [time-signatures modified-durations]
-                 (rtm/calculate-result modified-durations
-                                       time-signatures))
+                 (rtm/make-r-tree modified-durations
+                                  time-signatures))
    :parts-tree
    (plumbing/fnk [part-names modified-durations rhythmic-tree]
                  (map (fn [x] {:part-name x
