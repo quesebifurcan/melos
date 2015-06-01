@@ -104,11 +104,9 @@
 (defn all-children-same-pitch?
   [node]
   (let [children (:children node)
-        events (mapcat :events children)
-        pitches (map (fn [x] (set (:pitch x))) events)
-    pitches (filter #(not (empty? %))
-                     (map (fn [x] (map :pitch x))
-                          (map :events children)))]
+        pitches (filter #(not (empty? %))
+                        (map (fn [x] (set (map :pitch x)))
+                             (map :events children)))]
     (and (every? #(= % (first pitches)) (rest pitches))
          (not (nil? (first pitches)))
          (not (empty? pitches))
