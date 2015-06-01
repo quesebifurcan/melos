@@ -1,115 +1,5 @@
 (ns scores.materials.measures)
 
-(def measure-1
-  {:w-duration [5 4]
-   ;; :top-level true
-   :duration [4 4]
-   :children [
-              {:w-duration [4 4]
-               :duration [3 4]
-               :children [
-                          {:w-duration [2 4]
-                           :duration [2 4]
-                           :children [
-                                      {:w-duration [1 4]
-                                       :duration [1 4]
-                                       :event nil
-                                       :children nil}
-                                      {:w-duration [1 4]
-                                       :duration [1 4]
-                                       :event nil
-                                       :children nil}
-                                      ]}
-                          {:w-duration [2 4]
-                           :duration [2 4]
-                           :children [
-                                      {:w-duration [1 4]
-                                       :duration [1 4]
-                                       :event nil
-                                       :children nil}
-                                      {:w-duration [1 4]
-                                       :duration [1 4]
-                                       :event nil
-                                       :children nil}
-                                      ]}
-                          ]}
-              {:w-duration [2 4]
-               :duration [2 4]
-               :children [
-                          {:w-duration [1 4]
-                           :duration [1 4]
-                           :event nil
-                           :children nil}
-                          {:w-duration [1 4]
-                           :duration [1 4]
-                           :event nil
-                           :children nil}
-                          ]}
-              ]})
-
-(def measure-2
-  {:w-duration [5 4]
-   :duration [4 4]
-   :children [
-              {:w-duration [2 4]
-               :duration [2 4]
-               :children [
-                          {:w-duration [1 4]
-                           :duration [1 4]
-                           :event nil
-                           :children nil}
-                          {:w-duration [1 4]
-                           :duration [1 4]
-                           :event nil
-                           :children nil}
-                          ]}
-              {:w-duration [2 4]
-               :duration [2 4]
-               :children [
-                          {:w-duration [1 4]
-                           :duration [1 4]
-                           :event nil
-                           :children nil}
-                          {:w-duration [1 4]
-                           :duration [1 4]
-                           :event nil
-                           :children nil}
-                          ]}
-              ]})
-
-(defn make-node
-  ([dur]
-  {:duration dur
-   :w-duration dur
-   :children nil})
-  ([dur children]
-  {:duration dur
-   :w-duration dur
-   :children children})
-  ([dur w-duration children]
-  {:duration dur
-   :w-duration w-duration
-   :children children}))
-
-(defn regular-subdivs
-  []
-  (repeat 2 (make-node [1 8]
-                       (repeat 2 (make-node [1 16])))))
-
-;; (def measure-3
-;;   (clojure.walk/postwalk
-;;    (fn [node]
-;;      (if (and (map? node)
-;;               (nil? (:children node)))
-;;        (assoc node :event nil)
-;;        node))
-;;    (make-node [4 4]
-;;               [5 4]
-;;               [(make-node [3 4] [3 4]
-;;                           (repeat 3 (make-node [1 4])))
-;;                (make-node [2 4] [2 4]
-;;                           (repeat 2 (make-node [1 4])))])))
-
 (require '[melos.tools.utils :refer [ratio->non-reduced-ratio-vector]])
 
 (defn ratio-calc
@@ -137,45 +27,18 @@
      :children nil
      :event nil}))
 
-(def measure-3
-  (let [measure
-        [[4 4]
-         [[[3 4]
-           [[[1 4]
-             [[[1 8]] [[1 8]]]]
-            [[1 4]
-             [[[1 8]] [[1 8]]]]
-            [[1 4]
-             [[[1 8]] [[1 8]]]]]]
-          [[2 4]
-           [[[1 4]
-             [[[1 8]] [[1 8]]]]
-            [[1 4]
-             [[[1 8]] [[1 8]]]]]]]]]
-
-    (parse-rtm-tree-node measure)))
+(def measure-2-4
+  [[2 4]
+   [[[1 4]
+     [[[1 8]] [[1 8]]]]
+    [[1 4]
+     [[[1 8]] [[1 8]]]]]])
 
 (def measure-3
   (let [measure
         [[4 4]
          [[[3 4]
-
-          [[[2 4]
-           [[[1 4]
-             [[[1 8]] [[1 8]]]]
-            [[1 4]
-             [[[1 8]] [[1 8]]]]]]
-
-          [[2 4]
-           [[[1 4]
-             [[[1 8]] [[1 8]]]]
-            [[1 4]
-             [[[1 8]] [[1 8]]]]]]]]
-
-          [[2 4]
-           [[[1 4]
-             [[[1 8]] [[1 8]]]]
-            [[1 4]
-             [[[1 8]] [[1 8]]]]]]]]]
-
+           [measure-2-4
+            measure-2-4]]
+          measure-2-4]]]
     (parse-rtm-tree-node measure)))
