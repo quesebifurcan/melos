@@ -6,9 +6,7 @@
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
-              [melos.tools.measures :as measures]
-              ;; [scores.main :refer [make-score
-              ;;                      compose-score]]
+              [scores.materials.measures :as measures]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
 
 ;; Functions for controlling rhythmic aspects of the score.

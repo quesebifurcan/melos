@@ -5,15 +5,14 @@
             [melos.tools.rtm :refer [calculate-result update-children]]
             [melos.tools.contour :refer
              [apply-contour-to-melody]]
-            [melos.tools.measures :refer [measure-1
-                                          measure-2]]
+            [scores.materials.measures :refer [measure-3]]
             [melos.tools.utils :refer [rotate]]
             [melos.tools.utils :refer [export-to-json]]))
 
 (defn compose-single-line
   [events]
   (-> (map first events)
-      (calculate-result [measure-2])
+      (calculate-result [measure-3])
       (update-children)))
 
 (defn export-single-event-seq [part-name events]

@@ -2,8 +2,9 @@
   (:require [melos.tools.make-note :refer [make-note]]
             [schema.core :as s]
             [melos.tools.schemata :as ms]
-            [melos.tools.measures :refer [measure-1
-                                          measure-2]]))
+            ;; [melos.tools.measures :refer [measure-1
+            ;;                               measure-2]]))
+            ))
 
 (s/defn get-melodic-event
   :- ms/Note
