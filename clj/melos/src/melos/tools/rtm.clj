@@ -23,34 +23,37 @@
   (let [[num denom] (:w-duration node)]
     (/ num denom)))
 
-(defn get-node-dur!
+(defn accumulate-node-dur!
   [dur-atom node]
   (if (is-active-node? node)
     (swap! dur-atom + (get-duration-of-node node))
     node))
 
-(defn get-m-dur
+(defn get-nested-measure-dur
   [measure]
   (let [dur-atom (atom 0)]
-    (clojure.walk/prewalk (partial get-node-dur! dur-atom)
+    (clojure.walk/prewalk (partial accumulate-node-dur! dur-atom)
                           measure)
     @dur-atom))
 
 (defn get-next-measure
-  [measure-seq dur coll]
-  (let [next-measure-dur (get-m-dur (first measure-seq))]
-    (cond (>= next-measure-dur dur)
-          (conj coll (first measure-seq))
-          :else
-          (get-next-measure (rest measure-seq)
-                            (- dur next-measure-dur)
-                            (conj coll (first measure-seq))))))
+  ([measure-seq dur]
+   (get-next-measure measure-seq dur []))
+  ([measure-seq dur coll]
+   (let [head (first measure-seq)
+         head-dur (get-nested-measure-dur head)]
+     (cond (>= head-dur dur)
+           (conj coll head)
+           :else
+           (get-next-measure (rest measure-seq)
+                             (- dur head-dur)
+                             (conj coll head))))))
 
-(defn get-measures [measure-seq durations]
+(defn get-measures-spanning-durations
+  [measure-seq durations]
   (let [total-dur (reduce + 0 durations)]
-    (get-next-measure (flatten (cycle [measure-seq]))
-                      total-dur
-                      [])))
+    (get-next-measure (cycle [measure-seq])
+                      total-dur)))
 
 (defn decrement-duration
   [vertical-moment]
@@ -108,7 +111,8 @@
 (defn all-children-same-pitch?
   [node]
   (let [pitches (non-empty-pitchsets node)]
-    (and (every? #(= % (first pitches)) (rest pitches))
+    (and (every? #(= % (first pitches))
+                 (rest pitches))
          (not (nil? (first pitches)))
          (not (empty? pitches))
          (> (count pitches) 1))))
@@ -148,15 +152,17 @@
 
 (defn get-durations
   [vertical-moments]
-  (map (comp :duration get-melodic-event) vertical-moments))
+  (map (comp :duration get-melodic-event)
+       vertical-moments))
 
 (defn concat-measure-trees
   [durations measures]
   {:duration :?
    :top-level true
    :children (flatten
-              (get-measures measures
-                            durations))})
+              (get-measures-spanning-durations
+               measures
+               durations))})
 
 (defn make-r-tree
   [events time-signatures]
