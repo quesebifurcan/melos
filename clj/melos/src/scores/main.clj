@@ -3,7 +3,7 @@
               [melos.tools.schemata :as schemata]
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in]]
-              [melos.tools.score-graph :refer [compose-segment]]))
+              [scores.score-graph :refer [compose-segment]]))
 
 ;; ## Pretty-printing
 
