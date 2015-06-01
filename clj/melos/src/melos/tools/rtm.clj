@@ -101,12 +101,16 @@
         %)
      measure)))
 
+(defn pitchset-of-event
+  [event]
+  (set (map :pitch event)))
+
 (defn all-children-same-pitch?
   [node]
   (let [children (:children node)
+        events (map :events children)
         pitches (filter #(not (empty? %))
-                        (map (fn [x] (set (map :pitch x)))
-                             (map :events children)))]
+                        (map pitchset-of-event events))]
     (and (every? #(= % (first pitches)) (rest pitches))
          (not (nil? (first pitches)))
          (not (empty? pitches))
