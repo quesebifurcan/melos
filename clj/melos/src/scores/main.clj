@@ -2,14 +2,18 @@
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
               [melos.tools.rtm :as rtm]
-              [melos.tools.utils :refer [merge-in]]
-              [scores.score-graph :refer [compose-segment]]))
+              [melos.tools.utils :refer [merge-in
+                                         export-to-json]]
+              [scores.score-graph :refer [compose-segment]]
+              [scores.score :refer [initial-score-segment
+                                    changes]]))
 
 ;; ## Pretty-printing
 
 (s/set-fn-validation! true)
 (require '[clojure.pprint])
 
+;; Suppress printing of lazy-seqs.
 (defmethod print-method
   clojure.lang.Atom
   [x ^java.io.Writer w]
@@ -47,3 +51,8 @@
        (map compose-segment)
        (map :parts-tree)
        (rtm/update-children)))
+
+(time
+ (export-to-json "/Users/fred/Desktop/score.json"
+                 (compose-score (initial-score-segment)
+                                (changes))))

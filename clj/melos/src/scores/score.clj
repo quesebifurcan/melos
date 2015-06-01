@@ -7,8 +7,8 @@
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
               [melos.tools.measures :as measures]
-              [scores.main :refer [make-score
-                                   compose-score]]
+              ;; [scores.main :refer [make-score
+              ;;                      compose-score]]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
 
 ;; Functions for controlling rhythmic aspects of the score.
@@ -35,17 +35,6 @@
            [dissonance-map dissonance-map-2]])
 
 (defn initial-score-segment
-  "This map describes the first section of the piece.
-
-  - :part-seq -- in which order do the musical parts enter?
-  - :diss-fn -- how control dissonance / simulate musical counterpoint?
-  - :part->event -- with which musical materials are the parts currently related?
-  - :time-signatures -- which time signatures are allowed in this section?
-  - :time-signature-fn -- which function is used to match the available
-    time signatures to the music?
-  - :rtm-fn -- which function will we use to articulate rhythms?
-  - :count -- how many events in this segment?
-  "
   []
   {:part-seq part-seq
    :diss-fn-params diss-fn-params
@@ -61,11 +50,6 @@
 (s/defn changes
   :- [schemata/PartialScoreSegment]
   []
-  "Each map represents a musical section. Only the *changes* (in
-  relationship to the previous section) are notated. In other words:
-  every parameter which is not explicitly changed will have the same
-  value as in the previous section."
-
    (unfold-parameter-cycles
     [{:path [:count]
       :cycle [1]
@@ -90,11 +74,6 @@
       :values [[measures/measure-3]]}
      ]
     10))
-
-(time
- (export-to-json "/Users/fred/Desktop/score.json"
-                 (compose-score (initial-score-segment)
-                                (changes))))
 
 ;; TODO: rhythms from event-count.
 ;; TODO: attach time-signatures.
