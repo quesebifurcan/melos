@@ -2,7 +2,7 @@
   (:require [clojure.walk :as walk]
             [melos.tools.l-systems :refer [lindenmayer]]
             [melos.tools.make-note :refer [make-note]]
-            [melos.tools.rtm :refer [make-r-tree update-children]]
+            ;; [melos.tools.rtm :refer [make-r-tree update-children]]
             [melos.tools.contour :refer
              [apply-contour-to-melody]]
             [scores.materials.measures :refer [measure-3]]

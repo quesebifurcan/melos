@@ -2,16 +2,14 @@
   (:require [schema.core :as s]
             [melos.tools.schemata :as ms]))
 
+;; Cycle measures across total duration.
+
 (s/defn get-melodic-event
   :- ms/Note
   [vertical-moment :- ms/VerticalMoment]
   (->> vertical-moment
        (filter #(= (:count %) 0))
        (first)))
-
-;; Single point of truth -- the shortest value at the lowermost layer
-;; is the "actual duration". It is scaled by all tuplets above
-;; it. Event-durations are "written" durations.
 
 (defn is-active-node?
   [node]
@@ -43,21 +41,24 @@
    (let [head (first measure-seq)
          head-dur (get-nested-measure-dur head)]
      (cond (>= head-dur dur)
-           (conj coll head)
+           (concat coll head)
            :else
            (get-next-measure (rest measure-seq)
                              (- dur head-dur)
-                             (conj coll head))))))
+                             (concat coll head))))))
 
-(defn get-measures-spanning-durations
-  [measure-seq durations]
-  (let [total-dur (reduce + 0 durations)]
-    (get-next-measure (cycle [measure-seq])
-                      total-dur)))
+(defn cycle-measures-across-duration
+  [measure-seq duration]
+  (get-next-measure (cycle [measure-seq])
+                    duration))
+
+;; Insert events into rhythmic tree.
 
 (defn decrement-duration
   [vertical-moment]
-  (map (fn [x] (update-in x [:duration] (fn [y] (- y 1/8))))
+  (map (fn [x] (update-in x
+                          [:duration]
+                          (fn [y] (- y 1/8))))
        vertical-moment))
 
 (defn update-events
@@ -85,17 +86,19 @@
     (first events)))
 
 (defn set-event!
-  [events-atom form]
-  (if (and (map? form)
-           (contains? form :event))
+  [events-atom node]
+  (if (and (map? node)
+           (contains? node :event))
     (do (swap! events-atom update-events)
-        (assoc form :events (current-event @events-atom)))
-    form))
+        (assoc node :events (current-event @events-atom)))
+    node))
 
-(defn insert-events [measure events]
+(defn insert-events [rtm-tree events]
   (let [d (atom events)]
     (clojure.walk/prewalk (partial set-event! d)
-                          measure)))
+                          rtm-tree)))
+
+;; If all :children of node have the same pitch, move them to node.
 
 (defn pitchset-of-event
   [event]
@@ -110,29 +113,25 @@
 
 (defn all-children-same-pitch?
   [node]
-  (let [pitches (non-empty-pitchsets node)]
-    (and (every? #(= % (first pitches))
-                 (rest pitches))
-         (not (nil? (first pitches)))
-         (not (empty? pitches))
-         (> (count pitches) 1))))
+  (let [pitch-sets (non-empty-pitchsets node)]
+    (and (every? #(= % (first pitch-sets))
+                 (rest pitch-sets))
+         (not (nil? (first pitch-sets)))
+         (not (empty? pitch-sets))
+         (> (count pitch-sets) 1))))
 
-(defn can-update?
-  [form]
-  (and (not (nil? (:children form)))
-       (all-children-same-pitch? form)
-       (not (contains? form :top-level))))
+(defn merge-tied
+  [node]
+  (if (all-children-same-pitch? node)
+    (assoc node :events
+           ((comp :events first :children) node))
+    node))
 
-(defn update-child
-  [form]
-  (if (can-update? form)
-    (assoc form :events
-           ((comp :events first :children) form))
-    form))
-
-(defn update-children
+(defn merge-all-tied
   [measure]
-  (clojure.walk/postwalk update-child measure))
+  (clojure.walk/postwalk merge-tied measure))
+
+;; Insert rests at empty nodes.
 
 (defn is-rest?
   [form]
@@ -150,25 +149,29 @@
 (defn insert-rests [measure]
   (clojure.walk/prewalk maybe-insert-rest measure))
 
-(defn get-durations
+;; Build rhythmic tree.
+
+(defn get-melodic-durations
   [vertical-moments]
   (map (comp :duration get-melodic-event)
        vertical-moments))
 
-(defn concat-measure-trees
-  [durations measures]
+(defn init-rtm-tree
+  [duration measures]
   {:duration :?
    :top-level true
-   :children (flatten
-              (get-measures-spanning-durations
-               measures
-               durations))})
+   :children (cycle-measures-across-duration
+              measures
+              duration)})
 
 (defn make-r-tree
-  [events time-signatures]
-  (let [root (concat-measure-trees (get-durations events)
-                                   time-signatures)]
-  (->> (insert-events root events)
+  [events measures]
+  (let [total-dur (reduce +
+                          0
+                          (get-melodic-durations events))
+        rtm-tree (init-rtm-tree total-dur
+                                measures)]
+  (->> (insert-events rtm-tree events)
        ((fn [x] {:children (:children x)})))))
 
 ;; TODO: join adjacent tuplets where all notes have the same ids.
