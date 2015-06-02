@@ -1,7 +1,7 @@
 (ns scores.score-graph
     (:require [schema.core :as s]
               [plumbing.graph :as graph]
-              [plumbing.core :as plumbing]
+              [plumbing.core :refer [fnk]]
               [melos.tools.selector-sequence :as sel-seq]
               [melos.tools.schemata :as schemata]
               [melos.tools.utils :refer [rotate
@@ -18,7 +18,6 @@
 
 ;; ## Initialize Score
 
-(require '[melos.tools.modify-durations :refer [modify-durations]])
 (require '[melos.tools.dissonance-calculator :refer
            [dissonance-value dissonance-value-fn]])
 
@@ -32,38 +31,43 @@
        event))
    events))
 
-;; TODO: improve naming.
 (def segment-graph
   {:melodic-indices
-   (plumbing/fnk [part-seq part->event count]
-        (sel-seq/get-melodic-segment part-seq part->event count))
-   :collected-events
-   (plumbing/fnk [melodic-indices melody-sources duration-scalar]
-                 (->> (collect-events-in-segment melodic-indices melody-sources)
-                     (map #(scale-durations % duration-scalar))))
-   :dissonance-filtered-events
-   (plumbing/fnk [diss-fn-params
-                  collected-events
-                  interval->diss-map]
-                 (swap! dissonance-value (fn [x]
-                                            (dissonance-value-fn
-                                             interval->diss-map)))
-                 (let [fn_ (handle-dissonance diss-fn-params)]
-                   (->> (rest (reductions fn_ [] collected-events))
-                        )))
+   (fnk [part-seq part->event count]
+        (sel-seq/get-melodic-segment part-seq
+                                     part->event count))
+   :collect-events
+   (fnk [melodic-indices melody-sources duration-scalar]
+        (collect-events-in-segment melodic-indices
+                                   melody-sources))
+   :scale-durations
+   (fnk [collect-events duration-scalar]
+        (map #(scale-durations % duration-scalar)
+             collect-events))
+   :extend-horizontally
+   (fnk [diss-fn-params
+         scale-durations
+         interval->diss-map]
+        (swap! dissonance-value
+               (fn [x]
+                 (dissonance-value-fn interval->diss-map)))
+        (let [fn_ (handle-dissonance diss-fn-params)]
+          (rest (reductions fn_ [] scale-durations))))
    :modified-durations
-   (plumbing/fnk [dissonance-filtered-events]
-                 (modify-durations dissonance-filtered-events))
+   (fnk [extend-horizontally]
+        (mod-dur/modify-durations extend-horizontally))
+   :merge-horizontally
+   (fnk [modified-durations]
+        (mod-dur/maybe-merge modified-durations))
    :rhythmic-tree
-   (plumbing/fnk [time-signatures modified-durations]
-                 (rtm/make-r-tree modified-durations
-                                  time-signatures))
+   (fnk [time-signatures merge-horizontally]
+        (rtm/make-r-tree merge-horizontally time-signatures))
    :parts-tree
-   (plumbing/fnk [part-names modified-durations rhythmic-tree]
-                 (map (fn [x] {:part-name x
-                               :events (split-out-part rhythmic-tree x)
-                               })
-                      part-names))})
+   (fnk [part-names modified-durations rhythmic-tree]
+        (map
+         (fn [x] {:part-name x
+                  :events (split-out-part rhythmic-tree x)})
+             part-names))})
 
 (def lazy-segment-graph (graph/lazy-compile segment-graph))
 

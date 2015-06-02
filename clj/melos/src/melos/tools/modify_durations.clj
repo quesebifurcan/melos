@@ -175,7 +175,6 @@
   [events]
   (let [pairs (partition 2 1 events)
         durations (get-durations pairs)]
-    (maybe-merge
     (map (fn [event dur]
            (if (nil? dur)
              event
@@ -183,6 +182,4 @@
                  ((fn [x] (map #(assoc % :duration dur) x)))
                  ((fn [x] (map #(assoc % :delta-dur dur) x))))))
          events
-         durations))))
-
-;; (modify-durations test-sequence)
+         durations)))
