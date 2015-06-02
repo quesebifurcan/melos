@@ -39,7 +39,7 @@
                      :duration duration
                      :group group
                      :dissonance-contributor? true
-                     :merge-left? true
+                     :merge-left? false
                      :part part
                      :count 0})
           ;; (make-note {:pitch 9
@@ -85,5 +85,5 @@
   {:upper {:a (pendulum-1 :upper)}
   ;; {:upper {:a (unfold-events morph)}
    :lower {:a (pendulum-2 :lower)}
-   :ped {:a (lindenmayer-1 :ped 10)
+   :ped {:a (lindenmayer-1 :ped 22)
          :b (lindenmayer-1 :ped 7)}})
