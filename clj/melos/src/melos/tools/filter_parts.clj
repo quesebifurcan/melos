@@ -1,13 +1,19 @@
 (ns melos.tools.filter-parts
   (:require [melos.tools.rtm :as rtm]))
 
+(defn maybe-insert-rest
+  [x]
+  (if (:is-rest? x)
+      {:pitch "rest" :part (:part-name x)}
+      x))
+
 (defn part-events-in-node
   [part-name node]
   (let [events (:events node)
         part-events (filter #(= (:part %) part-name) events)]
     (if (empty? part-events)
       [{:pitch "rest" :part part-name}]
-      part-events)))
+      (map maybe-insert-rest part-events))))
 
 (defn filter-by-part-names
   [part-names parts-tree]

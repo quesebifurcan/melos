@@ -123,13 +123,12 @@
         melodic-notes (mapcat
                        (fn [x] (filter #(= (:count %) 0) x))
                        pair)
+        melodic-notes (filter :dissonance-contributor? melodic-notes)
         melodic-notes (partition-by :part melodic-notes)
         ;; TODO: sort by descending pitch.
         melodic-notes (map
                        (fn [x]
-                         (first (filter number? (map
-                                                 :pitch
-                                                 x))))
+                         (first (filter number? (map :pitch x))))
                            melodic-notes)
         pitches melodic-notes
         ]

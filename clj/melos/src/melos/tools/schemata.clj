@@ -17,6 +17,7 @@
    :merge-right? s/Bool
    :group s/Any
    :onset s/Num
+   :is-rest? s/Bool
    :part PartName
    :intensity s/Num
    :count s/Int})

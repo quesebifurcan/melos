@@ -13,6 +13,7 @@
    :part nil,
    :color nil,
    :count 0,
+   :is-rest? false
    :onset 0
    :intensity 1})
 
