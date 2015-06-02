@@ -145,32 +145,16 @@
 
 (defn can-merge?
   [curr next]
-    (let [old-curr (filter #(> (:count %) 0) next)
-          news (filter #(= (:count %) 0) next)]
-      (and (= (count curr) (count old-curr))
-           (every? #(:merge-left? %) news)
-           (every? #(:merge-right? %) old-curr))))
-
-(defn modify-durations
-  [events]
-  (let [pairs (partition 2 1 events)
-        durations (get-durations pairs)]
-    (map (fn [event dur]
-           (if (nil? dur)
-             event
-             (-> event
-                 ((fn [x] (map #(assoc % :duration dur) x)))
-                 ((fn [x] (map #(assoc % :delta-dur dur) x))))))
-         events
-         durations)))
-
-(defn can-merge?
-  [a b]
-  (= a b))
+  (let [old-curr (filter #(> (:count %) 0) next)
+        news (filter #(= (:count %) 0) next)]
+    (and (= (count curr) (count old-curr))
+         (every? #(:merge-left? %) news)
+         (every? #(:merge-right? %) old-curr))))
 
 (defn merge-elts
   [a b]
-  a)
+  (let [melodic-notes (filter #(= (:count %) 0) b)]
+    (concat a melodic-notes)))
 
 (defn maybe-merge
   ([events]
@@ -187,6 +171,18 @@
          :else
          (cons head (maybe-merge events)))))
 
-(maybe-merge [1 1 2 2 2 1 3 2 1 1 1 3])
+(defn modify-durations
+  [events]
+  (let [pairs (partition 2 1 events)
+        durations (get-durations pairs)]
+    (maybe-merge
+    (map (fn [event dur]
+           (if (nil? dur)
+             event
+             (-> event
+                 ((fn [x] (map #(assoc % :duration dur) x)))
+                 ((fn [x] (map #(assoc % :delta-dur dur) x))))))
+         events
+         durations))))
 
 ;; (modify-durations test-sequence)

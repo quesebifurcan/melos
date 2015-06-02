@@ -113,7 +113,7 @@
     nil
     (first events)))
 
-(defn set-event!
+(defn forward-time!
   [events-atom node]
   (if (and (map? node)
            (contains? node :event))
@@ -122,8 +122,8 @@
     node))
 
 (defn insert-events [rtm-tree events]
-  (let [d (atom events)]
-    (clojure.walk/prewalk (partial set-event! d)
+  (let [events-atom (atom events)]
+    (clojure.walk/prewalk (partial forward-time! events-atom)
                           rtm-tree)))
 
 ;; If all :children of node have the same pitch, move them to node.
