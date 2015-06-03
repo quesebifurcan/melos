@@ -134,19 +134,57 @@
   []
   {:pitch (->> (take 1200 (morph-pitches))
                )
-   ;; :dissonance-contributor? [true]
+   :dissonance-contributor? [true]
    :part [:upper]
+   :is-rest? [false false false false true]
    :fn (fn [x] [(make-note x)])
    :partition (fn [x]
                 (->> x
-                     ;; (partition 4)
-                     ;; (interpose (make-note {:is-rest? true}))
-                     ;; (flatten)
-                     ;; (map (fn [x] [[x]]))
-                     (partition 1)
+                     (partition 4)
+                     ;; (map (fn [x] 
+                     ;;    (do (println x)
+                     ;;        x)))
+                     (flatten)
+                     (map (fn [x] [[x]]))
+                     ;; (partition 1)
                      ;; (partition 1)
                      ))
    :duration [1/4 1/4]})
+
+(require '[scores.main :refer [compose-score]])
+(require '[melos.tools.dissonance-calculator :refer
+           [dissonance-map-default dissonance-map-2]])
+(require '[scores.materials.measures :as measures])
+(require '[melos.tools.utils :refer [export-to-json]])
+
+(defn notes
+  []
+  {:upper {:a (unfold-events (morph))}})
+
+(defn test-score-segment
+  []
+  {:part-seq [:upper]
+   :diss-fn-params {:max-count 8
+                    :part-counts {:upper 1
+                                  :lower 2
+                                  :ped 1}
+                    :max-lingering 5
+                    :diss-value 1.6}
+   :interval->diss-map dissonance-map-default
+   :part->event {:upper :a}
+   ;; TODO: pass in via score-graph.
+   :time-signatures [measures/measure-3]
+   :duration-scalar 1
+   :part-names [:upper :lower :ped]
+   :melody-sources (atom (notes))
+   :count 200})
+
+(time
+ (export-to-json "/Users/fred/Desktop/score.json"
+                 (compose-score (test-score-segment)
+                                [{}])))
+
+;; (take 10 (unfold-events (morph)))
 
 ;; (time
 ;;  (->> (take 800 (unfold-events (morph)))
