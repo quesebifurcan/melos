@@ -7,18 +7,24 @@
              [apply-contour-to-melody]]
             [scores.materials.measures :refer [measure-3]]
             [melos.tools.utils :refer [rotate]]
+            [melos.tools.filter-parts :refer [split-out-part]]
             [melos.tools.utils :refer [export-to-json]]))
 
 (defn compose-single-line
   [events]
   (-> (map first events)
       (make-r-tree [measure-3])
-      (merge-all-tied)))
+      (merge-all-tied)
+      ))
 
 (defn export-single-event-seq [part-name events]
   (let [result (compose-single-line events)]
     (export-to-json "/Users/fred/Desktop/score.json"
-                    [[{:part-name part-name :events result}]])))
+                    [[{:part-name :upper
+                       :events (split-out-part result :upper)}]])))
+
+                    ;; (
+                    ;; [[{:part-name part-name :events result}]])))
 
 (defn parse-params
   [x]
@@ -118,37 +124,40 @@
       (repeat-segments 6 3)
       ;; N.B. gradually rising melody.
       ;; TODO: cache results.
-      (apply-contour-to-melody (cycle [4.2]))
+      (apply-contour-to-melody (cycle (concat (range 0.11 20 0.1)
+                                              (range 20 0.11 -0.1))))
+
       (flatten)
       ))
 
 (defn morph
   []
-  {:pitch (->> (take 200 (morph-pitches))
+  {:pitch (->> (take 1200 (morph-pitches))
                )
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(make-note x)])
-   :partition (fn [x] 
+   :partition (fn [x]
                 (->> x
-                     (partition 3)
-                     (interpose [(make-note {:pitch "rest"})])
+                     (partition 4)
+                     (interpose (make-note {:is-rest? true}))
                      (flatten)
                      (map (fn [x] [x]))
                      (partition 1)
+                     ;; (partition 1)
                      ))
    :duration [1/4 1/4]})
 
-;; (time
-;;  (->> (take 200 (unfold-events (morph)))
-;;       (export-single-event-seq :upper)
-;;       ))
+(time
+ (->> (take 800 (unfold-events (morph)))
+      (export-single-event-seq :upper)
+      ))
 
 ;; Rests?
 
 ;; (:pitch (morph))
 
-(make-note {:pitch "rest"})
+;; (take 10 (unfold-events (morph)))
 
 ;; ;; (take 1000 (morph-pitches)))
 
