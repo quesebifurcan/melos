@@ -18,7 +18,7 @@
   "The main function we are going to use to control the
   treatment of dissonances in this piece."
   {:max-count 8
-   :part-counts {:upper 3
+   :part-counts {:upper 1
                  :lower 2
                  :ped 1}
    :max-lingering 5

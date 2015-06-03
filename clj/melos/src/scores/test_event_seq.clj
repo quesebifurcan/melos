@@ -134,24 +134,24 @@
   []
   {:pitch (->> (take 1200 (morph-pitches))
                )
-   :dissonance-contributor? [true]
+   ;; :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] [(make-note x)])
    :partition (fn [x]
                 (->> x
-                     (partition 4)
-                     (interpose (make-note {:is-rest? true}))
-                     (flatten)
-                     (map (fn [x] [x]))
+                     ;; (partition 4)
+                     ;; (interpose (make-note {:is-rest? true}))
+                     ;; (flatten)
+                     ;; (map (fn [x] [[x]]))
                      (partition 1)
                      ;; (partition 1)
                      ))
    :duration [1/4 1/4]})
 
-(time
- (->> (take 800 (unfold-events (morph)))
-      (export-single-event-seq :upper)
-      ))
+;; (time
+;;  (->> (take 800 (unfold-events (morph)))
+;;       (export-single-event-seq :upper)
+;;       ))
 
 ;; Rests?
 

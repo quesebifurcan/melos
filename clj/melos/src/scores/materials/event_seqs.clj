@@ -80,7 +80,7 @@
                  pitches
                  (cycle [8/4]))))
 
-;; (require '[scores.test-event-seq :refer [unfold-events morph]])
+(require '[scores.test-event-seq :as tes])
 ;;                                          alternating-pitch-rest
 ;;                                          morph
 ;;                                          unfold-events]])
@@ -89,7 +89,11 @@
   []
   ;; TODO: return lazy seqs.
   {:upper {:a (pendulum-1 :upper)}
-  ;; {:upper {:a (unfold-events (morph))}
+  ;; {:upper {:a (tes/unfold-events (tes/morph))}
    :lower {:a (pendulum-2 :lower)}
    :ped {:a (lindenmayer-1 :ped 22)
          :b (lindenmayer-1 :ped 7)}})
+
+(take 10 (tes/unfold-events (tes/morph)))
+
+(take 10 (lindenmayer-1 :ped 22))
