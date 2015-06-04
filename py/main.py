@@ -6,10 +6,10 @@ from abjad.tools.scoretools import FixedDurationTuplet
 
 def make_lilypond_file(score):
     lilypond_file = lilypondfiletools.make_basic_lilypond_file(score)
-    lilypond_file.default_paper_size = 'a3', 'landscape'
+    lilypond_file.default_paper_size = 'a4', 'portrait'
     lilypond_file.global_staff_size = 14
     lilypond_file.layout_block.indent = 0
-    lilypond_file.layout_block.ragged_right = True
+    # lilypond_file.layout_block.ragged_right = True
     lilypond_file.paper_block.ragged_bottom = True
     return lilypond_file
 
@@ -61,6 +61,19 @@ def interpret_node(parent, node, is_measure=False):
             else:
                 interpret_node(parent, child)
 
+def calculate_clef(pitches):
+    avg = sum(pitches) / len(pitches)
+    if avg < -5:
+        return 'bass'
+    else:
+        return 'treble'
+
+from itertools import izip_longest
+
+def grouper(iterable, n, fillvalue=None):
+    args = [iter(iterable)] * n
+    return izip_longest(*args, fillvalue=fillvalue)
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -75,6 +88,8 @@ def main():
         'lower': Staff(),
         'ped': Staff(),
         }
+
+    attach(Clef('bass'), staves.get('ped'))
 
     parts = staves.keys()
 
@@ -92,14 +107,26 @@ def main():
 
     for staff in staves.values():
         attach(Tie(), staff[:])
+        override(staff).time_signature.style = 'numeric'
+
+        current_clef = 'treble'
+        for chords in grouper(iterate(staff).by_class((Chord, )), 5):
+
+            pitches = []
+            for chord in chords:
+                if chord is not None:
+                    pitches.extend([x.numbered_pitch.pitch_number for x in chord.written_pitches])
+            clef = calculate_clef(pitches)
+            if not current_clef == clef:
+                attach(Clef(clef), chords[0])
+                current_clef = clef
 
     score = Score(
         [staves.get(part) for part in 'upper lower ped'.split()])
     lilypond_file = make_lilypond_file(score)
-    f(lilypond_file)
 
     show(lilypond_file)
-    persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
+    # persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
 
 
 if __name__ == '__main__':
