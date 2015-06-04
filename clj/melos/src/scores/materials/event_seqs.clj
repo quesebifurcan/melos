@@ -56,7 +56,7 @@
   (->> (make-melody part
                     (cycle [-3 -2 5 2
                             3 10 3 2 5 -2])
-                    ;; (cycle [-5 0 2 0 5 7 2 7 9 0 5 7 5 -2 0 -5 0 2 7 9 7 0 2 -3 2 4])
+                    ;; (cycle (range -3 10))
                     (cycle [1/4])
                     (cycle [false]))
        (flatten)
@@ -81,7 +81,7 @@
                      (map #(- % offset)))]
     (make-melody-2 part
                  pitches
-                 (cycle [8/4]))))
+                 (cycle [4/4]))))
 
 (require '[scores.test-event-seq :as tes])
 ;;                                          alternating-pitch-rest

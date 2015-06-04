@@ -21,3 +21,4 @@
   "Make a representation of a musical note."
   [params]
   (merge (note-default) params))
+
