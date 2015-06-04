@@ -54,11 +54,9 @@
         (let [fn_ (handle-dissonance diss-fn-params)]
           (rest (reductions fn_ [] scale-durations))))
    :modified-durations
-   (fnk [extend-horizontally]
-        (mod-dur/modify-durations 
-         extend-horizontally
-         [mod-dur/dissonant-melody-movement-mod]
-         ))
+   (fnk [extend-horizontally mod-dur-patterns]
+        (mod-dur/modify-durations extend-horizontally
+                                  mod-dur-patterns))
    :merge-horizontally
    (fnk [modified-durations]
         (mod-dur/maybe-merge modified-durations))

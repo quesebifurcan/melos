@@ -7,6 +7,7 @@
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
               [scores.materials.measures :as measures]
+              [melos.tools.modify-durations :as mod-dur]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
 
 ;; Functions for controlling rhythmic aspects of the score.
@@ -40,6 +41,7 @@
    :part->event {:lower :a, :upper :a, :ped :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
+   :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
    :duration-scalar 1
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))
