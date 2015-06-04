@@ -52,13 +52,16 @@
           ]]))
        pitches durations))
 
-(defn pendulum-1 [part]
+(defn pendulum-1 [part partitioning]
   (->> (make-melody part
                     (cycle [-3 -2 5 2
                             3 10 3 2 5 -2])
                     ;; (cycle [-5 0 2 0 5 7 2 7 9 0 5 7 5 -2 0 -5 0 2 7 9 7 0 2 -3 2 4])
                     (cycle [1/4])
                     (cycle [false]))
+       (flatten)
+       (partition 1)
+       (partition partitioning)
        ))
 
 
@@ -88,12 +91,11 @@
 (defn organ
   []
   ;; TODO: return lazy seqs.
-  {:upper {:a (pendulum-1 :upper)}
+  {:upper {:a (pendulum-1 :upper 3)}
   ;; {:upper {:a (tes/unfold-events (tes/morph))}
    :lower {:a (pendulum-2 :lower)}
    :ped {:a (lindenmayer-1 :ped 22)
          :b (lindenmayer-1 :ped 7)}})
 
-(take 10 (tes/unfold-events (tes/morph)))
 
-(take 10 (lindenmayer-1 :ped 22))
+(take 10 (pendulum-1 :upper 3))

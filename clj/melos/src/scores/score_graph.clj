@@ -33,9 +33,9 @@
 
 (def segment-graph
   {:melodic-indices
-   (fnk [part-seq part->event count]
+   (fnk [part-seq part->event]
         (sel-seq/get-melodic-segment part-seq
-                                     part->event count))
+                                     part->event))
    :collect-events
    (fnk [melodic-indices melody-sources duration-scalar]
         (collect-events-in-segment melodic-indices

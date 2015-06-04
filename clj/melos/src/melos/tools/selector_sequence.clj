@@ -57,12 +57,19 @@
         (update-in [:sum] (fn [x] (conj x result)))
         (assoc :result []))))
 
+;; (defn get-melodic-segment
+;;   "Return a seq, *cnt* elements long, using *part-seq*
+;;   to retrieve values in *events-seqs*."
+;;   [part-seq part->event count]
+;;   (take count (map (fn [x] [x (x part->event)])
+;;                    (cycle part-seq))))
+
 (defn get-melodic-segment
   "Return a seq, *cnt* elements long, using *part-seq*
   to retrieve values in *events-seqs*."
-  [part-seq part->event count]
-  (take count (map (fn [x] [x (x part->event)])
-                   (cycle part-seq))))
+  [part-seq part->event]
+  (map (fn [x] [x (x part->event)])
+       part-seq))
 
 ;; (defn collect-events
 ;;   "Collect melodic events according to score. The rather convoluted
@@ -132,4 +139,4 @@
   ;;                   melodic-indices)]
   ;;   (assoc segment :events result)))
   (mapcat (fn [x] (get-and-rotate events-seqs x))
-       melodic-indices))
+          melodic-indices))

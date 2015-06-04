@@ -50,7 +50,11 @@
   (->> (make-score initial-score-segment changes)
        (map compose-segment)
        (map :parts-tree)
-       (rtm/merge-all-tied)))
+       (rtm/merge-all-tied)
+       ))
+
+;; (compose-score (initial-score-segment)
+;;                (changes))
 
 (time
  (export-to-json "/Users/fred/Desktop/score.json"

@@ -27,7 +27,7 @@
 (def part-seq
   "A seq of part names, in this particular case corresponding to three
   organ manuals."
-  [:lower :upper :upper :upper :lower :upper :upper :upper :ped])
+  [:lower :upper :lower :upper :ped])
 
 (require '[melos.tools.dissonance-calculator :refer
            [dissonance-map-default dissonance-map-2]])
