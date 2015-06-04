@@ -55,7 +55,10 @@
           (rest (reductions fn_ [] scale-durations))))
    :modified-durations
    (fnk [extend-horizontally]
-        (mod-dur/modify-durations extend-horizontally))
+        (mod-dur/modify-durations 
+         extend-horizontally
+         [mod-dur/dissonant-melody-movement-mod]
+         ))
    :merge-horizontally
    (fnk [modified-durations]
         (mod-dur/maybe-merge modified-durations))

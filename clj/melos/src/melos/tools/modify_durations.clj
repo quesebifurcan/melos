@@ -174,10 +174,11 @@
 
 (s/defn modify-durations
   :- [ms/VerticalMoment]
-  [events :- [ms/VerticalMoment]]
+  [events :- [ms/VerticalMoment]
+   mod-fns :- [s/Any]]
   (->> (pairwise-mod events
-                [dissonant-melody-movement-mod]
-                [])
+                     mod-fns
+                     [])
        ;; (extend-last)))
        ))
 
