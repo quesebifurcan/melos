@@ -137,27 +137,6 @@
 
 ;; mix formalized and non-strict melody sources.
 
-(defn morph
-  []
-  {:pitch (->> (take 1200 (morph-pitches))
-               )
-   :dissonance-contributor? [true]
-   :part [:upper]
-   :is-rest? [false false false false true]
-   :fn (fn [x] [(make-note x)])
-   :partition (fn [x]
-                (->> x
-                     (partition 4)
-                     ;; (map (fn [x] 
-                     ;;    (do (println x)
-                     ;;        x)))
-                     (flatten)
-                     (map (fn [x] [[x]]))
-                     ;; (partition 1)
-                     ;; (partition 1)
-                     ))
-   :duration [1/4 1/4]})
-
 (require '[melos.tools.utils :refer [rotate]])
 
 (defn cyclic-partition
@@ -165,6 +144,14 @@
   (cons (take (first splits) xs)
         (lazy-seq (cyclic-partition (drop (first splits) xs)
                                     (rotate splits)))))
+
+(defn morph
+  []
+  {:pitch (morph-pitches)
+   :part [:upper]
+   :fn (fn [x] [(make-note x)])
+   :partition #(cyclic-partition % [2 4 3])
+   :duration [1/4]})
 
 (defn asdf
   []
@@ -185,13 +172,27 @@
                               :group 1})]))
        event-groups))
 
+(defn extended
+  "Insistent first event, which will be sustained *if* the context
+  allows. Otherwise, it'll appear as a repeated note."
+  []
+  {:pitch ['(-10 11) -9 8 7 6 5]
+   :part [:upper]
+   :fn (fn [x] [(make-note x)])
+   :partition #(cyclic-partition % [1])
+   :duration ['(1/4 7) '(3/4 1)]})
+
 (defn notes
   []
-  {:upper {:a (delimit-phrases-with-rests (unfold-events (asdf)))}})
+  {:a (delimit-phrases-with-rests (unfold-events (asdf)))
+   :b (delimit-phrases-with-rests (unfold-events (morph)))
+   ;; :c (delimit-phrases-with-rests (unfold-events (extended)))}
+   :c (unfold-events (extended))}
+   )
 
 (defn test-score-segment
   []
-  {:part-seq (take 20 (cycle [:upper]))
+  {:part-seq (take 50 (cycle [:upper]))
    :diss-fn-params {:max-count 8
                     :part-counts {:upper 1
                                   :lower 2
@@ -199,13 +200,14 @@
                     :max-lingering 5
                     :diss-value 1.6}
    :interval->diss-map dissonance-map-default
-   :part->event {:upper :a}
+   :part->event {:upper :a :lower :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
    :duration-scalar 1
    :mod-dur-patterns []
    :part-names [:upper :lower :ped]
-   :melody-sources (atom (notes))
+   :melody-sources (atom 
+                    {:upper {:a (:c (notes))}})
    :count 0})
 
 (time
@@ -213,7 +215,9 @@
                  (compose-score (test-score-segment)
                                 [{}])))
 
-;; ;; (take 10 (unfold-events (morph)))
+
+(take 10 (unfold-events (morph)))
+;; (take 10 (unfold-events (asdf)))
 
 ;; (time
 ;;  (->> (take 800 (unfold-events (morph)))
