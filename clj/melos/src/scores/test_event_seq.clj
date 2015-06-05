@@ -39,8 +39,9 @@
     [x]))
 
 (defn unfold-events
-  [m]
-  (let [f (:fn m)
+  [m part]
+  (let [m (assoc m :part [part])
+        f (:fn m)
         partition-fn (:partition m)
         m (dissoc m :fn :partition)]
   (->> (map (fn [x] (mapcat parse-params x))
@@ -176,7 +177,17 @@
   "Insistent first event, which will be sustained *if* the context
   allows. Otherwise, it'll appear as a repeated note."
   []
-  {:pitch ['(-10 11) -9 8 7 6 5]
+  {:pitch ['(10 11) 9 8 7 6 5]
+   :part [:upper]
+   :fn (fn [x] [(make-note x)])
+   :partition #(cyclic-partition % [1])
+   :duration ['(1/4 7) '(3/4 1)]})
+
+(defn extended-bass
+  "Insistent first event, which will be sustained *if* the context
+  allows. Otherwise, it'll appear as a repeated note."
+  []
+  {:pitch ['(-20 7) -19 -18 -17 -16 -15]
    :part [:upper]
    :fn (fn [x] [(make-note x)])
    :partition #(cyclic-partition % [1])
@@ -184,15 +195,17 @@
 
 (defn notes
   []
-  {:a (delimit-phrases-with-rests (unfold-events (asdf)))
-   :b (delimit-phrases-with-rests (unfold-events (morph)))
+  {:a (delimit-phrases-with-rests (unfold-events (asdf) :upper))
+   ;; :b (delimit-phrases-with-rests (unfold-events (asdf))fd
    ;; :c (delimit-phrases-with-rests (unfold-events (extended)))}
-   :c (unfold-events (extended))}
+   :b (unfold-events (extended) :lower)
+   :c (unfold-events (asdf) :upper)
+   :d (unfold-events (extended-bass) :ped)}
    )
 
 (defn test-score-segment
   []
-  {:part-seq (take 50 (cycle [:upper]))
+  {:part-seq (take 150 (cycle [:upper :lower :upper :lower :ped]))
    :diss-fn-params {:max-count 8
                     :part-counts {:upper 1
                                   :lower 2
@@ -200,14 +213,16 @@
                     :max-lingering 5
                     :diss-value 1.6}
    :interval->diss-map dissonance-map-default
-   :part->event {:upper :a :lower :a}
+   :part->event {:upper :a :lower :a :ped :a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
    :duration-scalar 1
    :mod-dur-patterns []
    :part-names [:upper :lower :ped]
    :melody-sources (atom 
-                    {:upper {:a (:c (notes))}})
+                    {:upper {:a (:c (notes))}
+                     :ped {:a (:d (notes))}
+                     :lower {:a (:b (notes))}})
    :count 0})
 
 (time
@@ -216,7 +231,6 @@
                                 [{}])))
 
 
-(take 10 (unfold-events (morph)))
 ;; (take 10 (unfold-events (asdf)))
 
 ;; (time
