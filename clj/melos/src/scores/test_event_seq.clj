@@ -4,7 +4,7 @@
              [dissonance-map-default dissonance-map-2]]
             [scores.materials.measures :as measures]
             [melos.tools.utils :refer [export-to-json]]
-            [scores.main :refer [compose-score]]
+            ;; [scores.main :refer [compose-score]]
 
             [melos.tools.l-systems :refer [lindenmayer]]
             [melos.tools.make-note :refer [make-note]]
@@ -225,10 +225,10 @@
                      :lower {:a (:b (notes))}})
    :count 0})
 
-(time
- (export-to-json "/Users/fred/Desktop/score.json"
-                 (compose-score (test-score-segment)
-                                [{}])))
+;; (time
+;;  (export-to-json "/Users/fred/Desktop/score.json"
+;;                  (compose-score (test-score-segment)
+;;                                 [{}])))
 
 
 ;; (take 10 (unfold-events (asdf)))
