@@ -133,11 +133,11 @@ def main():
                     is_measure = False
                 interpret_node(top, node, is_measure=is_measure)
 
-    for staff in staves.values():
+    current_clef = 'treble'
+    for i, staff in enumerate(staves.values()):
         attach(Tie(), staff[:])
         override(staff).time_signature.style = 'numeric'
 
-        current_clef = 'treble'
         for chords in grouper(iterate(staff).by_class((Chord, )), 5):
 
             pitches = []
