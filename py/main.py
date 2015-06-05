@@ -20,6 +20,7 @@ def make_lilypond_file(score):
     lilypond_file.paper_block.system_system_spacing = spacing_vector
     spacing_vector = layouttools.make_spacing_vector(0, 0, 20, 0)
     lilypond_file.paper_block.top_markup_spacing = spacing_vector
+    lilypond_file.header_block.tagline = False
     spacing_vector = layouttools.make_spacing_vector(0, 0, 1, 0)
     override(score).staff_grouper.staff_staff_spacing = spacing_vector
     spacing_vector = layouttools.make_spacing_vector(0, 0, 3, 0)
@@ -159,6 +160,8 @@ def main():
     spacing_vector = layouttools.make_spacing_vector(0, 0, 30, 0)
     # override(score).vertical_axis_group.staff_staff_spacing = spacing_vector
     # override(score).staff_grouper.staff_staff_spacing = spacing_vector
+
+    attach(Tempo((1, 4), 132), upper)
 
     lilypond_file = make_lilypond_file(score)
 
