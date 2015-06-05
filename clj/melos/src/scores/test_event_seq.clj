@@ -1,5 +1,11 @@
 (ns scores.test-event-seq
   (:require [clojure.walk :as walk]
+            [melos.tools.dissonance-calculator :refer
+             [dissonance-map-default dissonance-map-2]]
+            [scores.materials.measures :as measures]
+            [melos.tools.utils :refer [export-to-json]]
+            [scores.main :refer [compose-score]]
+
             [melos.tools.l-systems :refer [lindenmayer]]
             [melos.tools.make-note :refer [make-note]]
             [melos.tools.rtm :refer [make-r-tree merge-all-tied]]
@@ -153,38 +159,57 @@
                      ))
    :duration [1/4 1/4]})
 
-;; (require '[scores.main :refer [compose-score]])
-;; (require '[melos.tools.dissonance-calculator :refer
-;;            [dissonance-map-default dissonance-map-2]])
-;; (require '[scores.materials.measures :as measures])
-;; (require '[melos.tools.utils :refer [export-to-json]])
+(defn asdf
+  []
+  {:pitch (map (fn [x] (if (number? x) [x] x))
+                 [0 12 24 12 [-1 0 2 3]])
+   :dissonance-contributor? [true]
+   :part [:upper]
+   :is-rest? [false]
+   ;; :fn (fn [x] [(make-note x)])
+   :fn (fn [x] (->> (make-note x)
+                    (split-if-chord)))
+   :partition (fn [x]
+                (->> x
+                     (partition 3)
+                     ))
+   :duration ['(1/4 7) 3/4]})
 
-;; (defn notes
-;;   []
-;;   {:upper {:a (unfold-events (morph))}})
+(defn delimit-phrases
+  [event-groups]
+  (map (fn [x]
+         (conj x [(make-note {:is-rest? true
+                              :part :upper
+                              :group 1})]))
+       event-groups))
 
-;; (defn test-score-segment
-;;   []
-;;   {:part-seq [:upper]
-;;    :diss-fn-params {:max-count 8
-;;                     :part-counts {:upper 1
-;;                                   :lower 2
-;;                                   :ped 1}
-;;                     :max-lingering 5
-;;                     :diss-value 1.6}
-;;    :interval->diss-map dissonance-map-default
-;;    :part->event {:upper :a}
-;;    ;; TODO: pass in via score-graph.
-;;    :time-signatures [measures/measure-3]
-;;    :duration-scalar 1
-;;    :part-names [:upper :lower :ped]
-;;    :melody-sources (atom (notes))
-;;    :count 200})
+(defn notes
+  []
+  {:upper {:a (delimit-phrases (unfold-events (asdf)))}})
 
-;; (time
-;;  (export-to-json "/Users/fred/Desktop/score.json"
-;;                  (compose-score (test-score-segment)
-;;                                 [{}])))
+(defn test-score-segment
+  []
+  {:part-seq (take 20 (cycle [:upper]))
+   :diss-fn-params {:max-count 8
+                    :part-counts {:upper 1
+                                  :lower 2
+                                  :ped 1}
+                    :max-lingering 5
+                    :diss-value 1.6}
+   :interval->diss-map dissonance-map-default
+   :part->event {:upper :a}
+   ;; TODO: pass in via score-graph.
+   :time-signatures [measures/measure-3]
+   :duration-scalar 1
+   :mod-dur-patterns []
+   :part-names [:upper :lower :ped]
+   :melody-sources (atom (notes))
+   :count 0})
+
+(time
+ (export-to-json "/Users/fred/Desktop/score.json"
+                 (compose-score (test-score-segment)
+                                [{}])))
 
 ;; ;; (take 10 (unfold-events (morph)))
 
