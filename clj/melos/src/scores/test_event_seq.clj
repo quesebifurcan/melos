@@ -102,8 +102,7 @@
 
 (transpose-motif-gradually [0 2 7])
 
-
-;; tranpose by fifths, one note at a time.
+;; transpose by fifths, one note at a time.
 ;; repeat sections (after the contour has been applied).
 
 (defn repeat-segments
@@ -178,7 +177,7 @@
    :partition #(cyclic-partition % [2 4 3])
    :duration ['(1/4 7) 3/4]})
 
-(defn delimit-phrases
+(defn delimit-phrases-with-rests
   [event-groups]
   (map (fn [x]
          (conj x [(make-note {:is-rest? true
@@ -188,7 +187,7 @@
 
 (defn notes
   []
-  {:upper {:a (delimit-phrases (unfold-events (asdf)))}})
+  {:upper {:a (delimit-phrases-with-rests (unfold-events (asdf)))}})
 
 (defn test-score-segment
   []
