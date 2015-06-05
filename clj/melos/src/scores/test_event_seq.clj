@@ -159,20 +159,23 @@
                      ))
    :duration [1/4 1/4]})
 
+(require '[melos.tools.utils :refer [rotate]])
+
+(defn cyclic-partition
+  [xs splits]
+  (cons (take (first splits) xs)
+        (lazy-seq (cyclic-partition (drop (first splits) xs)
+                                    (rotate splits)))))
+
 (defn asdf
   []
   {:pitch (map (fn [x] (if (number? x) [x] x))
                  [0 12 24 12 [-1 0 2 3]])
    :dissonance-contributor? [true]
    :part [:upper]
-   :is-rest? [false]
-   ;; :fn (fn [x] [(make-note x)])
    :fn (fn [x] (->> (make-note x)
                     (split-if-chord)))
-   :partition (fn [x]
-                (->> x
-                     (partition 3)
-                     ))
+   :partition #(cyclic-partition % [2 4 3])
    :duration ['(1/4 7) 3/4]})
 
 (defn delimit-phrases

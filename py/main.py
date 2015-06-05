@@ -166,7 +166,7 @@ def main():
     lilypond_file = make_lilypond_file(score)
 
     show(lilypond_file)
-    # persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
+    persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
 
 
 if __name__ == '__main__':
