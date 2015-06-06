@@ -161,7 +161,7 @@ def main():
     # override(score).vertical_axis_group.staff_staff_spacing = spacing_vector
     # override(score).staff_grouper.staff_staff_spacing = spacing_vector
 
-    attach(Tempo((1, 4), 132), upper)
+    attach(Tempo((1, 4), 120), upper)
 
     lilypond_file = make_lilypond_file(score)
 
