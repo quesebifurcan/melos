@@ -83,7 +83,7 @@
                  pitches
                  (cycle [4/4]))))
 
-(require '[scores.test-event-seq :as tes])
+;; (require '[scores.test-event-seq :as tes])
 ;;                                          alternating-pitch-rest
 ;;                                          morph
 ;;                                          unfold-events]])
