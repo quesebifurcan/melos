@@ -4,10 +4,10 @@
              [dissonance-map-default dissonance-map-2]]
             [scores.materials.measures :as measures]
             [melos.tools.utils :refer [export-to-json]]
-            ;; [scores.main :refer [compose-score]]
 
             [melos.tools.l-systems :refer [lindenmayer]]
             [melos.tools.make-note :refer [make-note]]
+            [melos.tools.modify-durations :as mod-dur]
             [melos.tools.rtm :refer [make-r-tree merge-all-tied]]
             [melos.tools.contour :refer
              [apply-contour-to-melody]]
@@ -157,13 +157,13 @@
 (defn asdf
   []
   {:pitch (map (fn [x] (if (number? x) [x] x))
-                 [0 12 24 12 [-1 0 2 3]])
+                 [0 12 0 12 24 12 0 12 [-1 0 2 3]])
    :dissonance-contributor? [true]
    :part [:upper]
    :fn (fn [x] (->> (make-note x)
                     (split-if-chord)))
    :partition #(cyclic-partition % [2 4 3])
-   :duration ['(1/4 7) 3/4]})
+   :duration ['(1/4 3) 3/4]})
 
 (defn delimit-phrases-with-rests
   [event-groups]
@@ -177,7 +177,7 @@
   "Insistent first event, which will be sustained *if* the context
   allows. Otherwise, it'll appear as a repeated note."
   []
-  {:pitch ['(10 11) 9 8 7 6 5]
+  {:pitch ['(10 5) 9 8 7 6 5]
    :part [:upper]
    :fn (fn [x] [(make-note x)])
    :partition #(cyclic-partition % [1])
@@ -193,6 +193,33 @@
    :partition #(cyclic-partition % [1])
    :duration ['(1/4 7) '(3/4 1)]})
 
+(defn tie-over
+  []
+  {:pitch (map (fn [x] (if (number? x) [x] x))
+                 [-19 [-19 -15] [-19 -5] [-5 -7] [-5 -9]])
+   :dissonance-contributor? [true]
+   :part [:upper]
+   :fn (fn [x] (->> (make-note x)
+                    (split-if-chord)))
+   :partition #(cyclic-partition % [1])
+   :duration ['(2/4 7) 4/4]})
+
+(defn cyclic-repeats
+  [xs repeats]
+  (if (seq xs)
+    (concat (repeat (first repeats) (first xs))
+            (lazy-seq (cyclic-repeats (rotate xs)
+                                      (rotate repeats))))))
+
+(def asdf-2
+  (assoc (asdf)
+         :pitch
+         (map (fn [x] (if (number? x) [x] x))
+              (map #(- % 0) (cyclic-repeats
+                             [2 3 2 3 4 5 2 3 4 1 3 2 4 5 6 7 8]
+                             [4 8 5 3 1 1])))
+         :duration [1/4]))
+
 (defn notes
   []
   {:a (delimit-phrases-with-rests (unfold-events (asdf) :upper))
@@ -200,12 +227,15 @@
    ;; :c (delimit-phrases-with-rests (unfold-events (extended)))}
    :b (unfold-events (extended) :lower)
    :c (unfold-events (asdf) :upper)
-   :d (unfold-events (extended-bass) :ped)}
+   ;; :c (unfold-events asdf-2 :upper)
+   :d (unfold-events (extended-bass) :ped)
+   :e (unfold-events (extended) :lower)
+   :f (unfold-events (morph) :upper)}
    )
 
 (defn test-score-segment
   []
-  {:part-seq (take 150 (cycle [:upper :lower :upper :lower :ped]))
+  {:part-seq (take 100 (cycle [:upper :lower :upper :lower :ped]))
    :diss-fn-params {:max-count 8
                     :part-counts {:upper 1
                                   :lower 2
@@ -215,20 +245,22 @@
    :interval->diss-map dissonance-map-default
    :part->event {:upper :a :lower :a :ped :a}
    ;; TODO: pass in via score-graph.
-   :time-signatures [measures/measure-3]
+   :time-signatures [measures/measure-4]
    :duration-scalar 1
-   :mod-dur-patterns []
+   :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
    :part-names [:upper :lower :ped]
-   :melody-sources (atom 
+   :melody-sources (atom
                     {:upper {:a (:c (notes))}
                      :ped {:a (:d (notes))}
-                     :lower {:a (:b (notes))}})
+                     :lower {:a (:e (notes))}})
    :count 0})
 
-;; (time
-;;  (export-to-json "/Users/fred/Desktop/score.json"
-;;                  (compose-score (test-score-segment)
-;;                                 [{}])))
+(require '[scores.main :refer [compose-score]])
+
+(time
+ (export-to-json "/Users/fred/Desktop/score.json"
+                 (compose-score (test-score-segment)
+                                [{}])))
 
 
 ;; (take 10 (unfold-events (asdf)))

@@ -42,3 +42,10 @@
             measure-2-4]]
           measure-2-4]]]
     (parse-rtm-tree-node measure)))
+
+(def measure-4
+  (let [measure
+        [[4 4]
+         [measure-2-4
+          measure-2-4]]]
+    (parse-rtm-tree-node measure)))
