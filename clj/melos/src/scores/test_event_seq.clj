@@ -138,8 +138,8 @@
       (repeat-segments 6 3)
       ;; N.B. gradually rising melody.
       ;; TODO: cache results.
-      (apply-contour-to-melody (cycle (concat (range 0.11 10 0.1)
-                                              (range 10 0.11 -0.1))))
+      ;; (apply-contour-to-melody (cycle (concat (range 0.11 10 0.1)
+      ;;                                         (range 10 0.11 -0.1))))
 
       (flatten)
       ))
@@ -169,17 +169,23 @@
   ;;                  [x]
   ;;                  x))
   ;;                  [0 12 0 12 24 12 0 12 [-1 0 2 3]])
-  ;; {:pitch (concat 
+  ;; {:pitch (concat
   ;;          (map (fn [x] [x]) [-3 0 2 7 2 4 -1])
   ;;          (map (fn [x] [(- x 4)]) [-3 0 2 7 2 4 -1]))
-  {:pitch (map (fn [x] [x]) (morph-pitches))
+  ;; {:pitch (map (fn [x] [x]) (morph-pitches))
+  {:pitch (map (fn [x] [x])
+               (concat 
+                (range -1 4)
+                (range -1 6)
+                (range -1 8)
+                (range -1 11)))
    :dissonance-contributor? [true]
    :part [:upper]
    ;; :fn (fn [x] (->> (make-note x)
    ;;                  (split-if-chord)))
    :fn make-chord-from-pitch-vector-params
-   :partition #(cyclic-partition % [1])
-   :duration ['(1/4 3)]})
+   :partition #(cyclic-partition % [1 1 1 1 2 3])
+   :duration [1/4 1/4 1/4 1/4]})
 
 (defn delimit-phrases-with-rests
   [event-groups]
@@ -194,27 +200,38 @@
   allows. Otherwise, it'll appear as a repeated note."
   []
   {:pitch [
-           -3 9
-           -3 9
-           -3 9
-           -3 9
-           -3 9
-           -3 9
+           -3 9 4 -3 4 9
            ]
+  ;; {:pitch
+  ;;  (-> (transpose-motif-by-fifths [0 2 7] [0 1 2])
+  ;;      (repeat-segments 7 2)
+  ;;      ;; N.B. gradually rising melody.
+  ;;      ;; TODO: cache results.
+  ;;      (apply-contour-to-melody (cycle (concat (range -3.11 5 0.1)
+  ;;                                              (range 5 -3.11 -0.1))))
+  ;;      (flatten)
+  ;;      )
    :part [:upper]
    :fn (fn [x] [(make-note x)])
-   :partition #(cyclic-partition % [1])
-   :duration ['(1/4 7)]})
+   :partition #(cyclic-partition % [1 1 1 2 3])
+   :duration [1/4]})
 
 (defn extended-bass
   "Insistent first event, which will be sustained *if* the context
   allows. Otherwise, it'll appear as a repeated note."
   []
-  {:pitch ['(-20 7) -19 -18 -17 -16 -15]
+  {:pitch [
+           '(-20 1)
+           '(-19 1)
+           '(-18 1)
+           '(-17 1)
+           '(-16 1)
+           '(-15 1)
+           ]
    :part [:upper]
    :fn (fn [x] [(make-note x)])
    :partition #(cyclic-partition % [1])
-   :duration ['(1/4 7) '(3/4 1)]})
+   :duration ['(1/4 7) '(1/4 1)]})
 
 (defn tie-over
   []
@@ -262,9 +279,14 @@
 
 (defn test-score-segment
   []
-  {:part-seq (take 800 (cycle [:upper :lower :upper :lower :ped]))
+  {:part-seq (take 400
+                   (cycle [
+                           :upper 
+                           :lower
+                           :ped
+                           ]))
    :diss-fn-params {:max-count 8
-                    :part-counts {:upper 2
+                    :part-counts {:upper 1
                                   :lower 1
                                   :ped 1}
                     :max-lingering 10
@@ -275,6 +297,7 @@
    :time-signatures [measures/measure-4]
    :duration-scalar 1
    :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
+   ;; :mod-dur-patterns []
    :part-names [:upper :lower :ped]
    :melody-sources (atom
                     {:upper {:a (:b (notes))}

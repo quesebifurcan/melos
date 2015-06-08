@@ -130,7 +130,7 @@
                            :duration dur))
                   events))
            pair
-           [3/4 3/4]))))
+           [2/4 1/4]))))
 
 (require '[melos.tools.make-note :refer [make-note]])
 
