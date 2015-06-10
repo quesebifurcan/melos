@@ -158,7 +158,13 @@
     (->> events
          (forward-time)
          (join-events event)
-         (filter-by-count-aggressive max-count)
+         ;; (filter-by-count-aggressive max-count)
          (filter-parts-by-count part-counts)
-         (filter-by-time-in-vertical-moment max-lingering)
+         ;; (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value))))
+
+(let [a (range 10)]
+  (map-indexed (fn [i x]
+                 (if (= (rem i 7) 0)
+                   [x 7] [x]))
+               a))

@@ -12,6 +12,7 @@
             [melos.tools.contour :refer
              [apply-contour-to-melody]]
             [scores.materials.measures :refer [measure-3]]
+            [scores.main :refer [compose-score]]
             [melos.tools.utils :refer [rotate]]
             [melos.tools.filter-parts :refer [split-out-part]]
             [melos.tools.utils :refer [export-to-json]]))
@@ -178,18 +179,32 @@
 
 (defn upper-soft
   []
-  {:pitch (map (fn [x] [x])
-               [-3 -2 5 2 3 10 3 2 5 -2])
+  ;; {:pitch (map (fn [x] [x])
+  ;;              [-3 -2 5 2 3 10 3 2 5 -2])
+  ;; {:pitch (map (fn [x] [x])
+  ;;              (concat
+  ;;               (range -3 10)
+  ;;               (range 10 -3 -1)))
+  {:pitch
+   (map-indexed (fn [i x]
+                  (if (= (rem i 9) 0)
+                    [x] [x]))
+                (concat
+                 (range -3 10)
+                 (range 10 -3 -1)))
    :dissonance-contributor? [true]
    :part [:upper]
    :fn make-chord-from-pitch-vector-params
-   :partition #(cyclic-partition % [3])
+   :partition #(cyclic-partition % [1 1 1 2 2 1 1 2])
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn complement-upper
   []
-  {:pitch [-5 0 2 7 2 0
-           -5 0 2 7 12 14 12 7 2 0]
+  ;; {:pitch [-5 0 2 7 2 0
+  ;;          -5 0 2 7 12 14 12 7 2 0]
+  {:pitch (map (fn [x] (- x 0))
+               ;; [-1 11 6])
+               [-3 9 4])
    :part [:upper]
    :fn (fn [x] [(make-note x)])
    :partition #(cyclic-partition % [1])
@@ -197,11 +212,13 @@
 
 (defn extended-bass
   []
-  {:pitch ['(-17 2) '(-19 2)]
+  ;; {:pitch ['(-17 1) '(-19 2) '(-21 2) '(-22 3)]
+  {:pitch (range -17 -22 -1)
    :part [:upper]
+   ;; :dissonance-contributor? [false]
    :fn (fn [x] [(make-note x)])
    :partition #(cyclic-partition % [1])
-   :duration ['(3/4 7) '(5/4 1)]})
+   :duration ['(1/4 7) '(5/4 1)]})
 
 (defn tie-over
   []
@@ -229,13 +246,14 @@
                            :upper
                            :lower
                            :upper
-                           :ped]))
-   :diss-fn-params {:max-count 8
-                    :part-counts {:upper 1
-                                  :lower 1
+                           :ped
+                           ]))
+   :diss-fn-params {:max-count 10
+                    :part-counts {:upper 2
+                                  :lower 2
                                   :ped 1}
-                    :max-lingering 10
-                    :diss-value 1.6}
+                    :max-lingering 30
+                    :diss-value 2.2}
    :interval->diss-map dissonance-map-default
    :part->event {:upper :primary
                  :lower :primary
@@ -243,8 +261,8 @@
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-4]
    :duration-scalar 1
-   ;; :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
-   :mod-dur-patterns []
+   :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
+   ;; :mod-dur-patterns []
    :part-names [:upper :lower :ped]
    :melody-sources (atom
                     {:upper {:primary (:b materials)}
@@ -252,7 +270,6 @@
                      :lower {:primary (:e materials)}})
    :count 0}))
 
-(require '[scores.main :refer [compose-score]])
 
 (time
  (export-to-json "/Users/fred/Desktop/score.json"

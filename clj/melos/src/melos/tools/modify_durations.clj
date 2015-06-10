@@ -122,7 +122,7 @@
                        (fn [x]
                          (first (filter number? (map :pitch x))))
                            melodic-notes)]
-    (if (> (scaled-dissonance-value melodic-notes) 1.6)
+    (if (> (scaled-dissonance-value melodic-notes) 2.2)
       (map (fn [events dur]
              (map (fn [event]
                     (assoc event
@@ -130,7 +130,7 @@
                            :duration dur))
                   events))
            pair
-           [3/4 3/4]))))
+           [3/4 1/4]))))
 
 (require '[melos.tools.make-note :refer [make-note]])
 
