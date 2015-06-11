@@ -204,7 +204,8 @@
   ;;          -5 0 2 7 12 14 12 7 2 0]
   {:pitch (map (fn [x] (- x 0))
                ;; [-1 11 6])
-               [-3 9 4])
+               ;; [-2 10 5])
+               [-1 11 6])
    :part [:upper]
    :fn (fn [x] [(make-note x)])
    :partition #(cyclic-partition % [1])
@@ -249,7 +250,7 @@
                            :ped
                            ]))
    :diss-fn-params {:max-count 10
-                    :part-counts {:upper 2
+                    :part-counts {:upper 1
                                   :lower 2
                                   :ped 1}
                     :max-lingering 30
@@ -259,7 +260,7 @@
                  :lower :primary
                  :ped :primary}
    ;; TODO: pass in via score-graph.
-   :time-signatures [measures/measure-4]
+   :time-signatures [measures/measure-3]
    :duration-scalar 1
    :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
    ;; :mod-dur-patterns []
