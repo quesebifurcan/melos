@@ -22,8 +22,9 @@
 (s/defn consonant?
   :- s/Bool
   [vertical-moment :- ms/VerticalMoment
-   limit :- s/Num]
-  (<= (dissonance-value vertical-moment) limit))
+   limit :- [s/Int]]
+  (let [limit (diss-calc/scaled-dissonance-value limit)]
+    (<= (dissonance-value vertical-moment) limit)))
 
 (s/defn zero-count?
   :- s/Bool

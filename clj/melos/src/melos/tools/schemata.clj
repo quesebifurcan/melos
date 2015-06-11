@@ -32,7 +32,7 @@
   {:max-count s/Int
    :part-counts {PartName s/Int}
    :max-lingering s/Int
-   :diss-value s/Num})
+   :diss-value [s/Num]})
 
 (def PartialDissonanceFnParams
   (zipmap (map (fn [k] (s/optional-key k))

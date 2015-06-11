@@ -254,7 +254,7 @@
                                   :lower 2
                                   :ped 1}
                     :max-lingering 30
-                    :diss-value 2.2}
+                    :diss-value [0 4 6]}
    :interval->diss-map dissonance-map-default
    :part->event {:upper :primary
                  :lower :primary

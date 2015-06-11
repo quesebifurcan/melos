@@ -23,7 +23,7 @@
                  :lower 2
                  :ped 1}
    :max-lingering 5
-   :diss-value 1.6})
+   :diss-value [0 2 4]})
 
 (def part-seq
   "A seq of part names, in this particular case corresponding to three
@@ -56,7 +56,7 @@
       :values [10]}
      {:path [:diss-fn-params :diss-value]
       :cycle [1]
-      :values [1.6]}
+      :values [[0 2 4]]}
      {:path [:interval->diss-map]
       :cycle [1]
       :values [dissonance-map-default]}
