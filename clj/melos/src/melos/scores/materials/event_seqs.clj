@@ -1,4 +1,4 @@
-(ns scores.materials.event-seqs
+(ns melos.scores.materials.event-seqs
   (:require [melos.tools.l-systems :refer [lindenmayer]]
             [melos.tools.make-note :refer [make-note]]))
 

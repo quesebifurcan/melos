@@ -1,11 +1,11 @@
-(ns scores.main
+(ns melos.scores.main
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
-              [scores.score-graph :refer [compose-segment]]
-              [scores.score :refer [initial-score-segment
+              [melos.scores.score-graph :refer [compose-segment]]
+              [melos.scores.score :refer [initial-score-segment
                                     changes]]))
 
 ;; ## Pretty-printing

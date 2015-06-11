@@ -1,4 +1,4 @@
-(ns scores.materials.measures)
+(ns melos.scores.materials.measures)
 
 (require '[melos.tools.utils :refer [ratio->non-reduced-ratio-vector]])
 

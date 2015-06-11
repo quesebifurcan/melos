@@ -1,12 +1,12 @@
-(ns scores.score
+(ns melos.scores.score
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
-              [scores.materials.event-seqs :refer [organ]]
+              [melos.scores.materials.event-seqs :refer [organ]]
               [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
-              [scores.materials.measures :as measures]
+              [melos.scores.materials.measures :as measures]
               [melos.tools.modify-durations :as mod-dur]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
 

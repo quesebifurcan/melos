@@ -1,8 +1,8 @@
-(ns scores.test-event-seq
+(ns melos.scores.test-event-seq
   (:require [clojure.walk :as walk]
             [melos.tools.dissonance-calculator :refer
              [dissonance-map-default dissonance-map-2]]
-            [scores.materials.measures :as measures]
+            [melos.scores.materials.measures :as measures]
             [melos.tools.utils :refer [export-to-json]]
 
             [melos.tools.l-systems :refer [lindenmayer]]
@@ -11,8 +11,8 @@
             [melos.tools.rtm :refer [make-r-tree merge-all-tied]]
             [melos.tools.contour :refer
              [apply-contour-to-melody]]
-            [scores.materials.measures :refer [measure-3]]
-            [scores.main :refer [compose-score]]
+            [melos.scores.materials.measures :refer [measure-3]]
+            [melos.scores.main :refer [compose-score]]
             [melos.tools.utils :refer [rotate]]
             [melos.tools.filter-parts :refer [split-out-part]]
             [melos.tools.utils :refer [export-to-json]]))
