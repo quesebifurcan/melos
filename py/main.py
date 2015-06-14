@@ -165,8 +165,10 @@ def main():
 
     lilypond_file = make_lilypond_file(score)
 
-    show(lilypond_file)
-    persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
+    # show(lilypond_file)
+    persist(lilypond_file).as_pdf(
+        '/Users/fred/projects/music/compositions/2015/organ/output/pdf/out.pdf')
+    # persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
 
 
 if __name__ == '__main__':
