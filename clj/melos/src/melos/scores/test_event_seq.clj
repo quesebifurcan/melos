@@ -277,7 +277,7 @@
                  (compose-score (test-score-segment)
                                 [{}])))
 
-;; (take 10 
+;; (take 10
 ;;       (unfold-events (complement-upper) :upper))
 
 ;; (let [p [(range 0 3)
