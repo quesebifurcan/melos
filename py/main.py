@@ -167,7 +167,7 @@ def main():
 
     # show(lilypond_file)
     persist(lilypond_file).as_pdf(
-        '/Users/fred/projects/music/compositions/2015/organ/output/pdf/out.pdf')
+        '/Users/fred/projects/music/compositions/2015/organ/output/output.pdf')
     # persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
 
 

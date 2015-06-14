@@ -272,27 +272,14 @@
    :count 0}))
 
 
-;; (time
-;;  (export-to-json "/Users/fred/Desktop/score.json"
-;;                  (compose-score (test-score-segment)
-;;                                 [{}])))
-
-
-
-(defn complement-upper
-  []
-  ;; {:pitch [-5 0 2 7 2 0
-  ;;          -5 0 2 7 12 14 12 7 2 0]
-  {:pitch (map (fn [x] [(- x 0)])
-               [-1 11 6])
-   :part [:upper]
-   :fn make-chord-from-pitch-vector-params
-   :partition #(cyclic-partition % [1])
-   :duration [1/4]})
+(time
+ (export-to-json "/Users/fred/Desktop/score.json"
+                 (compose-score (test-score-segment)
+                                [{}])))
 
 ;; (take 10 
 ;;       (unfold-events (complement-upper) :upper))
 
-(let [p [(range 0 3)
-         (range 0 4)]]
-  p)
+;; (let [p [(range 0 3)
+;;          (range 0 4)]]
+;;   p)
