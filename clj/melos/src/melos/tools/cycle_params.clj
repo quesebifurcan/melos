@@ -48,7 +48,7 @@
                  vector-path-map))))
 
 (s/defn unfold-parameter-cycles
-  :- [ms/PartialScoreSegment]
+  :- s/Any
   [params :- [{s/Keyword s/Any}]
    cnt :- s/Int]
   (->> (maybe-coll-change params 0)
@@ -58,13 +58,30 @@
 ;; TODO: allow-extension part of segment composition?
 
 (let [a [
-         {:path [:part-seq]
-          :cycle [1 1 2]
-          :values [[:lower :upper] [:upper :upper :lower :ped]]}
+         ;; {:path [:part-seq]
+         ;;  :cycle [1 1 2]
+         ;;  :values [[:lower :upper] [:upper :upper :lower :ped]]}
+         ;; {:path [:part->event :upper]
+         ;;  :cycle [2 3]
+         ;;  :values [:a :b :c]}
          {:path [:part->event :upper]
-          :cycle [2 3]
-          :values [:a :b :c]}
+          :cycle [4 4]
+          :values [:chromatic-line :chords]}
+         {:path [:part->event :ped]
+          :cycle [2 3 4 5 6]
+          :values [:ascending :descending :chords]}
+         {:path [:interval->diss-map]
+          :cycle [5 2]
+          :values [:default :experimental]}
+         {:path [:count]
+          :cycle [1]
+          :values [20 50 100]}
          ]]
-  (->> (unfold-parameter-cycles a 8)
+  (->> (unfold-parameter-cycles a 20)
+       (reductions merge-in)
+       (map :count)
+       (apply +)
+       (* 0.5)
+       ((fn [x] (/ x 60)))
        ))
 
