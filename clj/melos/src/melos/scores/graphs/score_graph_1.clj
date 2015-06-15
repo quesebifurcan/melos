@@ -1,4 +1,4 @@
-(ns melos.scores.score-graph
+(ns melos.scores.graphs.score-graph-1
     (:require [schema.core :as s]
               [plumbing.graph :as graph]
               [plumbing.core :refer [fnk]]
@@ -63,7 +63,7 @@
    :rhythmic-tree
    (fnk [time-signatures merge-horizontally]
         (rtm/make-r-tree merge-horizontally time-signatures))
-   :parts-tree
+   :result
    (fnk [part-names modified-durations rhythmic-tree]
         (map
          (fn [x] {:part-name x

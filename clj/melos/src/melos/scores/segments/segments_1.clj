@@ -1,13 +1,15 @@
-(ns melos.scores.score
+(ns melos.scores.segments.segments-1
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
-              [melos.scores.materials.event-seqs :refer [organ]]
+              [melos.scores.materials.melody-sources :refer [organ]]
               [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
               [melos.scores.materials.measures :as measures]
               [melos.tools.modify-durations :as mod-dur]
+              [melos.tools.dissonance-calculator :refer
+               [dissonance-map-default dissonance-map-2]]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
 
 ;; Functions for controlling rhythmic aspects of the score.
@@ -30,9 +32,6 @@
   organ manuals."
   [:lower :upper :lower :upper :ped])
 
-(require '[melos.tools.dissonance-calculator :refer
-           [dissonance-map-default dissonance-map-2]])
-
 (defn initial-score-segment
   []
   {:part-seq part-seq
@@ -53,7 +52,7 @@
    (unfold-parameter-cycles
     [{:path [:count]
       :cycle [1]
-      :values [10]}
+      :values [30]}
      {:path [:diss-fn-params :diss-value]
       :cycle [1]
       :values [[0 2 4]]}
@@ -90,22 +89,3 @@
 ;; TODO: "Cascading" or short-circuiting modifications applied to durations?
 
 ;; TODO: other dissonant-maps, i.e. treating M3s as dissonances.
-
-;; FORM -- parameters.
-;; Melody-variables: contour (register), expansion-type (applied to melody), repetition-type,
-;; Section-variables: duration-scalar, dissonance-map, dissonance-fn,
-;; melody-sources, count, time-signatures, dissonance-duration modifications
-
-;; Using graphs introduces a clear separation between:
-;; 1. Values that are *given*, i.e. the compositional interface, and
-;; 2. Values that are *calculated*, i.e. derived from the compositional interface.
-;; Probably this makes it possible to remove all boilerplate code
-;; where values of the segment-map have to be "assoced back" onto the
-;; segment. Which would be a wonderful thing.
-
-;; ScoreSegment -- input to (segment-graph)
-;; PartialScoreSegment -- output of (changes); input to (make-score)
-
-;; Persist as json.
-;; (export-to-json "/Users/fred/Desktop/score.json"
-;;                 (compose-score))
