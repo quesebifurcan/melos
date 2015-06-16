@@ -30,7 +30,7 @@
 (def part-seq
   "A seq of part names, in this particular case corresponding to three
   organ manuals."
-  [:lower :upper :lower :upper :ped])
+  (take 20 (cycle [:lower :upper :lower :upper :ped])))
 
 (defn initial-score-segment
   []
@@ -44,7 +44,7 @@
    :duration-scalar 1
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))
-   :count 200})
+   :count 5})
 
 (s/defn changes
   :- [schemata/PartialScoreSegment]
