@@ -65,10 +65,11 @@
         (rtm/make-r-tree merge-horizontally time-signatures))
    :result
    (fnk [part-names modified-durations rhythmic-tree]
-        (map
-         (fn [x] {:part-name x
-                  :events (split-out-part rhythmic-tree x)})
-             part-names))})
+        (->> (map
+              (fn [x] {:part-name x
+                       :events (split-out-part rhythmic-tree x)})
+              part-names)
+             (rtm/merge-all-tied)))})
 
 (def lazy-segment-graph (graph/lazy-compile segment-graph))
 

@@ -1,11 +1,10 @@
 (ns melos.scores.main
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
-              [melos.tools.rtm :as rtm]
-              [melos.tools.utils :refer [merge-in
-                                         export-to-json]]
+              [melos.tools.utils :refer [export-to-json]]
               [melos.scores.graphs.score-graph-1 :refer [compose-segment]]
-              [melos.scores.utils.unfold-segments :refer [unfold-segments]]
+              [melos.scores.tools :refer [unfold-segments
+                                          compose-score]]
               [melos.scores.segments.segments-1 :refer [initial-score-segment
                                                         changes]]))
 
@@ -30,21 +29,8 @@
    clojure.lang.Atom
    custom-print-atom)
 
-(defn compose-score
-  "Compose a score:
-
-  - Merge all changes into a seq of maps.
-  - Collect all melodic events and split the resulting data structure into
-  *segments*.
-  - Compose each segment.
-  "
-  [initial-score-segment changes]
-  (->> (unfold-segments initial-score-segment changes)
-       (map compose-segment)
-       (map :result)
-       (rtm/merge-all-tied)))
-
 (time
  (export-to-json "/Users/fred/Desktop/score.json"
                  (compose-score (initial-score-segment)
-                                (changes))))
+                                (changes)
+                                compose-segment)))
