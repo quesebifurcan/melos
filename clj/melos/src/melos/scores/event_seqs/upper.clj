@@ -1,7 +1,6 @@
 (ns melos.scores.event-seqs.upper
   (:require [melos.scores.tools :as tools]))
 
-
 (defn upper-soft
   []
   {:pitch
@@ -16,3 +15,6 @@
    :fn tools/make-chord-from-pitch-vector-params
    :partition #(tools/cyclic-partition % [1 1 1 2 2 1 1 2])
    :duration [1/4 1/4 1/4 1/4]})
+
+(defn upper []
+  {:a (tools/unfold-events (upper-soft) :upper)})
