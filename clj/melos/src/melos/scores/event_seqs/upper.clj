@@ -1,20 +1,22 @@
 (ns melos.scores.event-seqs.upper
-  (:require [melos.scores.tools :as tools]))
+  (:require [melos.scores.tools :as tools]
+            [melos.scores.utils :as utils]))
 
 (defn upper-soft
   []
-  {:pitch
-   (map-indexed (fn [i x]
-                  (if (= (rem i 9) 0)
-                    [x] [x]))
+  ;; {:pitch (map utils/maybe-vec
+  ;;               (concat
+  ;;                (range -3 10)
+  ;;                (range 10 -3 -1)))
+  {:pitch (map (fn [x] [0 x])
                 (concat
                  (range -3 10)
                  (range 10 -3 -1)))
-   :dissonance-contributor? [true]
    :part [:upper]
+   :dissonance-contributor? [false]
    :fn tools/make-chord-from-pitch-vector-params
    :partition #(tools/cyclic-partition % [1 1 1 2 2 1 1 2])
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn upper []
-  {:a (tools/unfold-events (upper-soft) :upper)})
+  {:a (tools/unfold-events (upper-soft))})

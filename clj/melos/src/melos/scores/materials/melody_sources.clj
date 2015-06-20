@@ -3,6 +3,8 @@
                                                        pendulum-2
                                                        lindenmayer-1]]
             [melos.scores.tools :as tools]
+            [melos.scores.event-seqs.lower :refer [lower]]
+            [melos.scores.event-seqs.ped :refer [ped]]
             [melos.scores.event-seqs.upper :refer [upper]]))
 
 (defn organ
@@ -11,7 +13,12 @@
   ;; {:upper {:a (pendulum-1 :upper 3)}
   {:upper {:a (:a (upper))}
   ;; {:upper {:a (tes/unfold-events (tes/morph))}
-   :lower {:a (pendulum-2 :lower)}
-   :ped {:a (lindenmayer-1 :ped 22)
-         :b (lindenmayer-1 :ped 7)}})
+  :lower {:a (:a (lower))}
+  :ped {:a (:a (ped))}
+   })
+   ;; :lower {:a (pendulum-2 :lower)}
+   ;; :ped {:a (lindenmayer-1 :ped 22)
+   ;;       :b (lindenmayer-1 :ped 7)}})
 
+;; TODO: merge maps here
+;; TODO: repeated intervals work as well as octaves?

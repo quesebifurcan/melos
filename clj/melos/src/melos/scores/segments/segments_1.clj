@@ -21,11 +21,11 @@
   "The main function we are going to use to control the
   treatment of dissonances in this piece."
   {:max-count 8
-   :part-counts {:upper 1
-                 :lower 2
+   :part-counts {:upper 2
+                 :lower 3
                  :ped 1}
    :max-lingering 5
-   :diss-value [0 2 4]})
+   :diss-value [0 1 2 3]})
 
 (def part-seq
   "A seq of part names, in this particular case corresponding to three
@@ -61,7 +61,7 @@
       :values [dissonance-map-default]}
      {:path [:diss-fn-params :part-counts :lower]
       :cycle [1]
-      :values [1]}
+      :values [3]}
      {:path [:duration-scalar]
       :cycle [1]
       :values [1]}

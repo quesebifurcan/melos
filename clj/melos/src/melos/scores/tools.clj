@@ -22,9 +22,8 @@
     [x]))
 
 (defn unfold-events
-  [m part]
-  (let [m (assoc m :part [part])
-        f (:fn m)
+  [m]
+  (let [f (:fn m)
         partition-fn (:partition m)
         m (dissoc m :fn :partition)]
   (->> (map (fn [x] (mapcat parse-params x))
