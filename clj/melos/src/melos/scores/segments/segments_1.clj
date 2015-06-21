@@ -7,6 +7,7 @@
               [melos.tools.utils :refer [merge-in
                                          export-to-json]]
               [melos.scores.materials.measures :as measures]
+              [melos.scores.materials.part-seq :as part-seq]
               [melos.tools.modify-durations :as mod-dur]
               [melos.tools.dissonance-calculator :refer
                [dissonance-map-default dissonance-map-2]]
@@ -27,14 +28,9 @@
    :max-lingering 5
    :diss-value [0 1 2 3]})
 
-(def part-seq
-  "A seq of part names, in this particular case corresponding to three
-  organ manuals."
-  (take 20 (cycle [:lower :upper :lower :upper :ped])))
-
 (defn initial-score-segment
   []
-  {:part-seq part-seq
+  {:part-seq (part-seq/retrieve :a 20)
    :diss-fn-params diss-fn-params
    :interval->diss-map dissonance-map-default
    :part->event {:lower :a, :upper :a, :ped :a}
