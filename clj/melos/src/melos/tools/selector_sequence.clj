@@ -3,17 +3,16 @@
 
 (defn get-melodic-segment
   [part-seq part->event]
-  (map (fn [x] [(x part->event)])
-       part-seq))
-
-(require '[melos.tools.utils :refer [rotate]])
+  (map part->event part-seq))
 
 (defn get-and-rotate
-  [state accessor]
-  (let [
-        v (first (get-in @state accessor))]
-    (do (swap! state update-in accessor (fn [x] (drop 1 x)))
-        v)))
+  [melody-sources accessor]
+  (let [event (first (get-in @melody-sources [accessor]))]
+    (do (swap! melody-sources
+               update-in
+               [accessor]
+               (partial drop 1))
+        event)))
 
 (defn collect-events-in-segment
   "Collect melodic events according to score. The rather convoluted
