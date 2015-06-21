@@ -153,12 +153,7 @@
   [vertical-moment]
   (let [melodic-event (first (filter #(= 0 (:count %)) vertical-moment))]
     (if (empty? melodic-event)
-      (do (println "*******")
-          vertical-moment)
-      ;; (do (println (filter #(< (Math/abs (- (:pitch melodic-event)
-      ;;                          (:pitch %)))
-      ;;             7)
-      ;;                      vertical-moment))
+      vertical-moment
       (filter #(< (- (max (:pitch melodic-event) (:pitch %))
                      (min (:pitch melodic-event) (:pitch %)))
                   12)
