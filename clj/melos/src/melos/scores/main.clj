@@ -5,7 +5,7 @@
               [melos.scores.graphs.score-graph-1 :refer [compose-segment]]
               [melos.scores.tools :refer [unfold-segments
                                           compose-score]]
-              [melos.scores.segments.segments-1 :refer [initial-score-segment
+              [melos.scores.segments.segments :refer [initial-score-segment
                                                         changes]]))
 
 ;; ## Pretty-printing

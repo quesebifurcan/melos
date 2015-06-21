@@ -1,4 +1,4 @@
-(ns melos.scores.segments.segments-1
+(ns melos.scores.segments.segments
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
               [melos.scores.materials.melody-sources :refer [organ]]
