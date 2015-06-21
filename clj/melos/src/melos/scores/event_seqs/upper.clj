@@ -44,7 +44,7 @@
   {:pitch (map (fn [x] [x])
                (concat
                 (range 0 10)
-                (range 3 10)
+                (range -10 10)
                 (range 0 7)))
    :part [:upper]
    :fn tools/make-chord-from-pitch-vector-params

@@ -149,6 +149,27 @@
              (filter #(= (:part %) part-name) events)))
           part-counts))
 
+(defn filter-part-idiomatic
+  [vertical-moment]
+  (let [melodic-event (first (filter #(= 0 (:count %)) vertical-moment))]
+    (if (empty? melodic-event)
+      (do (println "*******")
+          vertical-moment)
+      ;; (do (println (filter #(< (Math/abs (- (:pitch melodic-event)
+      ;;                          (:pitch %)))
+      ;;             7)
+      ;;                      vertical-moment))
+      (filter #(< (- (max (:pitch melodic-event) (:pitch %))
+                     (min (:pitch melodic-event) (:pitch %)))
+                  12)
+              vertical-moment))))
+
+(defn filter-idiomatic
+  [vertical-moment]
+  (let [groups (->> (sort-by :part vertical-moment)
+                    (partition-by :part))]
+    (mapcat filter-part-idiomatic groups)))
+
 (defn handle-dissonance
   "Return a function which can be used to control dissonance values in
   one segment of the piece."
@@ -160,6 +181,7 @@
          (forward-time)
          (join-events event)
          ;; (filter-by-count-aggressive max-count)
+         (filter-idiomatic)
          (filter-parts-by-count part-counts)
          ;; (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value))))
