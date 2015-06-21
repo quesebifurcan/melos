@@ -21,16 +21,6 @@
 (require '[melos.tools.dissonance-calculator :refer
            [dissonance-value dissonance-value-fn]])
 
-(defn scale-durations
-  [events scale-factor]
-  (clojure.walk/postwalk
-   (fn [event]
-     (if (and (map? event)
-              (contains? event :delta-dur))
-       (update-in event [:duration] (fn [x] (* scale-factor x)))
-       event))
-   events))
-
 (def segment-graph
   {:melodic-indices
    (fnk [part-seq part->event]
@@ -40,19 +30,15 @@
    (fnk [melodic-indices melody-sources duration-scalar]
         (collect-events-in-segment melodic-indices
                                    melody-sources))
-   :scale-durations
-   (fnk [collect-events duration-scalar]
-        (map #(scale-durations % duration-scalar)
-             collect-events))
    :extend-horizontally
    (fnk [diss-fn-params
-         scale-durations
+         collect-events
          interval->diss-map]
         (swap! dissonance-value
                (fn [x]
                  (dissonance-value-fn interval->diss-map)))
         (let [fn_ (handle-dissonance diss-fn-params)]
-          (rest (reductions fn_ [] scale-durations))))
+          (rest (reductions fn_ [] collect-events))))
    :modified-durations
    (fnk [extend-horizontally mod-dur-patterns]
         (mod-dur/modify-durations extend-horizontally

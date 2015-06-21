@@ -4,16 +4,12 @@
 
 (defn upper-soft
   []
-  ;; {:pitch (map utils/maybe-vec
-  ;;               (concat
-  ;;                (range -3 10)
-  ;;                (range 10 -3 -1)))
   {:pitch (map (fn [x] [0 x])
                 (concat
                  (range -3 10)
                  (range 10 -3 -1)))
    :part [:upper]
-   :dissonance-contributor? [false]
+   :dissonance-contributor? [true]
    :fn tools/make-chord-from-pitch-vector-params
    :partition #(tools/cyclic-partition % [1 1 1 2 2 1 1 2])
    :duration [1/4 1/4 1/4 1/4]})
