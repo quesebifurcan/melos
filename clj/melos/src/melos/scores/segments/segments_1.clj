@@ -33,7 +33,7 @@
   {:part-seq (part-seq/retrieve :a 20)
    :diss-fn-params diss-fn-params
    :interval->diss-map dissonance-map-default
-   :part->event {:lower :a, :upper :a, :ped :a}
+   :part->event {:lower :lower/a, :upper :upper/a, :ped :ped/a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
    :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]

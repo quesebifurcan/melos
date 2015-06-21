@@ -9,16 +9,13 @@
 
 (defn organ
   []
-  ;; TODO: return lazy seqs.
-  ;; {:upper {:a (pendulum-1 :upper 3)}
-  {:upper {:a (:a (upper))}
-  ;; {:upper {:a (tes/unfold-events (tes/morph))}
-  :lower {:a (:a (lower))}
-  :ped {:a (:a (ped))}
-   })
-   ;; :lower {:a (pendulum-2 :lower)}
-   ;; :ped {:a (lindenmayer-1 :ped 22)
-   ;;       :b (lindenmayer-1 :ped 7)}})
+  ;; {:upper {:a (:upper/a (upper))}
+  ;; :lower {:a (:lower/a (lower))}
+  ;; :ped {:a (:ped/a (ped))}
+  ;;  })
+  (merge (upper)
+         (lower)
+         (ped)))
 
 ;; TODO: merge maps here
 ;; TODO: repeated intervals work as well as octaves?

@@ -19,4 +19,4 @@
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn upper []
-  {:a (tools/unfold-events (upper-soft))})
+  {:upper/a (tools/unfold-events (upper-soft))})

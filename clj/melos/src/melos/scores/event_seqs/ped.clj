@@ -31,5 +31,5 @@
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn ped []
-  {:a (tools/unfold-events (ped-soft))})
+  {:ped/a (tools/unfold-events (ped-soft))})
 

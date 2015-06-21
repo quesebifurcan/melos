@@ -12,4 +12,4 @@
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn lower []
-  {:a (tools/unfold-events (lower-soft))})
+  {:lower/a (tools/unfold-events (lower-soft))})
