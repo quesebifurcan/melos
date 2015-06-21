@@ -27,6 +27,18 @@
                                    x
                                    [2 4 3])))))))
 
+(defn combine-partitions
+  [& partitions]
+  (let [cycle-len (apply * (map (fn [x] (apply + x))
+                                partitions))
+        seqs (map (fn [part]
+                    (take-while (fn [x] (< x cycle-len))
+                                (reductions + 0 (cycle part))))
+                  partitions)]
+    (->> (sort (set (apply concat seqs)))
+         (partition 2 1)
+         (map (fn [[x y]] (- y x))))))
+
 (defn ascending
   []
   {:pitch (map (fn [x] [x])
@@ -36,7 +48,10 @@
                 (range 0 7)))
    :part [:upper]
    :fn tools/make-chord-from-pitch-vector-params
-   :partition #(tools/cyclic-partition % [1 1 1 2 2 1 1 2])
+   :partition #(tools/cyclic-partition % 
+                                       (combine-partitions
+                                        [10 7 7]
+                                        [1 1 1 2 2 1 1 2]))
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn upper-soft
@@ -75,16 +90,4 @@
 (map (fn [x] (s/validate [ms/VerticalMoment] x))
      (take 10 (tools/unfold-events (ascending))))
 
-(defn combine-partitions
-  [partitions]
-  (let [cycle-len (apply * (map (fn [x] (apply + x))
-                                partitions))
-        seqs (map (fn [part]
-                    (take-while (fn [x] (< x cycle-len))
-                                (reductions + 0 (cycle part))))
-                  partitions)]
-    (->> (sort (set (apply concat seqs)))
-         (partition 2 1)
-         (map (fn [[x y]] (- y x))))))
-
-(combine-partitions [[2 3 4] [7 8 9]])
+;; (combine-partitions [[2 3 4] [7 8 9]])
