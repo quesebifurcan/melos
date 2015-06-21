@@ -52,8 +52,8 @@
    :result
    (fnk [part-names modified-durations rhythmic-tree]
         (->> (map
-              (fn [x] {:part-name x
-                       :events (split-out-part rhythmic-tree x)})
+              (fn [part-name] {:part-name part-name
+                               :events (split-out-part rhythmic-tree part-name)})
               part-names)
              (rtm/merge-all-tied)))})
 

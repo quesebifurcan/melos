@@ -155,9 +155,20 @@
            ((comp :events first :children) node))
     node))
 
+(defn clean
+  [node]
+  (if (or (and (map? node)
+               ((complement nil?) (:children node))
+               (= "rest" (:pitch (first (:events node)))))
+          (and (map? node)
+               ((complement nil?) (:events node))))
+    (assoc node :children nil)
+    node))
+
 (defn merge-all-tied
   [measure]
-  (clojure.walk/postwalk merge-tied measure))
+  (->> (clojure.walk/postwalk merge-tied measure)
+       (clojure.walk/postwalk clean)))
 
 ;; TODO: join adjacent tuplets where all notes have the same ids.
 ;; TODO: convert tripleted two-note groups with equal length to eigth notes.
