@@ -1,7 +1,6 @@
 (ns melos.scores.segments.segments
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
-              [melos.scores.materials.melody-sources :refer [organ]]
               [melos.tools.delay-lines :refer [handle-dissonance]]
               [melos.tools.rtm :as rtm]
               [melos.tools.utils :refer [merge-in
@@ -9,6 +8,9 @@
               [melos.scores.materials.measures :as measures]
               [melos.scores.materials.part-seq :as part-seq]
               [melos.tools.modify-durations :as mod-dur]
+              [melos.scores.event-seqs.lower :refer [lower]]
+              [melos.scores.event-seqs.ped :refer [ped]]
+              [melos.scores.event-seqs.upper :refer [upper]]
               [melos.tools.dissonance-calculator :refer
                [dissonance-map-default dissonance-map-2]]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
@@ -17,6 +19,12 @@
 
 (declare rtm-fn)
 (declare time-signature-fn)
+
+(defn organ
+  []
+  (merge (upper)
+         (lower)
+         (ped)))
 
 (def diss-fn-params
   "The main function we are going to use to control the
