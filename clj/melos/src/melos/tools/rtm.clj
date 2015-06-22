@@ -168,7 +168,8 @@
 (defn merge-all-tied
   [measure]
   (->> (clojure.walk/postwalk merge-tied measure)
-       (clojure.walk/postwalk clean)))
+       ;; (clojure.walk/postwalk clean)))
+       ))
 
 ;; TODO: join adjacent tuplets where all notes have the same ids.
 ;; TODO: convert tripleted two-note groups with equal length to eigth notes.

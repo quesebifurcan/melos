@@ -39,19 +39,20 @@
          (partition 2 1)
          (map (fn [[x y]] (- y x))))))
 
+(require '[schema.core :as s])
+(require '[melos.tools.schemata :as ms])
+
 (defn ascending
   []
   {:pitch (map (fn [x] [x])
-               (concat
-                (range 0 10)
-                (range -10 10)
-                (range 0 7)))
+                (concat
+                 (range -3 10)
+                 (range 10 -3 -1)))
    :part [:upper]
    :fn tools/make-chord-from-pitch-vector-params
-   :partition #(tools/cyclic-partition % 
-                                       (combine-partitions
-                                        [10 7 7]
-                                        [1 1 1 2 2 1 1 2]))
+   ;; :partition (fn [x] (take-while (complement empty?)
+   ;;                                (tools/cyclic-partition x (cycle [4 4 4]))))
+   :partition #(tools/cyclic-partition % [4])
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn upper-soft
@@ -87,7 +88,6 @@
 (map (fn [x] (s/validate [ms/VerticalMoment] x))
      (take 10 (tools/unfold-events (upper-soft))))
 
-(map (fn [x] (s/validate [ms/VerticalMoment] x))
-     (take 10 (tools/unfold-events (ascending))))
 
 ;; (combine-partitions [[2 3 4] [7 8 9]])
+

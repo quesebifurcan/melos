@@ -26,7 +26,9 @@
   (let [f (:fn m)
         partition-fn (:partition m)
         m (dissoc m :fn :partition)]
-  (->> (map (fn [x] (mapcat parse-params x))
+  ;; (->> (map (fn [x] (mapcat parse-params x))
+  ;;           (vals m))
+  (->> (map (fn [x] x)
             (vals m))
        (map cycle)
        (apply map vector)
