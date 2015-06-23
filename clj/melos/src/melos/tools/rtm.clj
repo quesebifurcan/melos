@@ -162,14 +162,14 @@
                (= "rest" (:pitch (first (:events node)))))
           (and (map? node)
                ((complement nil?) (:events node))))
-    (assoc node :children nil)
+    (update-in node [:children]
+               (fn [x] (map #(assoc % :children nil) x)))
     node))
 
 (defn merge-all-tied
   [measure]
   (->> (clojure.walk/postwalk merge-tied measure)
-       ;; (clojure.walk/postwalk clean)))
-       ))
+       (clojure.walk/prewalk clean)))
 
 ;; TODO: join adjacent tuplets where all notes have the same ids.
 ;; TODO: convert tripleted two-note groups with equal length to eigth notes.
@@ -177,6 +177,8 @@
 ;; TODO: attach time signatures.
 ;; TODO: filter parts.
 ;; TODO: insert FixedDurationTuplet when needed.
+
+;; TODO: clean up treatment of node/measure.
 
 ;; TODO: test with real events. Skip onsets?
 
