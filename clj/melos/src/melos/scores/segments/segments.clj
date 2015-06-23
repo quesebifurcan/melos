@@ -8,9 +8,9 @@
               [melos.scores.materials.measures :as measures]
               [melos.scores.materials.part-seq :as part-seq]
               [melos.tools.modify-durations :as mod-dur]
-              [melos.scores.event-seqs.lower :refer [lower]]
-              [melos.scores.event-seqs.ped :refer [ped]]
-              [melos.scores.event-seqs.upper :refer [upper]]
+              [melos.scores.materials.event-seqs.lower :refer [lower]]
+              [melos.scores.materials.event-seqs.ped :refer [ped]]
+              [melos.scores.materials.event-seqs.upper :refer [upper]]
               [melos.tools.dissonance-calculator :refer
                [dissonance-map-default dissonance-map-2]]
               [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))

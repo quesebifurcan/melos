@@ -1,4 +1,4 @@
-(ns melos.scores.event-seqs.upper
+(ns melos.scores.materials.event-seqs.upper
   (:require [melos.scores.tools :as tools]
             [melos.scores.utils :as utils]))
 
