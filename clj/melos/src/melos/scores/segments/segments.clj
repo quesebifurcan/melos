@@ -7,7 +7,7 @@
                                          export-to-json]]
               [melos.scores.materials.measures :as measures]
               [melos.scores.materials.part-seq :as part-seq]
-              [melos.tools.modify-durations :as mod-dur]
+              [melos.scores.ctrl-fns.pairwise :as pairwise]
               [melos.scores.materials.event-seqs.lower :refer [lower]]
               [melos.scores.materials.event-seqs.ped :refer [ped]]
               [melos.scores.materials.event-seqs.upper :refer [upper]]
@@ -44,7 +44,7 @@
    :part->event {:lower :lower/a, :upper :upper/a, :ped :ped/a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
-   :mod-dur-patterns [mod-dur/dissonant-melody-movement-mod]
+   :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
    :duration-scalar 1
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))

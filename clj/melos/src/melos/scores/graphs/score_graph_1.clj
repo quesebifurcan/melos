@@ -9,6 +9,7 @@
                                       merge-in]]
               [melos.tools.selector-sequence :refer [collect-events-in-segment]]
               [melos.tools.modify-durations :as mod-dur]
+              [melos.tools.default-horizontal-merge :as horizontal-merge]
               [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
               [melos.tools.delay-lines :refer [handle-dissonance]]
@@ -45,7 +46,7 @@
                                   mod-dur-patterns))
    :merge-horizontally
    (fnk [modified-durations]
-        (mod-dur/maybe-merge modified-durations))
+        (horizontal-merge/maybe-merge modified-durations))
    :rhythmic-tree
    (fnk [time-signatures merge-horizontally]
         (rtm/make-r-tree merge-horizontally time-signatures))
