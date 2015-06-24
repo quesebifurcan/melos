@@ -4,7 +4,8 @@
             [melos.tools.make-note :refer [make-note]]
             [melos.tools.utils :refer [merge-in
                                        rotate]]
-            [melos.tools.schemata :as schemata]))
+            [melos.tools.schemata :as ms]
+            [schema.core :as s]))
 
 
 (defn make-chord-from-pitch-vector-params
@@ -34,25 +35,38 @@
        (apply map vector)
        (map (fn [x] (zipmap (keys m) x)))
        (map f)
-       (partition-fn))))
+       (partition-fn)
+       (map #(s/validate [ms/VerticalMoment] %)))))
 
 (defn cyclic-partition
-  [xs splits]
+  [splits xs]
   (cons (take (first splits) xs)
-        (lazy-seq (cyclic-partition (drop (first splits) xs)
-                                    (rotate splits)))))
+        (lazy-seq (cyclic-partition (rotate splits)
+                                    (drop (first splits) xs)))))
 
 (defn cyclic-repeats
-  [xs repeats]
+  [repeats xs]
   (if (seq xs)
     (concat (repeat (first repeats) (first xs))
-            (lazy-seq (cyclic-repeats (rotate xs)
-                                      (rotate repeats))))))
+            (lazy-seq (cyclic-repeats (rotate repeats)
+                                      (rotate xs))))))
+
+(defn combine-partitions
+  [& partitions]
+  (let [cycle-len (apply * (map (fn [x] (apply + x))
+                                partitions))
+        seqs (map (fn [part]
+                    (take-while (fn [x] (< x cycle-len))
+                                (reductions + 0 (cycle part))))
+                  partitions)]
+    (->> (sort (set (apply concat seqs)))
+         (partition 2 1)
+         (map (fn [[x y]] (- y x))))))
 
 (s/defn unfold-segments
-  :- [schemata/ScoreSegment]
-  [init :- schemata/ScoreSegment
-   changes :- [schemata/PartialScoreSegment]]
+  :- [ms/ScoreSegment]
+  [init :- ms/ScoreSegment
+   changes :- [ms/PartialScoreSegment]]
   (->> (reductions merge-in init changes)
        (rest)))
 

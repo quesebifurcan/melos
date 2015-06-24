@@ -27,7 +27,7 @@
                 ])
    :part [:ped]
    :fn tools/make-chord-from-pitch-vector-params
-   :partition #(tools/cyclic-partition % [1 1 1 2 2 1 1 2])
+   :partition #(tools/cyclic-partition [1 1 1 2 2 1 1 2] %)
    :duration [1/4 1/4 1/4 1/4]})
 
 (defn ped []
