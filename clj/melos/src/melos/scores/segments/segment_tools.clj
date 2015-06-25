@@ -5,7 +5,7 @@
             [melos.tools.utils :refer [merge-in rotate]]
             [melos.tools.schemata :as ms]
             [schema.core :as s]
-            [melos.scores.utils :refer [unfold-events]]))
+            [melos.tools.utils :refer [unfold-events]]))
 
 (s/defn unfold-segments
   :- [ms/ScoreSegment]

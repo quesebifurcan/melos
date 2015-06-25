@@ -1,5 +1,5 @@
 (ns melos.scores.materials.event-seqs.ped
-  (:require [melos.scores.utils :as utils]))
+  (:require [melos.tools.utils :as utils]))
 
 (defn ped-soft
   []

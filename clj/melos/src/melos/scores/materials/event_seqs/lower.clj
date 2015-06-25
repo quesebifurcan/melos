@@ -1,5 +1,5 @@
 (ns melos.scores.materials.event-seqs.lower
-  (:require [melos.scores.utils :as utils]))
+  (:require [melos.tools.utils :as utils]))
 
 (defn lower-soft
   []

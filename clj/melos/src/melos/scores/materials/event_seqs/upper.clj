@@ -1,5 +1,5 @@
 (ns melos.scores.materials.event-seqs.upper
-  (:require [melos.scores.utils :as utils]))
+  (:require [melos.tools.utils :as utils]))
 
 (defn ascending
   []
