@@ -1,9 +1,9 @@
-(ns melos.scores.main
+(ns melos.main
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
               [melos.tools.utils :refer [export-to-json]]
               [melos.scores.graphs.score-graph :as score-graph]
-              [melos.scores.tools :as score-tools]
+              [melos.scores.segments.segment-tools :as score-tools]
               [melos.scores.segments.segment :as segment]))
 
 ;; ## Pretty-printing
