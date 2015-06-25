@@ -46,6 +46,7 @@
    :time-signatures [measures/measure-3]
    :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
    :duration-scalar 1
+   :tempo 144
    :part-names [:upper :lower :ped]
    :melody-sources (atom (organ))
    :count 5})
@@ -66,6 +67,9 @@
      {:path [:diss-fn-params :part-counts :lower]
       :cycle [1]
       :values [3]}
+     {:path [:tempo]
+      :cycle [1]
+      :values [132 118 152]}
      {:path [:duration-scalar]
       :cycle [1]
       :values [1]}

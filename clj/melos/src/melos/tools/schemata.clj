@@ -49,6 +49,7 @@
    :time-signatures s/Any
    :interval->diss-map DissonanceMapping
    :duration-scalar s/Int
+   :tempo s/Int
    :mod-dur-patterns s/Any
    :part-names [PartName]
    :part->event s/Any

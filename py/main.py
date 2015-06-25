@@ -25,12 +25,14 @@ def make_tuplet(d):
     num, denom = d.get('duration')
     return FixedDurationTuplet(Duration(num, denom), [])
 
-def interpret_node(parent, node, is_measure_root=False):
+def interpret_node(parent, node, is_measure_root=False, tempo=None):
     if is_leaf(node):
         parent.append(make_note(node))
     else:
         if is_measure_root:
             measure = Measure(tuple(node.get('duration')))
+            if tempo is not None:
+                attach(Tempo((1, 4), tempo), measure)
             parent.append(measure)
             parent = measure
 
@@ -115,14 +117,25 @@ def main():
         'lower': lower_staff,
         'ped': ped_staff,
     }
+    tempo = None
     for segment in score_segments:
-        for part in segment:
+        parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
+        if tempo == curr_tempo:
+            curr_tempo = None
+        else:
+            tempo = curr_tempo
+        for part in parts:
             part_name = part.get('part-name')
             events = part.get('events')
             top = named_staff_dict.get(part_name)
             is_measure_root = True
             for node in events.get('children'):
-                interpret_node(top, node, is_measure_root=is_measure_root)
+                interpret_node(
+                    top,
+                    node,
+                    is_measure_root=is_measure_root,
+                    tempo=curr_tempo,
+                    )
                 # Only set the time-signature of the upper-most staff.
                 is_measure_root = False
 
@@ -130,7 +143,6 @@ def main():
     for staff in (upper_staff, lower_staff, ped_staff):
         attach(Tie(), staff[:])
 
-    attach(Tempo((1, 4), 132), upper_staff)
     score = Score([manuals_group, ped_staff])
     apply_score_overrides(score)
 
