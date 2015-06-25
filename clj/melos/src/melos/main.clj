@@ -3,7 +3,7 @@
               [melos.tools.schemata :as schemata]
               [melos.tools.utils :refer [export-to-json]]
               [melos.scores.graphs.score-graph :as score-graph]
-              [melos.scores.compose-score :as score-tools]
+              [melos.scores.compose-score :refer [compose-score]]
               [melos.scores.segments.segment :as segment]))
 
 ;; ## Pretty-printing
@@ -29,6 +29,6 @@
 
 (time
  (export-to-json "/Users/fred/Desktop/score.json"
-                 (score-tools/compose-score (segment/initial-score-segment)
-                                            (segment/changes)
-                                            score-graph/compose-segment)))
+                 (compose-score (segment/initial-score-segment)
+                                (segment/changes)
+                                score-graph/compose-segment)))
