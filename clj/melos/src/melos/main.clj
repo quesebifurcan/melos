@@ -3,7 +3,7 @@
               [melos.tools.schemata :as schemata]
               [melos.tools.utils :refer [export-to-json]]
               [melos.scores.graphs.score-graph :as score-graph]
-              [melos.scores.segments.segment-tools :as score-tools]
+              [melos.scores.compose-score :as score-tools]
               [melos.scores.segments.segment :as segment]))
 
 ;; ## Pretty-printing

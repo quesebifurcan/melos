@@ -1,4 +1,4 @@
-(ns melos.scores.segments.segment-tools
+(ns melos.scores.compose-score
   (:require [schema.core :as s]
             [melos.tools.rtm :as rtm]
             [melos.tools.make-note :refer [make-note]]
