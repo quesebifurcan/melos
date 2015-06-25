@@ -4,21 +4,8 @@
             [melos.tools.make-note :refer [make-note]]
             [melos.tools.utils :refer [merge-in rotate]]
             [melos.tools.schemata :as ms]
-            [schema.core :as s]))
-
-(defn unfold-events
-  [m]
-  (let [f (:fn m)
-        partition-fn (:partition m)
-        m (dissoc m :fn :partition)]
-  (->> (map (fn [x] x)
-            (vals m))
-       (map cycle)
-       (apply map vector)
-       (map (fn [x] (zipmap (keys m) x)))
-       (map f)
-       (partition-fn)
-       (map #(s/validate [ms/VerticalMoment] %)))))
+            [schema.core :as s]
+            [melos.scores.utils :refer [unfold-events]]))
 
 (s/defn unfold-segments
   :- [ms/ScoreSegment]

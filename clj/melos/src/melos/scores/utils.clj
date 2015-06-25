@@ -1,7 +1,8 @@
 (ns melos.scores.utils
-  (:require [melos.tools.rtm :as rtm]
+  (:require [schema.core :as s]
+            [melos.tools.schemata :as ms]
             [melos.tools.make-note :refer [make-note]]
-            [melos.tools.utils :refer [merge-in rotate]]))
+            [melos.tools.utils :refer [rotate]]))
 
 
 (defn maybe-vec [x] (if (number? x) [x] x))
@@ -44,3 +45,17 @@
     (->> (sort (set (apply concat seqs)))
          (partition 2 1)
          (map (fn [[x y]] (- y x))))))
+
+(defn unfold-events
+  [m]
+  (let [f (:fn m)
+        partition-fn (:partition m)
+        m (dissoc m :fn :partition)]
+  (->> (map (fn [x] x)
+            (vals m))
+       (map cycle)
+       (apply map vector)
+       (map (fn [x] (zipmap (keys m) x)))
+       (map f)
+       (partition-fn)
+       (map #(s/validate [ms/VerticalMoment] %)))))
