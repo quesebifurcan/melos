@@ -1,4 +1,4 @@
-(ns melos.scores.graphs.score-graph-1
+(ns melos.scores.graphs.score-graph
     (:require [schema.core :as s]
               [plumbing.graph :as graph]
               [plumbing.core :refer [fnk]]

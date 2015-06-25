@@ -1,4 +1,4 @@
-(ns melos.scores.segments.segments
+(ns melos.scores.segments.segment
     (:require [schema.core :as s]
               [melos.tools.schemata :as schemata]
               [melos.tools.delay-lines :refer [handle-dissonance]]
