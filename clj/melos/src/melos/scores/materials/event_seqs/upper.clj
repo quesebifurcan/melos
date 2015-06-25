@@ -8,10 +8,10 @@
                         (range 10 -3 -1))]
     {:pitch (->> pitches
                  (map utils/maybe-vec)
-                 (tools/cyclic-repeats [4]))
+                 (utils/cyclic-repeats [4]))
      :part [:upper]
-     :fn tools/make-chord-from-pitch-vector-params
-     :partition #(tools/cyclic-partition [1] %)
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition #(utils/cyclic-partition [1] %)
      :duration [1/4 1/4 1/4 1/4]}))
 
 (defn upper []
