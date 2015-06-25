@@ -5,17 +5,16 @@
               [melos.tools.selector-sequence :as sel-seq]
               [melos.tools.schemata :as schemata]
               [melos.tools.utils :refer [rotate
-                                      ratio->non-reduced-ratio-vector
-                                      merge-in]]
+                                         ratio->non-reduced-ratio-vector
+                                         merge-in]]
               [melos.tools.selector-sequence :refer [collect-events-in-segment]]
               [melos.tools.modify-durations :as mod-dur]
               [melos.tools.default-horizontal-merge :as horizontal-merge]
               [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
               [melos.tools.delay-lines :refer [handle-dissonance]]
-              [dire.core :refer [with-handler!]]
               [melos.tools.onsets :refer [get-melodic-event
-                                       get-onsets]]))
+                                          get-onsets]]))
 
 ;; ## Initialize Score
 
