@@ -4,36 +4,18 @@ import json
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
-def make_lilypond_file(score):
-    lilypond_file = lilypondfiletools.make_basic_lilypond_file(score)
-    lilypond_file.default_paper_size = 'a4', 'portrait'
-    lilypond_file.global_staff_size = 14
-    # lilypond_file.layout_block.indent = 10
-    # lilypond_file.layout_block.ragged_right = True
-    lilypond_file.paper_block.ragged_bottom = True
-    lilypond_file.header_block.composer = Markup('Fredrik Wallberg')
-    lilypond_file.header_block.title = Markup('Map')
-    # lilypond_file.paper_block.top_margin = 20
-    # lilypond_file.paper_block.top_margin_spacing = 100
-    lilypond_file.layout_block.left_margin = 10
-    spacing_vector = layouttools.make_spacing_vector(0, 0, 8, 0)
-    lilypond_file.paper_block.system_system_spacing = spacing_vector
-    spacing_vector = layouttools.make_spacing_vector(0, 0, 20, 0)
-    lilypond_file.paper_block.top_markup_spacing = spacing_vector
-    lilypond_file.header_block.tagline = False
-    spacing_vector = layouttools.make_spacing_vector(0, 0, 1, 0)
-    override(score).staff_grouper.staff_staff_spacing = spacing_vector
-    spacing_vector = layouttools.make_spacing_vector(0, 0, 3, 0)
-    override(score).vertical_axis_group.staff_staff_spacing = spacing_vector
-    return lilypond_file
+# TODO: Add additional info to each segment (stylistic indications, tempi etc.)
 
 def is_tuplet(d):
     return not d.get('w-duration') == d.get('duration')
 
-def make_note(d):
-    num, denom = d.get('duration')
-    events = d.get('events')
-    pitches = set([x.get('pitch') for x in events])
+def is_leaf(node):
+    return node.get('events') is not None
+
+def make_note(node):
+    num, denom = node.get('duration')
+    events = node.get('events')
+    pitches = set([event.get('pitch') for event in events])
     if "rest" in pitches:
         return Rest(Duration(num, denom))
     else:
@@ -43,22 +25,11 @@ def make_tuplet(d):
     num, denom = d.get('duration')
     return FixedDurationTuplet(Duration(num, denom), [])
 
-def get_child_nodes(node):
-    children = node.get('children')
-    if children is not None:
-        return children
-    else:
-        return []
-
-
-
-def interpret_node(parent, node, is_measure=False):
-
-    if node.get('events') is not None:
+def interpret_node(parent, node, is_measure_root=False):
+    if is_leaf(node):
         parent.append(make_note(node))
-
     else:
-        if is_measure:
+        if is_measure_root:
             measure = Measure(tuple(node.get('duration')))
             parent.append(measure)
             parent = measure
@@ -68,107 +39,109 @@ def interpret_node(parent, node, is_measure=False):
             parent.append(tuplet)
             parent = tuplet
 
-        for child in get_child_nodes(node):
+        for child in node.get('children', []):
             if child.get('events') is not None:
                 note = make_note(child)
                 parent.append(note)
             else:
                 interpret_node(parent, child)
 
-def calculate_clef(pitches):
-    avg = sum(pitches) / len(pitches)
-    if avg < -5:
-        return 'bass'
-    else:
-        return 'treble'
-
-from itertools import izip_longest
-
-def grouper(iterable, n, fillvalue=None):
-    args = [iter(iterable)] * n
-    return izip_longest(*args, fillvalue=fillvalue)
-
-def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('input_file')
-    args = parser.parse_args()
-
-    with open(args.input_file, 'r') as infile:
-        sections = json.load(infile)
-
-    staves = {
-        'upper': Staff(),
-        'lower': Staff(),
-        'ped': Staff(),
-        }
-
-    attach(Clef('bass'), staves.get('ped'))
-    upper, lower, ped = [staves.get(x) for x in ['upper', 'lower', 'ped']]
-    group = scoretools.StaffGroup([upper, lower])
-    man_instr = instrumenttools.Harp(instrument_name=r'Manuals',
-                                       short_instrument_name='Man.')
-    ped_instr = instrumenttools.Instrument(instrument_name=r'Pedals',
-                                       short_instrument_name='Ped.')
-    group.context_name = 'PianoStaff'
-    # organ_instr = instrumenttools.Harp()
-    attach(man_instr, group)
-    attach(ped_instr, ped)
-
-    f(group)
-    # import sys; sys.exit()
-    # staves.get('upper').consists_commands.append('Horizontal_bracket_engraver')
-
-    parts = staves.keys()
-
-    for section in sections:
-        for part in section:
-            part_name = part.get('part-name')
-            events = part.get('events')
-            top = staves.get(part_name)
-            for node in events.get('children'):
-                if part_name == 'upper':
-                    is_measure = True
-                else:
-                    is_measure = False
-                interpret_node(top, node, is_measure=is_measure)
-
-    current_clef = 'treble'
-    for i, staff in enumerate(staves.values()):
-        attach(Tie(), staff[:])
-        override(staff).time_signature.style = 'numeric'
-
-        for chords in grouper(iterate(staff).by_class((Chord, )), 5):
-
-            pitches = []
-            for chord in chords:
-                if chord is not None:
-                    pitches.extend([x.numbered_pitch.pitch_number for x in chord.written_pitches])
-            clef = calculate_clef(pitches)
-            if not current_clef == clef:
-                attach(Clef(clef), chords[0])
-                current_clef = clef
-
-    score = Score(
-        [group, staves.get('ped')])
+def apply_score_overrides(score):
     set_(score).tuplet_full_length = True
-    # override(score).tuplet_bracket.padding = 2
-    # override(score).tuplet_bracket.staff_padding = 4
     scheme = schemetools.Scheme('tuplet-number::calc-fraction-text')
     override(score).tuplet_number.text = scheme
     override(score).tuplet_bracket.direction = 'up'
     spacing_vector = layouttools.make_spacing_vector(0, 0, 30, 0)
-    # override(score).vertical_axis_group.staff_staff_spacing = spacing_vector
-    # override(score).staff_grouper.staff_staff_spacing = spacing_vector
+    return score
 
-    attach(Tempo((1, 4), 120), upper)
+def make_lilypond_file(score, title='', author=''):
+    lilypond_file = lilypondfiletools.make_basic_lilypond_file(score)
+    # GLOBAL
+    lilypond_file.global_staff_size = 14
+    lilypond_file.default_paper_size = 'a4', 'portrait'
+    # HEADER BLOCK
+    lilypond_file.header_block.title = Markup(title)
+    lilypond_file.header_block.composer = Markup(author)
+    lilypond_file.header_block.tagline = False
+    # PAPER BLOCK
+    lilypond_file.paper_block.ragged_bottom = True
+    spacing_vector = layouttools.make_spacing_vector(0, 0, 8, 0)
+    lilypond_file.paper_block.system_system_spacing = spacing_vector
+    spacing_vector = layouttools.make_spacing_vector(0, 0, 20, 0)
+    lilypond_file.paper_block.top_markup_spacing = spacing_vector
+    # LAYOUT BLOCK
+    lilypond_file.layout_block.left_margin = 10
+    spacing_vector = layouttools.make_spacing_vector(0, 0, 1, 0)
+    override(score).staff_grouper.staff_staff_spacing = spacing_vector
+    spacing_vector = layouttools.make_spacing_vector(0, 0, 3, 0)
+    override(score).vertical_axis_group.staff_staff_spacing = spacing_vector
+    return lilypond_file
 
-    lilypond_file = make_lilypond_file(score)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_file')
+    parser.add_argument('title')
+    parser.add_argument('author')
+    parser.add_argument('score_out')
+    parser.add_argument('midi_out')
+    args = parser.parse_args()
 
-    # show(lilypond_file)
-    persist(lilypond_file).as_pdf(
-        '/Users/fred/projects/music/compositions/2015/organ/output/output.pdf')
-    persist(lilypond_file).as_midi('/Users/fred/Desktop/abcd.mid')
+    with open(args.input_file, 'r') as infile:
+        score_segments = json.load(infile)
+
+    upper_staff = Staff()
+    lower_staff = Staff()
+    ped_staff = Staff()
+
+    attach(Clef('treble'), upper_staff)
+    attach(Clef('treble'), lower_staff)
+    attach(Clef('bass'), ped_staff)
+
+    manuals_instrument = instrumenttools.Harp(
+        instrument_name=r'Manuals',
+        short_instrument_name='Man.',
+    )
+    pedals_instrument = instrumenttools.Instrument(
+        instrument_name=r'Pedals',
+        short_instrument_name='Ped.',
+    )
+    manuals_group = scoretools.StaffGroup([upper_staff, lower_staff])
+    manuals_group.context_name = 'PianoStaff'
+    attach(manuals_instrument, manuals_group)
+    attach(pedals_instrument, ped_staff)
+
+    named_staff_dict = {
+        'upper': upper_staff,
+        'lower': lower_staff,
+        'ped': ped_staff,
+    }
+    for segment in score_segments:
+        for part in segment:
+            part_name = part.get('part-name')
+            events = part.get('events')
+            top = named_staff_dict.get(part_name)
+            is_measure_root = True
+            for node in events.get('children'):
+                interpret_node(top, node, is_measure_root=is_measure_root)
+                # Only set the time-signature of the upper-most staff.
+                is_measure_root = False
+
+    # Attach ties.
+    for staff in (upper_staff, lower_staff, ped_staff):
+        attach(Tie(), staff[:])
+
+    attach(Tempo((1, 4), 132), upper_staff)
+    score = Score([manuals_group, ped_staff])
+    apply_score_overrides(score)
+
+    lilypond_file = make_lilypond_file(
+        score,
+        args.title,
+        args.author,
+    )
+
+    persist(lilypond_file).as_pdf(args.score_out)
+    persist(lilypond_file).as_midi(args.midi_out)
 
 
 if __name__ == '__main__':
