@@ -1,6 +1,5 @@
 (ns melos.scores.materials.event-seqs.upper
-  (:require [melos.scores.tools :as tools]
-            [melos.scores.utils :as utils]))
+  (:require [melos.scores.utils :as utils]))
 
 (defn ascending
   []
@@ -11,8 +10,8 @@
                  (utils/cyclic-repeats [4]))
      :part [:upper]
      :fn utils/make-chord-from-pitch-vector-params
-     :partition #(utils/cyclic-partition [1] %)
+     :partition (partial utils/cyclic-partition [1])
      :duration [1/4 1/4 1/4 1/4]}))
 
 (defn upper []
-   {:upper/a (tools/unfold-events (ascending))})
+   {:upper/a (utils/unfold-events (ascending))})
