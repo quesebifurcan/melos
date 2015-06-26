@@ -60,7 +60,7 @@
       (count)
       (triangular-n)))
 
-(s/defn dissonance-value-fn
+(s/defn dissonance-value-partial
   [mapping :- ms/DissonanceMapping]
   (s/fn :- s/Num
     [pitches :- [ms/Pitch]]
@@ -72,7 +72,7 @@
          (apply +))))
 
 (def dissonance-value
-  (atom (dissonance-value-fn dissonance-map-default)))
+  (atom (dissonance-value-partial dissonance-map-default)))
 
 (s/defn scaled-dissonance-value
   :- s/Num
