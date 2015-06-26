@@ -1,54 +1,45 @@
 (ns melos.scores.graphs.score-graph
-    (:require [schema.core :as s]
-              [plumbing.graph :as graph]
+    (:require [plumbing.graph :as graph]
               [plumbing.core :refer [fnk]]
               [melos.tools.selector-sequence :as sel-seq]
-              [melos.tools.schemata :as schemata]
-              [melos.tools.utils :refer [rotate
-                                         ratio->non-reduced-ratio-vector
-                                         merge-in]]
-              [melos.tools.selector-sequence :refer [collect-events-in-segment]]
               [melos.tools.modify-durations :as mod-dur]
               [melos.tools.default-horizontal-merge :as horizontal-merge]
+              [melos.tools.dissonance-calculator :as diss-calc]
               [melos.tools.filter-parts :refer [split-out-part]]
               [melos.tools.rtm :as rtm]
-              [melos.tools.delay-lines :refer [handle-dissonance]]
-              [melos.tools.onsets :refer [get-melodic-event
-                                          get-onsets]]))
+              [melos.tools.delay-lines :as delay-lines]
+              [melos.tools.onsets :refer [get-melodic-event get-onsets]]))
 
 ;; ## Initialize Score
-
-(require '[melos.tools.dissonance-calculator :refer
-           [dissonance-value dissonance-value-fn]])
 
 (def segment-graph
   {:melodic-indices
    (fnk [part-seq part->event]
         (sel-seq/get-melodic-segment part-seq
                                      part->event))
-   :collect-events
+   :events
    (fnk [melodic-indices melody-sources duration-scalar]
-        (collect-events-in-segment melodic-indices
-                                   melody-sources))
-   :extend-horizontally
-   (fnk [diss-fn-params
-         collect-events
-         interval->diss-map]
-        (swap! dissonance-value
-               (fn [x]
-                 (dissonance-value-fn interval->diss-map)))
-        (let [fn_ (handle-dissonance diss-fn-params)]
-          (rest (reductions fn_ [] collect-events))))
+        (sel-seq/collect-events-in-segment melodic-indices
+                                           melody-sources))
+   :extended-events
+   (fnk [events diss-fn-params interval->diss-map]
+        ;; Set dissonance-map (globally).
+        ;; TODO: more elegance.
+        (swap! diss-calc/dissonance-value
+               (fn [_] (diss-calc/dissonance-value-partial interval->diss-map)))
+        (let [fn_ (delay-lines/handle-dissonance diss-fn-params)]
+          (rest (reductions fn_ [] events))))
    :modified-durations
-   (fnk [extend-horizontally mod-dur-patterns]
-        (mod-dur/modify-durations extend-horizontally
+   (fnk [extended-events mod-dur-patterns]
+        (mod-dur/modify-durations extended-events
                                   mod-dur-patterns))
-   :merge-horizontally
+   :merged-horizontally
    (fnk [modified-durations]
         (horizontal-merge/maybe-merge modified-durations))
    :rhythmic-tree
-   (fnk [time-signatures merge-horizontally]
-        (rtm/make-r-tree merge-horizontally time-signatures))
+   (fnk [time-signatures merged-horizontally]
+        (rtm/make-r-tree merged-horizontally
+                         time-signatures))
    :result
    (fnk [tempo part-names modified-durations rhythmic-tree]
         {:tempo tempo
