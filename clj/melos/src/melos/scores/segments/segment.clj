@@ -1,46 +1,21 @@
 (ns melos.scores.segments.segment
-    (:require [schema.core :as s]
-              [melos.tools.schemata :as schemata]
-              [melos.tools.delay-lines :refer [handle-dissonance]]
-              [melos.tools.rtm :as rtm]
-              [melos.tools.utils :refer [merge-in
-                                         export-to-json]]
-              [melos.scores.materials.measures :as measures]
-              [melos.scores.materials.part-seq :as part-seq]
-              [melos.scores.ctrl-fns.pairwise :as pairwise]
-              [melos.scores.materials.event-seqs.lower :refer [lower]]
-              [melos.scores.materials.event-seqs.ped :refer [ped]]
-              [melos.scores.materials.event-seqs.upper :refer [upper]]
-              [melos.tools.dissonance-calculator :refer
-               [dissonance-map-default dissonance-map-2]]
-              [melos.tools.cycle-params :refer [unfold-parameter-cycles]]))
-
-;; Functions for controlling rhythmic aspects of the score.
-
-(declare rtm-fn)
-(declare time-signature-fn)
-
-(defn organ
-  []
-  (merge (upper)
-         (lower)
-         (ped)))
-
-(def diss-fn-params
-  "The main function we are going to use to control the
-  treatment of dissonances in this piece."
-  {:max-count 8
-   :part-counts {:upper 2
-                 :lower 3
-                 :ped 1}
-   :max-lingering 5
-   :diss-value [0 1 2 3]})
+  (:require [schema.core :as s]
+            [melos.tools.schemata :as ms]
+            [melos.tools.rtm :as rtm]
+            [melos.tools.dissonance-calculator :refer [dissonance-map-default]]
+            [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
+            [melos.scores.materials.event-seqs.organ :as organ]
+            [melos.scores.materials.measures :as measures]
+            [melos.scores.materials.part-seq :as part-seq]
+            [melos.scores.materials.dissonance-fn-params :as dissonance-fn-params]
+            [melos.scores.materials.dissonance-maps :as dissonance-maps]
+            [melos.scores.ctrl-fns.pairwise :as pairwise]))
 
 (defn initial-score-segment
   []
   {:part-seq (part-seq/retrieve :a 20)
-   :diss-fn-params diss-fn-params
-   :interval->diss-map dissonance-map-default
+   :diss-fn-params (dissonance-fn-params/retrieve :a)
+   :interval->diss-map (dissonance-maps/retrieve :favor-dissonant)
    :part->event {:lower :lower/a, :upper :upper/a, :ped :ped/a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
@@ -48,11 +23,11 @@
    :duration-scalar 1
    :tempo 144
    :part-names [:upper :lower :ped]
-   :melody-sources (atom (organ))
+   :melody-sources (atom (organ/organ))
    :count 5})
 
 (s/defn changes
-  :- [schemata/PartialScoreSegment]
+  :- [ms/PartialScoreSegment]
   []
    (unfold-parameter-cycles
     [{:path [:count]
