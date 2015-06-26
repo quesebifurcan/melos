@@ -8,6 +8,7 @@
                  [prismatic/plumbing "0.4.2"]
                  [com.taoensso/timbre "3.4.0"]
                  [prismatic/schema "0.4.0"]]
+  :main melos.main
   :global-vars {*print-length* 20}
   :plugins [[lein-marginalia "0.8.0"]])
 

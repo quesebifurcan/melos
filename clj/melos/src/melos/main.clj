@@ -7,7 +7,7 @@
 
 (s/set-fn-validation! true)
 
-(defn main
+(defn -main
   [output-path]
   (time
    (export-to-json output-path
