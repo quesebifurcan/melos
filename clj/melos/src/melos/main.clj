@@ -7,8 +7,10 @@
 
 (s/set-fn-validation! true)
 
-(time
- (export-to-json "/Users/fred/Desktop/score.json"
-                 (compose-score (segment/initial-score-segment)
-                                (segment/changes)
-                                score-graph/compose-segment)))
+(defn main
+  [output-path]
+  (time
+   (export-to-json output-path
+                   (compose-score (segment/initial-score-segment)
+                                  (segment/changes)
+                                  score-graph/compose-segment))))
