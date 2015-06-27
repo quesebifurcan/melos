@@ -1,4 +1,4 @@
-(ns melos.scores.compose-score
+(ns melos.scores.compose-segment
   (:require [schema.core :as s]
             [melos.tools.rtm :as rtm]
             [melos.tools.make-note :refer [make-note]]
@@ -14,7 +14,7 @@
   (->> (reductions merge-in init changes)
        (rest)))
 
-(defn compose-score
+(defn compose-segment
   "Compose a score:
 
   - Merge all changes into a seq of maps.
@@ -22,8 +22,8 @@
   *segments*.
   - Compose each segment.
   "
-  [initial-score-segment changes comp-fn]
-  (->> (unfold-segments initial-score-segment changes)
-       (map comp-fn)
+  [{:keys [initial-state changes graph]}]
+  (->> (unfold-segments initial-state changes)
+       (map graph)
        (map :result)))
 
