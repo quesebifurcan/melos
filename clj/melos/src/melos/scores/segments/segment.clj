@@ -4,6 +4,8 @@
             [melos.tools.rtm :as rtm]
             [melos.tools.dissonance-calculator :refer [dissonance-map-default]]
             [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
+            [melos.scores.compose-segment :refer [compose-segment]]
+            [melos.scores.graphs.score-graph :as score-graph]
             [melos.scores.materials.event-seqs.organ :as organ]
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.part-seq :as part-seq]
@@ -13,8 +15,8 @@
 
 (defn initial-score-segment
   []
-  {:melodic-indices (take 20
-                          (cycle [:upper/a :lower/a :ped/a :upper/a]))
+  {:melodic-indices (take (* 3 50)
+                          (cycle [:upper/a :lower/a :ped/a]))
    :diss-fn-params (dissonance-fn-params/retrieve :a)
    :interval->diss-map (dissonance-maps/retrieve :favor-dissonant)
    ;; TODO: pass in via score-graph.
@@ -47,7 +49,13 @@
      :cycle [1]
      :values [[measures/measure-3]]}
     ]
-    10))
+    1))
+
+(defn compose
+  []
+  (compose-segment {:initial-state (initial-score-segment)
+                    :changes (changes)
+                    :graph score-graph/lazy-segment-graph}))
 
 ;; TODO: rhythms from event-count.
 ;; TODO: attach time-signatures.
