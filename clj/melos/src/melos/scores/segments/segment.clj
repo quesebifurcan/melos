@@ -19,7 +19,6 @@
                           (cycle [:upper/a :lower/a :ped/a]))
    :diss-fn-params (dissonance-fn-params/retrieve :a)
    :interval->diss-map (dissonance-maps/retrieve :favor-dissonant)
-   ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
    :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
    :tempo 144
@@ -57,18 +56,6 @@
                     :changes (changes)
                     :graph score-graph/lazy-segment-graph}))
 
-;; TODO: rhythms from event-count.
-;; TODO: attach time-signatures.
-;; TODO: chords (simultaneous events) -- group events with ids such that the dissonance calculator removes none or all of them.
-;; TODO: validate top-level functions.
-
-;; TODO: unexpected changes.
 ;; TODO: all time-signatures (DSL?)
 ;; TODO: Score presets: "chords", "hoketus", "slow" etc.
-;; TODO: Tempo.
-
-;; TODO: all-children-same-pitch? does not work with chords.
-
 ;; TODO: "Cascading" or short-circuiting modifications applied to durations?
-
-;; TODO: other dissonant-maps, i.e. treating M3s as dissonances.
