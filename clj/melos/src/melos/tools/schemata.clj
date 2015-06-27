@@ -42,19 +42,14 @@
 (def DissonanceMapping {s/Num s/Num})
 
 (def ScoreSegment
-  ;; TODO: Annotate.
-  {:part-seq [PartName]
+  {:melodic-indices [s/Keyword]
    :diss-fn-params PartialDissonanceFnParams
-   ;; :diss-fn s/Any
    :time-signatures s/Any
    :interval->diss-map DissonanceMapping
-   :duration-scalar s/Int
    :tempo s/Int
    :mod-dur-patterns s/Any
    :part-names [PartName]
-   :part->event s/Any
-   :melody-sources s/Any
-   :count s/Num})
+   :melody-sources s/Any})
 
 (def PartialScoreSegment
   (zipmap (map (fn [k] (s/optional-key k))

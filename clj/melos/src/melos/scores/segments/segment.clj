@@ -13,48 +13,40 @@
 
 (defn initial-score-segment
   []
-  {:part-seq (part-seq/retrieve :a 20)
+  {:melodic-indices (take 20
+                          (cycle [:upper/a :lower/a :ped/a :upper/a]))
    :diss-fn-params (dissonance-fn-params/retrieve :a)
    :interval->diss-map (dissonance-maps/retrieve :favor-dissonant)
-   :part->event {:lower :lower/a, :upper :upper/a, :ped :ped/a}
    ;; TODO: pass in via score-graph.
    :time-signatures [measures/measure-3]
    :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
-   :duration-scalar 1
    :tempo 144
    :part-names [:upper :lower :ped]
-   :melody-sources (atom (organ/organ))
-   :count 5})
+   :melody-sources (atom (organ/organ))})
 
 (s/defn changes
   :- [ms/PartialScoreSegment]
   []
-   (unfold-parameter-cycles
-    [{:path [:count]
-      :cycle [1]
-      :values [30]}
-     {:path [:diss-fn-params :diss-value]
-      :cycle [1]
-      :values [[0 2 4]]}
-     {:path [:interval->diss-map]
-      :cycle [1]
-      :values [dissonance-map-default]}
-     {:path [:diss-fn-params :part-counts :lower]
-      :cycle [1]
-      :values [3]}
-     {:path [:tempo]
-      :cycle [1]
-      :values [132 118 152]}
-     {:path [:duration-scalar]
-      :cycle [1]
-      :values [1]}
-     {:path [:diss-fn-params :max-count]
-      :cycle [1]
-      :values [5 7 8]}
-     {:path [:time-signatures]
-      :cycle [1]
-      :values [[measures/measure-3]]}
-     ]
+  (unfold-parameter-cycles
+   [{:path [:diss-fn-params :diss-value]
+     :cycle [1]
+     :values [[0 2 4]]}
+    {:path [:interval->diss-map]
+     :cycle [1]
+     :values [dissonance-map-default]}
+    {:path [:diss-fn-params :part-counts :lower]
+     :cycle [1]
+     :values [3]}
+    {:path [:tempo]
+     :cycle [1]
+     :values [132 118 152]}
+    {:path [:diss-fn-params :max-count]
+     :cycle [1]
+     :values [5 7 8]}
+    {:path [:time-signatures]
+     :cycle [1]
+     :values [[measures/measure-3]]}
+    ]
     10))
 
 ;; TODO: rhythms from event-count.

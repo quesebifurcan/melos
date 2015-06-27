@@ -10,12 +10,8 @@
               [melos.tools.delay-lines :as delay-lines]))
 
 (def segment-graph
-  {:melodic-indices
-   (fnk [part-seq part->event]
-        (sel-seq/get-melodic-segment part-seq
-                                     part->event))
-   :events
-   (fnk [melodic-indices melody-sources duration-scalar]
+  {:events
+   (fnk [melodic-indices melody-sources]
         (sel-seq/collect-events-in-segment melodic-indices
                                            melody-sources))
    :extended-events
