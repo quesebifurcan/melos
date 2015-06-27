@@ -45,7 +45,3 @@
                      (rtm/merge-all-tied))})})
 
 (def lazy-segment-graph (graph/lazy-compile segment-graph))
-
-(defn compose-segment
-  [segment]
-  (lazy-segment-graph segment))
