@@ -7,15 +7,19 @@
             [melos.scores.graphs.score-graph :as score-graph]
             [melos.scores.materials.event-seqs.instruments :as instruments]
             [melos.scores.materials.measures :as measures]
-            [melos.scores.materials.dissonance-fn-params :as dissonance-fn-params]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
             [melos.scores.ctrl-fns.pairwise :as pairwise]))
 
 (s/defn initial-score-segment
   :- ms/ScoreSegment
   []
-  (utils/make-score-segment {:melodic-indices (take 100 (cycle [:upper/a :lower/a :ped/a]))
-                             :diss-fn-params dissonance-fn-params/default
+  (utils/make-score-segment {:melodic-indices [:upper/a :lower/a :ped/a]
+                             :diss-fn-params {:max-count 10
+                                              :part-counts {:upper 1
+                                                            :lower 1
+                                                            :ped 1}
+                                              :max-lingering 5
+                                              :diss-value [0 4 7]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-3]
                              :mod-dur-patterns []

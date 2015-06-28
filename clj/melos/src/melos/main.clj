@@ -1,7 +1,6 @@
 (ns melos.main
     (:require [schema.core :as s]
               [melos.tools.utils :refer [export-to-json]]
-              [melos.scores.segments.segment :as segment]
               [melos.scores.segments.segment-a :as segment-a]))
 
 (s/set-fn-validation! true)
