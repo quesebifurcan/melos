@@ -6,11 +6,7 @@
                  :lower 3
                  :ped 1}
    :max-lingering 5
-   :diss-value [0 1 2 3]})
+   :diss-value [0 2 4]})
 
 (def presets
   {:a diss-fn-params-a})
-
-(defn retrieve
-  [k]
-  (presets k))

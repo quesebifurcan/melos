@@ -2,6 +2,18 @@
   (:require [clojure.algo.generic.functor :as functor]
             [clojure.math.numeric-tower :as math]))
 
+(def dissonance-map-1
+  (let [interval->dissonance
+        {0 0,
+         1 6,
+         2 4,
+         3 3,
+         4 2,
+         5 1,
+         6 5}]
+    (functor/fmap #(math/expt % 10/9)
+                  interval->dissonance)))
+
 (def dissonance-map-2
   (let [interval->dissonance
         {0 0,
@@ -14,9 +26,6 @@
     (functor/fmap #(math/expt % 10/9)
                   interval->dissonance)))
 
-(def maps
-  {:favor-dissonant dissonance-map-2})
-
-(defn retrieve
-  [k]
-  (get maps k))
+(def presets
+  {:default dissonance-map-1
+   :inverted dissonance-map-2})
