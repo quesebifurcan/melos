@@ -5,7 +5,7 @@
             [melos.tools.utils :as utils]
             [melos.scores.compose-segment :refer [compose-segment]]
             [melos.scores.graphs.score-graph :as score-graph]
-            [melos.scores.materials.event-seqs.organ :as organ]
+            [melos.scores.materials.event-seqs.instruments :as instruments]
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.dissonance-fn-params :as dissonance-fn-params]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
@@ -21,7 +21,7 @@
                              :mod-dur-patterns []
                              :tempo 144
                              :part-names [:upper :lower :ped]
-                             :melody-sources (atom (organ/organ))}))
+                             :melody-sources (atom (instruments/organ))}))
 
 (s/defn changes
   :- [ms/PartialScoreSegment]
