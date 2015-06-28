@@ -17,8 +17,8 @@
   []
   {:melodic-indices (take (* 3 50)
                           (cycle [:upper/a :lower/a :ped/a]))
-   :diss-fn-params (:a dissonance-fn-params/presets)
-   :interval->diss-map (:favor-dissonant dissonance-maps/presets)
+   :diss-fn-params dissonance-fn-params/default
+   :interval->diss-map dissonance-maps/default
    :time-signatures [measures/measure-3]
    :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
    :tempo 144

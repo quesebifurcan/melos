@@ -14,9 +14,9 @@
 (s/defn initial-score-segment
   :- ms/ScoreSegment
   []
-  (utils/make-score-segment {:melodic-indices [:upper/a :lower/a :ped/a]
-                             :diss-fn-params (:a dissonance-fn-params/presets)
-                             :interval->diss-map (:default dissonance-maps/presets)
+  (utils/make-score-segment {:melodic-indices (take 100 (cycle [:upper/a :lower/a :ped/a]))
+                             :diss-fn-params dissonance-fn-params/default
+                             :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-3]
                              :mod-dur-patterns []
                              :tempo 144
@@ -26,7 +26,7 @@
 (s/defn changes
   :- [ms/PartialScoreSegment]
   []
-  (unfold-parameter-cycles [{}] 5))
+  (unfold-parameter-cycles [{}] 1))
 
 (defn compose
   []

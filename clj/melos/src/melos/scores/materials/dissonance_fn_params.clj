@@ -1,12 +1,9 @@
 (ns melos.scores.materials.dissonance-fn-params)
 
-(def diss-fn-params-a
-  {:max-count 8
-   :part-counts {:upper 2
-                 :lower 3
+(def default
+  {:max-count 10
+   :part-counts {:upper 1
+                 :lower 1
                  :ped 1}
    :max-lingering 5
-   :diss-value [0 2 4]})
-
-(def presets
-  {:a diss-fn-params-a})
+   :diss-value [0 4 7]})
