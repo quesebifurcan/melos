@@ -126,3 +126,13 @@
        (map f)
        (partition-fn)
        (map #(s/validate [ms/VerticalMoment] %)))))
+
+(defn valid-melodic-indices?
+  [indices source]
+  (every? (fn [i] (contains? @source i)) indices))
+
+(defn make-score-segment
+  [{:keys [melodic-indices melody-sources] :as m}]
+  (assert (valid-melodic-indices? melodic-indices
+                                  melody-sources))
+  m)
