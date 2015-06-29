@@ -136,3 +136,28 @@
   (assert (valid-melodic-indices? melodic-indices
                                   melody-sources))
   m)
+
+(defn unfold-range
+  [[start stop]]
+  (let [direction (if (> start stop) -1 1)]
+    (range start stop direction)))
+
+(defn unfold-ranges
+  [& ranges]
+  (mapcat unfold-range ranges))
+
+(defn partition-and-interleave-phrases
+  [& colls]
+  (let [seqs (map (fn [[partitioning coll]]
+                    (cyclic-partition partitioning (cycle coll)))
+                  colls)]
+    (->> (apply interleave seqs)
+         (flatten))))
+
+(defn gradually-expand-chord
+  [pitches]
+  (rest (reductions conj [] pitches)))
+
+(defn gradually-expand-chords
+  [& chords]
+  (mapcat gradually-expand-chord chords))
