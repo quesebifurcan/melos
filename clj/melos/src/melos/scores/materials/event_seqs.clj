@@ -11,7 +11,7 @@
                  (utils/cyclic-repeats [1]))
      :part [part-name]
      :fn utils/make-chord-from-pitch-vector-params
-     :partition (partial utils/cyclic-partition [1])
+     :partition (partial utils/cyclic-partition [1 2 1 2 3 1 2 3 4])
      :duration [1/4 1/4 1/4 1/4]}))
 
 (defn fifth-octave-arpeggio
@@ -36,8 +36,37 @@
      :partition (partial utils/cyclic-partition [1])
      :duration [1/4]}))
 
+(defn diatonic-cluster-arpeggio
+  [part-name transposition]
+  (let [pitches [0 2 4 5 4 2]]
+    {:pitch (->> pitches
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition [1 2 1 2 3 2])
+     :duration [1/4]}))
+
+(defn chords-contracting
+  [part-name transposition]
+  {:pitch (->> [[0 2 4 5 6]
+                [0 2 4 5]
+                [0 2 4]
+                [0 2]]
+               (map (partial utils/transpose transposition)))
+   :part [part-name]
+   :dissonance-contributor? [false]
+   :fn utils/make-chord-from-pitch-vector-params
+   :partition (partial utils/cyclic-partition [1 2 1 2])
+   :duration [1/4]})
+
 (defn organ
   []
-  {:upper/a (utils/unfold-events (ascending :upper -1))
-   :lower/a (utils/unfold-events (fifth-octave-arpeggio :lower -3))
-   :ped/a (utils/unfold-events (descending-slow :ped -17))})
+  {:upper/a
+   (utils/unfold-events (ascending :upper -1))
+   :lower/a
+   ;; (utils/unfold-events (fifth-octave-arpeggio :lower -3))
+   ;; (utils/unfold-events (diatonic-cluster-arpeggio :lower -3))
+   (utils/unfold-events (chords-contracting :lower -3))
+   :ped/a
+   (utils/unfold-events (descending-slow :ped -17))})
