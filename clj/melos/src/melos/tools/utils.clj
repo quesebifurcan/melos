@@ -161,3 +161,7 @@
 (defn gradually-expand-chords
   [& chords]
   (mapcat gradually-expand-chord chords))
+
+(defn transpose
+  [step coll]
+  (map (partial + step) coll))

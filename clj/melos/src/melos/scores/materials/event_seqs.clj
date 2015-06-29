@@ -2,39 +2,42 @@
   (:require [melos.tools.utils :as utils]))
 
 (defn ascending
-  []
-  (let [pitches (concat (range -3 10)
-                        (range 10 -3 -1))]
+  [part-name transposition]
+  (let [pitches (concat (range 0 13)
+                        (range 13 0 -1))]
     {:pitch (->> pitches
+                 (utils/transpose transposition)
                  (map utils/maybe-vec)
-                 (utils/cyclic-repeats [4]))
-     :part [:upper]
+                 (utils/cyclic-repeats [1]))
+     :part [part-name]
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition [1])
      :duration [1/4 1/4 1/4 1/4]}))
 
-(defn lower-soft
-  []
-  {:pitch (map utils/maybe-vec
-               [-3 9 4 -3 9 16 9 4])
-   :part [:lower]
+(defn fifth-octave-arpeggio
+  [part-name transposition]
+  {:pitch (->> [0 12 7 0 7 12 19 12 7]
+               (utils/transpose transposition)
+               (map utils/maybe-vec))
+   :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
    :partition (partial utils/cyclic-partition [1])
    :duration [1/4]})
 
-(defn ped-soft
-  []
-  (let [pitches (range -17 -21 -1)]
+(defn descending-slow
+  [part-name transposition]
+  (let [pitches (range 0 -5 -1)]
     {:pitch (->> pitches
+                 (utils/transpose transposition)
                  (map utils/maybe-vec)
                  (utils/cyclic-repeats [2 3 4]))
-     :part [:ped]
+     :part [part-name]
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition [1])
      :duration [1/4]}))
 
 (defn organ
   []
-  {:upper/a (utils/unfold-events (ascending))
-   :lower/a (utils/unfold-events (lower-soft))
-   :ped/a (utils/unfold-events (ped-soft))})
+  {:upper/a (utils/unfold-events (ascending :upper -1))
+   :lower/a (utils/unfold-events (fifth-octave-arpeggio :lower -3))
+   :ped/a (utils/unfold-events (descending-slow :ped -17))})

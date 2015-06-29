@@ -13,13 +13,14 @@
 (s/defn initial-score-segment
   :- ms/ScoreSegment
   []
-  (utils/make-score-segment {:melodic-indices [:upper/a :lower/a :ped/a]
+  (utils/make-score-segment {:melodic-indices (take 50
+                                                    (cycle [:upper/a :lower/a :ped/a]))
                              :diss-fn-params {:max-count 10
                                               :part-counts {:upper 1
                                                             :lower 1
                                                             :ped 1}
                                               :max-lingering 5
-                                              :diss-value [0 4 7]}
+                                              :diss-value [0 2 4 7]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-3]
                              :mod-dur-patterns []
@@ -37,4 +38,3 @@
   (compose-segment {:initial-state (initial-score-segment)
                     :changes (changes)
                     :graph score-graph/lazy-segment-graph}))
-
