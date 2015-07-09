@@ -117,6 +117,7 @@
                           (map flatten)
                           (filter contains-zero-count)
                           (best-part-match events)
+                          (filter #(consonant? % limit))
                           (sort-by total-count)
                           (first))]
       (if (empty? candidates)
