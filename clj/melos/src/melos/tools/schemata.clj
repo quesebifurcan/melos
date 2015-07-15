@@ -23,7 +23,8 @@
               :count s/Int))
 
 (def VerticalMoment
-  (s/both (s/pred (complement nil?)) [Note]))
+  (s/both (s/pred (complement nil?)
+                  [Note])))
 
 (def PartCountMap
   {PartName s/Int})
@@ -55,4 +56,3 @@
   (zipmap (map (fn [k] (s/optional-key k))
                (keys ScoreSegment))
           (vals ScoreSegment)))
-

@@ -29,7 +29,8 @@
 (s/defn zero-count?
   :- s/Bool
   [note :- ms/Note]
-  (= 0 (:count note)))
+  (or (= 0 (:count note))
+      (not (:dissonance-contributor? note))))
 
 (s/defn contains-zero-count
   :- s/Bool
@@ -119,6 +120,8 @@
                           (best-part-match events)
                           (filter #(consonant? % limit))
                           (sort-by total-count)
+                          ;; (sort-by #(count %))
+                          ;; (reverse)
                           (first))]
       (if (empty? candidates)
         ;; If no candidates are valid, return a vector with the most
@@ -179,11 +182,5 @@
          ;; (filter-by-count-aggressive max-count)
          (filter-idiomatic)
          (filter-parts-by-count part-counts)
-         ;; (filter-by-time-in-vertical-moment max-lingering)
+         (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value))))
-
-(let [a (range 10)]
-  (map-indexed (fn [i x]
-                 (if (= (rem i 7) 0)
-                   [x 7] [x]))
-               a))
