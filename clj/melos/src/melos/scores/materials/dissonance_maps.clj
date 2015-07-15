@@ -5,7 +5,7 @@
 (def default
   (let [interval->dissonance
         {0 0,
-         1 6,
+         1 10,
          2 4,
          3 3,
          4 2,
