@@ -1,4 +1,5 @@
 import argparse
+import itertools
 import json
 
 from abjad import *
@@ -11,6 +12,36 @@ def is_tuplet(d):
 
 def is_leaf(node):
     return node.get('events') is not None
+
+def apply_accidentals(staff):
+    prev_chord = None
+    prev_duplicates = []
+    for event in iterate(staff).by_class((Chord, Rest)):
+        if isinstance(event, Rest) or len(event.written_pitches) < 2:
+            prev_chord = None
+            prev_duplicates = []
+        else:
+            curr_dpcn = [x.diatonic_pitch_class_name for x in event.written_pitches]
+            curr_dpcn_duplicates = []
+            for k, g in itertools.groupby(sorted(curr_dpcn)):
+                group = list(g)
+                if len(group) > 1:
+                    curr_dpcn_duplicates.append(k)
+            for note_head in event.note_heads:
+                dpcn = note_head.written_pitch.diatonic_pitch_class_name
+                if dpcn in curr_dpcn_duplicates:
+                    note_head.is_forced = True
+            if prev_chord:
+                prev_dpcn = [x.diatonic_pitch_class_name for x in prev_chord.written_pitches]
+                for note_head in event.note_heads:
+                    if (note_head.written_pitch.diatonic_pitch_class_name in prev_dpcn and
+                        not note_head.written_pitch in prev_chord.written_pitches):
+                        note_head.is_forced = True
+                        continue
+                    if note_head.written_pitch.diatonic_pitch_class_name in prev_duplicates:
+                        note_head.is_forced = True
+            prev_duplicates = curr_dpcn_duplicates
+            prev_chord = event
 
 def make_note(node):
     num, denom = node.get('duration')
@@ -142,6 +173,7 @@ def main():
     # Attach ties.
     for staff in (upper_staff, lower_staff, ped_staff):
         attach(Tie(), staff[:])
+        apply_accidentals(staff)
 
     score = Score([manuals_group, ped_staff])
     apply_score_overrides(score)
@@ -152,6 +184,7 @@ def main():
         args.author,
     )
 
+    # import sys; sys.exit()
     persist(lilypond_file).as_pdf(args.score_out)
     persist(lilypond_file).as_midi(args.midi_out)
 
