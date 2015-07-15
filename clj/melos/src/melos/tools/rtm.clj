@@ -76,9 +76,18 @@
 (defn make-r-tree
   [events measures]
   (let [total-dur (duration-sum events)
-        rtm-tree (init-rtm-tree total-dur measures)]
-  (->> (insert-events rtm-tree events)
-       ((fn [x] {:children (:children x)})))))
+        rtm-tree (init-rtm-tree total-dur measures)
+        rtm-tree-dur (apply + (map (fn [x]
+                                     (let [[num denom] (:duration x)]
+                                       (/ num denom)))
+                                   (:children rtm-tree)))
+        dur-diff (- rtm-tree-dur total-dur)
+        events (concat (butlast events)
+                       [(map (fn [event]
+                              (update-in event [:duration] (fn [x] (+ x dur-diff))))
+                            (last events))])]
+    (->> (insert-events rtm-tree events)
+         ((fn [x] {:children (:children x)})))))
 
 ;; Insert events into rhythmic tree.
 
