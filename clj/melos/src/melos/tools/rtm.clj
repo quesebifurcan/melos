@@ -73,19 +73,24 @@
 
 (declare insert-events)
 
+(defn extend-last
+  [events duration]
+  (let [extended (->> (last events)
+                      (map (fn [event]
+                             (update-in event
+                                        [:duration]
+                                        (fn [x] (+ x duration)))))
+                      (conj []))]
+    (concat (butlast events)
+            extended)))
+
 (defn make-r-tree
   [events measures]
   (let [total-dur (duration-sum events)
         rtm-tree (init-rtm-tree total-dur measures)
-        rtm-tree-dur (apply + (map (fn [x]
-                                     (let [[num denom] (:duration x)]
-                                       (/ num denom)))
-                                   (:children rtm-tree)))
+        rtm-tree-dur (get-nested-measure-dur rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
-        events (concat (butlast events)
-                       [(map (fn [event]
-                              (update-in event [:duration] (fn [x] (+ x dur-diff))))
-                            (last events))])]
+        events (extend-last events dur-diff)]
     (->> (insert-events rtm-tree events)
          ((fn [x] {:children (:children x)})))))
 
