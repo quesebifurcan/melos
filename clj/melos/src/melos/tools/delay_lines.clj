@@ -143,16 +143,24 @@
   ;; TODO: filter distinct events.
   (concat events new-event))
 
+(s/defn coll-part-counts-map
+  [vertical-moment :- ms/VerticalMoment]
+  (let [partitioned-events (->> vertical-moment
+                                (sort-by :part)
+                                (partition-by :part))]
+        (zipmap (map (comp :part first) partitioned-events)
+                (map (comp :max-part-count first) partitioned-events))))
+
 (s/defn filter-parts-by-count
   :- ms/VerticalMoment
-  [part-counts :- ms/PartCountMap
-   events :- ms/VerticalMoment]
-  (mapcat (fn [[part-name limit]]
-            (let [xs (filter #(= (:part %) part-name) events)]
-              (if (<= (count xs) limit)
-                xs
-                (filter #(= (:count %) 0) xs))))
-          part-counts))
+  [events :- ms/VerticalMoment]
+  (let [part-counts (coll-part-counts-map events)]
+    (mapcat (fn [[part-name limit]]
+              (let [xs (filter #(= (:part %) part-name) events)]
+                (if (<= (count xs) limit)
+                  xs
+                  (filter #(= (:count %) 0) xs))))
+            part-counts)))
 
 (defn filter-part-idiomatic
   [vertical-moment]
@@ -177,8 +185,7 @@
 (defn handle-dissonance
   "Return a function which can be used to control dissonance values in
   one segment of the piece."
-  [{:keys [max-count part-counts
-           diss-value max-lingering] :as m}]
+  [{:keys [max-count diss-value max-lingering] :as m}]
   (s/validate ms/DissonanceFnParams m)
   (fn [events event]
     (->> events
@@ -187,6 +194,7 @@
          ;; (filter-by-count-aggressive max-count)
          (filter event-count-ok?)
          (filter-idiomatic)
-         (filter-parts-by-count part-counts)
+         (filter-parts-by-count)
          (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value))))
+

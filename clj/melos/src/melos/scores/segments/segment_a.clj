@@ -19,17 +19,14 @@
                                                                :group/a
                                                ]))
                              :diss-fn-params {:max-count 10
-                                              :part-counts {:upper 1
-                                                            :lower 2
-                                                            :ped 1}
                                               :max-lingering 300
                                               :diss-value [0 1 2]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-4]
-                             :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
+                             ;; :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
                              ;; :mod-dur-patterns [pairwise/dissonant-vertical-moment]
                              ;; :mod-dur-patterns [pairwise/less-than]
-                             ;; :mod-dur-patterns []
+                             :mod-dur-patterns []
                              :tempo 240
                              :part-names [:upper :lower :ped]
                              :melody-sources (atom (event-seqs/organ))}))

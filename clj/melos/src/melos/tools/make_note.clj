@@ -15,6 +15,7 @@
    :count 0,
    :is-rest? false
    :max-count 100
+   :max-part-count 1
    :onset 0
    :intensity 1})
 

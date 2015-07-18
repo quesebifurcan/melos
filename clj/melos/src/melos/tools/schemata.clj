@@ -21,6 +21,7 @@
               :part PartName
               :intensity s/Num
               :max-count s/Int
+              :max-part-count s/Int
               :count s/Int))
 
 (def VerticalMoment
@@ -32,7 +33,6 @@
 
 (def DissonanceFnParams
   {:max-count s/Int
-   :part-counts {PartName s/Int}
    :max-lingering s/Int
    :diss-value [s/Num]})
 
