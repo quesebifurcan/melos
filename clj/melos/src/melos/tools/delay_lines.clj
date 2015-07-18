@@ -148,9 +148,10 @@
   [part-counts :- ms/PartCountMap
    events :- ms/VerticalMoment]
   (mapcat (fn [[part-name limit]]
-            (filter-by-count-aggressive
-             limit
-             (filter #(= (:part %) part-name) events)))
+            (let [xs (filter #(= (:part %) part-name) events)]
+              (if (<= (count xs) limit)
+                xs
+                (filter #(= (:count %) 0) xs))))
           part-counts))
 
 (defn filter-part-idiomatic
