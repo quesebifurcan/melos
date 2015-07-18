@@ -20,13 +20,8 @@
                             tests
                             (concat coll (into [] (first result)))))))))
 
-(require '[melos.tools.schemata :as ms])
-(require '[schema.core :as s])
-
 (s/defn modify-durations
   :- [ms/VerticalMoment]
   [events :- [ms/VerticalMoment]
    mod-fns :- [s/Any]]
-  (->> (pairwise-mod events
-                     mod-fns
-                     [])))
+  (pairwise-mod events mod-fns []))

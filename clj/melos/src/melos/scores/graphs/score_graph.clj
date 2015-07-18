@@ -9,6 +9,8 @@
               [melos.tools.rtm :as rtm]
               [melos.tools.delay-lines :as delay-lines]))
 
+(require '[melos.tools.dissonance-calculator :refer [scaled-dissonance-value]])
+
 (def segment-graph
   {:events
    (fnk [melodic-indices melody-sources]
@@ -25,8 +27,7 @@
           (rest (reductions fn_ [] events))))
    :modified-durations
    (fnk [extended-events mod-dur-patterns]
-        (mod-dur/modify-durations extended-events
-                                  mod-dur-patterns))
+        ((apply comp mod-dur-patterns) extended-events))
    :merged-horizontally
    (fnk [modified-durations]
         (horizontal-merge/maybe-merge modified-durations))
@@ -45,3 +46,7 @@
                      (rtm/merge-all-tied))})})
 
 (def lazy-segment-graph (graph/lazy-compile segment-graph))
+
+(let [a [second first]]
+  ;; ((comp second first) [[1 2]])
+  ((apply comp a) [[1 2]]))
