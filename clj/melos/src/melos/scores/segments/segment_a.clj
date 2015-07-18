@@ -13,25 +13,49 @@
 (s/defn initial-score-segment
   :- ms/ScoreSegment
   []
-  (utils/make-score-segment {:melodic-indices (take 50
-                                                    (cycle [:upper/a :lower/a :ped/a]))
+  (utils/make-score-segment {:melodic-indices (take 25 (cycle [
+                                               ;; :lower/a :upper/a :ped/a
+                                               ;; :upper/a :lower/a :ped/a
+                                                               :group/a
+                                               ]))
                              :diss-fn-params {:max-count 10
                                               :part-counts {:upper 1
-                                                            :lower 1
+                                                            :lower 2
                                                             :ped 1}
-                                              :max-lingering 5
-                                              :diss-value [0 2 4 7]}
+                                              :max-lingering 300
+                                              :diss-value [0 1 2]}
                              :interval->diss-map dissonance-maps/default
-                             :time-signatures [measures/measure-3]
-                             :mod-dur-patterns []
-                             :tempo 144
+                             :time-signatures [measures/measure-4]
+                             :mod-dur-patterns [pairwise/dissonant-melody-movement-mod]
+                             ;; :mod-dur-patterns [pairwise/dissonant-vertical-moment]
+                             ;; :mod-dur-patterns [pairwise/less-than]
+                             ;; :mod-dur-patterns []
+                             :tempo 240
                              :part-names [:upper :lower :ped]
                              :melody-sources (atom (event-seqs/organ))}))
+
+(defn melodic-indices
+  []
+  (let [cnts [200]]
+    (map (fn [cnt]
+           (take cnt (cycle [:upper/a :lower/a :ped/a])))
+         cnts)))
 
 (s/defn changes
   :- [ms/PartialScoreSegment]
   []
-  (unfold-parameter-cycles [{}] 1))
+  (let [tempo-measure-link [2 2]]
+    (unfold-parameter-cycles
+     [{:values (melodic-indices)
+       :path [:melodic-indices]
+       :cycle [1]}
+      {:values [[measures/measure-4] [measures/measure-3]]
+       :path [:time-signatures]
+       :cycle tempo-measure-link}
+      {:values [240]
+       :path [:tempo]
+       :cycle tempo-measure-link}]
+     1)))
 
 (defn compose
   []
