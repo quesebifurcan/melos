@@ -170,6 +170,10 @@
                     (partition-by :part))]
     (mapcat filter-part-idiomatic groups)))
 
+(defn event-count-ok?
+  [{:keys [count max-count]}]
+  (<= count max-count))
+
 (defn handle-dissonance
   "Return a function which can be used to control dissonance values in
   one segment of the piece."
@@ -181,6 +185,7 @@
          (forward-time)
          (join-events event)
          ;; (filter-by-count-aggressive max-count)
+         (filter event-count-ok?)
          (filter-idiomatic)
          (filter-parts-by-count part-counts)
          (filter-by-time-in-vertical-moment max-lingering)

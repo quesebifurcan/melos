@@ -20,6 +20,7 @@
               :is-rest? s/Bool
               :part PartName
               :intensity s/Num
+              :max-count s/Int
               :count s/Int))
 
 (def VerticalMoment

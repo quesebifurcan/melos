@@ -14,6 +14,7 @@
    :color nil,
    :count 0,
    :is-rest? false
+   :max-count 100
    :onset 0
    :intensity 1})
 
