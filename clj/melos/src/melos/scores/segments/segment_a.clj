@@ -8,23 +8,21 @@
             [melos.scores.materials.event-seqs :as event-seqs]
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
+            [melos.scores.ctrl-fns.stepwise :as stepwise]
             [melos.scores.ctrl-fns.pairwise :as pairwise]))
 
 (s/defn initial-score-segment
   :- ms/ScoreSegment
   []
   (utils/make-score-segment {:melodic-indices (take 25 (cycle [
-                                               ;; :lower/a :upper/a :ped/a
-                                               ;; :upper/a :lower/a :ped/a
-                                                               :group/a
+                                                               :upper/a
                                                ]))
                              :diss-fn-params {:max-count 10
                                               :max-lingering 300
                                               :diss-value [0 1 2]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-4]
-                             :mod-dur-patterns [pairwise/sustain-dissonant-melody]
-                             ;; :mod-dur-patterns []
+                             :mod-dur-patterns [stepwise/sustain-dissonant-vertical-moments]
                              :tempo 240
                              :part-names [:upper :lower :ped]
                              :melody-sources (atom (event-seqs/organ))}))
