@@ -1,8 +1,6 @@
 (ns melos.scores.ctrl-fns.pairwise
   (:require [melos.tools.dissonance-calculator :refer [scaled-dissonance-value]]
-            [melos.tools.make-note :refer [make-note]]
             [melos.tools.modify-durations :as mod-dur]))
-
 
 (defn dissonant-melody-movement-mod
   [pair]
@@ -27,12 +25,9 @@
                         events))
                  pair
                  [2/4 8/4])]
-        [a
-         ;; [(make-note {:is-rest? true
-         ;;              :duration 1/4
-         ;;              :part (:part a)})]
-         b]))))
+        [a b]))))
 
 (defn sustain-dissonant-melody
   [events]
   (mod-dur/modify-durations events [dissonant-melody-movement-mod]))
+
