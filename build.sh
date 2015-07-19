@@ -12,6 +12,7 @@ PY_DIR=$REPO_DIR/py
 OUTPUT_DIR=$REPO_DIR/output
 JSON_SCORE_FILE_NAME=$OUTPUT_DIR/output.json
 
+mkdir -p $OUTPUT_DIR
 cd $CLJ_DIR
 lein run $JSON_SCORE_FILE_NAME
 
