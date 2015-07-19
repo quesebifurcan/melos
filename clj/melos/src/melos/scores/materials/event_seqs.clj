@@ -1,102 +1,108 @@
 (ns melos.scores.materials.event-seqs
   (:require [melos.tools.utils :as utils]))
 
-(defn ascending
-  [part-name transposition]
-  (let [pitches (concat (range 0 13)
-                        (range 13 0 -1))]
-    {:pitch (->> pitches
-                 (utils/transpose transposition)
-                 (map utils/maybe-vec)
-                 (utils/cyclic-repeats [1]))
-     :part [part-name]
-     :fn utils/make-chord-from-pitch-vector-params
-     :partition (partial utils/cyclic-partition [1 2 1 2 3 1 2 3 4])
-     :duration [1/4 1/4 1/4 1/4]}))
+;; 1. types of contours
+;; 2. ranges?
+;; 3. scales?
 
-(defn expanding
+(defn upper
   [part-name transposition]
-  (let [ranges [(range 0 7)
-                 (range 0 10)
-                 (range 0 7)
-                 (range 0 10)
-                 (range 0 13)
-                 (range 0 7)
-                 (range 0 10)
-                 (range 0 17)]
-        basic-partition (map count ranges)
-        pitches (apply concat ranges)]
-    {:pitch (->> pitches
-                 (utils/transpose transposition)
-                 (map utils/maybe-vec)
-                 (utils/cyclic-repeats [1]))
-     :part [part-name]
-     :fn utils/make-chord-from-pitch-vector-params
-     ;; TODO: double partition using basic-partition
-     :partition (partial utils/cyclic-partition [1 2 1 2 3 1 2 3 4])
-     :duration [1/4 1/4 1/4 1/4]}))
-
-(defn fifth-octave-arpeggio
-  [part-name transposition]
-  {:pitch (->> [0 12 7 0 7 12 19 12 7]
-               (utils/transpose transposition)
-               (map utils/maybe-vec))
-   :part [part-name]
-   :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition [1])
-   :duration [1/4]})
-
-(defn fifth-octave-arpeggio-2
-  [part-name transposition]
-  {:pitch (->> [0 12 24 12 0 7 12 7 19 24 12 0 12 0 12 0 12]
-               (utils/transpose transposition)
-               (map utils/maybe-vec))
-   :part [part-name]
-   :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition [2 3 2 1 1 1 2 3])
-   :duration [1/4 1/4 1/4 1/4 3/4]})
-
-(defn descending-slow
-  [part-name transposition]
-  (let [pitches (range 0 -5 -1)]
-    {:pitch (->> pitches
-                 (utils/transpose transposition)
-                 (map utils/maybe-vec)
-                 (utils/cyclic-repeats [2 3 4]))
-     :part [part-name]
-     :fn utils/make-chord-from-pitch-vector-params
-     :partition (partial utils/cyclic-partition [1])
-     :duration [1/4]}))
-
-(defn diatonic-cluster-arpeggio
-  [part-name transposition]
-  (let [pitches [0 2 4 5 4 2]]
+  (let [pitches (range 16)]
     {:pitch (->> pitches
                  (utils/transpose transposition)
                  (map utils/maybe-vec))
      :part [part-name]
+     :allow-extension? [false false true
+                        false false true
+                        false true]
      :fn utils/make-chord-from-pitch-vector-params
-     :partition (partial utils/cyclic-partition [1 2 1 2 3 2])
+     :partition (partial utils/cyclic-partition [3 3 2])
+     :max-part-count [3]
      :duration [1/4]}))
 
-(defn chords-contracting
+(defn duration-fn
+  [group-count]
+  (if (= group-count 1)
+    [2/4]
+    (repeat group-count 1/4)))
+
+(defn allow-extension-fn
+  [cnt]
+  (concat (repeat (- cnt 1) false)
+          [true]))
+
+(defn upper-2
   [part-name transposition]
-  {:pitch (->> [[0 2 4 5 6]
-                [0 2 4 5]
-                [0 2 4]
-                [0 2]]
-               (map (partial utils/transpose transposition)))
-   :part [part-name]
-   :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition [1 2 1 2])
-   :duration [1/4 1/4 1/4 1/4 1/4 5/4 1/4 1/4 1/4 3/4]})
+  (let [total-range (range 0 40)
+        bottom [3 2 1 0]
+        top [8 12 15]
+        pitches (map (fn [b t]
+                       (->> total-range
+                            (drop-while #(< % b))
+                            (take-while #(< % t))))
+                     bottom
+                     top)
+        basic-partition (map count pitches)
+        additional-partition (utils/combine-partitions basic-partition
+                                                       [3 3 2])]
+    {:pitch (->> (flatten pitches)
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     :allow-extension? (mapcat allow-extension-fn additional-partition)
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition additional-partition)
+     :duration (mapcat duration-fn additional-partition)
+     }))
+
+(defn lower
+  [part-name transposition]
+  (let [pitches (range 13)]
+    {:pitch (->> pitches
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     ;; :dissonance-contributor? [false]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition [2 1 1])
+     :duration [1/4 1/4 1/4 1/4]
+     }))
+
+(defn lower-2
+  [part-name transposition]
+  (let [pitches
+        ;; [[0] [0 2] [0 2 4] [0 2 4 5]]]
+        [[0] [0 2] [2] [2 4] [4] [4 5] [5]]]
+    {:pitch (->> pitches
+                 (map (partial utils/transpose transposition)))
+     :part [part-name]
+     :dissonance-contributor? [true]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition [2 1 1])
+     :duration [1/4 1/4 1/4 1/4]
+     }))
+
+(defn ped
+  [part-name transposition]
+  (let [pitches (range 12 0 -1)]
+    {:pitch (->> pitches
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec)
+                 (utils/cyclic-repeats [3 3 4 4 5 5 2 2]))
+     :part [part-name]
+     ;; :dissonance-contributor? [false]
+     ;; :max-count [1]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition [1])
+     :duration [1/4]
+     }))
 
 (defn organ
   []
   {:upper/a
-   (utils/unfold-events (ascending :upper -1))
+   (utils/unfold-events (upper :upper -3))
    :lower/a
-   (utils/unfold-events (fifth-octave-arpeggio :lower -3))
+   (utils/unfold-events (lower :lower -1))
    :ped/a
-   (utils/unfold-events (descending-slow :ped -17))})
+   (utils/unfold-events (ped :ped -20))})
 

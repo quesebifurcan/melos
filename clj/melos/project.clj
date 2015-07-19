@@ -9,6 +9,6 @@
                  [com.taoensso/timbre "3.4.0"]
                  [prismatic/schema "0.4.0"]]
   :main melos.main
-  :global-vars {*print-length* 20}
+  :global-vars {*print-length* 25}
   :plugins [[lein-marginalia "0.8.0"]])
 
