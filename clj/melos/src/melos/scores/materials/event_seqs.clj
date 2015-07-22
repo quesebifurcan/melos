@@ -81,22 +81,6 @@
                    [x]))
                pitches)))
 
-(defn asdf 
-  [pcs pitches]
-  (if (every? #(contains? pcs %) pitches)
-    (map (fn [x] [x]) pitches)
-    [pitches]))
-
-;; (defn partition-by-start-pcs
-;;   [pitches pcs]
-;;   (let [result
-;;         (concat [[(first pitches)]]
-;;                 (map (comp flatten concat)
-;;                      (partition 2 2 []
-;;                                 (partition-by #(contains? pcs (rem % 12))
-;;                                               (rest pitches)))))]
-;;     (mapcat (partial asdf pcs) result)))
-
 (defn partition-by-start-pcs
   [pitches pcs coll result]
   (if (empty? pitches)
@@ -130,6 +114,18 @@
 ;;              ]
 ;;             (rest result))
 ;;     ))
+
+(defn partition-by-interval
+  [pitches]
+  (map (fn [x]
+         (map first x))
+       (partition-by #(< (first %) 3)
+                     (map (fn [a b]
+                            [a b])
+                          pitches
+                          (map (fn [x]
+                                 (Math/abs (apply - x)))
+                               (partition 2 1 [] pitches))))))
 
 (defn upper
   [part-name transposition]
@@ -203,16 +199,20 @@
 
 (defn lower
   [part-name transposition]
-  (let [pitches (concat 
-                 (range 13)
+  (let [ranges [
+                 (range 14)
                  (range 11)
-                 (range 17))
+                 (range 17)]
         ;; partitions (utils/combine-partitions [(count pitches)]
         ;;                                      [2 1 1 2 1 1 2 1 1 1])]
+        partition-limit (map count ranges)
+        pitches (apply concat ranges)
         partitions [2 1 1 2 1 1 1 2 1]
         pcs #{0 2 5 7 9 10}
         pitches (partition-by-start-pcs pitches pcs [] [])
+        pitches (mapcat partition-by-interval pitches)
         partitions (map count pitches)]
+    (println pitches)
     {:pitch (->> (flatten pitches)
                  ;; (filter-by-pcs #{0 2 5 7 9})
                  ;; (repeat-pitchclasses #{0 7} 2)
@@ -268,4 +268,3 @@
    (utils/unfold-events (lower :lower -3))
    :ped/a
    (utils/unfold-events (ped :ped -15))})
-
