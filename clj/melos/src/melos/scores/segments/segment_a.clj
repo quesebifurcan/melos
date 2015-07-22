@@ -33,7 +33,7 @@
   []
   (let [cnts [200]]
     (map (fn [cnt]
-           (take cnt (cycle [:upper/a :lower/a :ped/a])))
+           (take cnt (cycle [:upper/a :lower/a :upper/a :ped/a])))
          cnts)))
 
 (s/defn changes

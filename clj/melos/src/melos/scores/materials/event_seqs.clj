@@ -149,7 +149,8 @@
         partitions [3 3 2 3 2 3]
         ;; pitches (repeat-pitchclasses #{0 2 4 7 10} 2 pitches)
         ;; pitches (partition-by #(contains? #{0 4 7 10} %) pitches)
-        pitches (partition-by-start-pcs pitches #{0 2 4 7 8 11} [] [])
+        pcs #{0 2 5 7 9}
+        pitches (partition-by-start-pcs pitches pcs [] [])
         ;; partitions (pcs-partition pitches #{0 2 4 7 10})]
         partitions (map count pitches)]
     {:pitch (->> (flatten pitches)
@@ -202,11 +203,15 @@
 
 (defn lower
   [part-name transposition]
-  (let [pitches (range 13)
+  (let [pitches (concat 
+                 (range 13)
+                 (range 11)
+                 (range 17))
         ;; partitions (utils/combine-partitions [(count pitches)]
         ;;                                      [2 1 1 2 1 1 2 1 1 1])]
         partitions [2 1 1 2 1 1 1 2 1]
-        pitches (partition-by-start-pcs pitches #{0 2 4 7 10} [] [])
+        pcs #{0 2 5 7 9 10}
+        pitches (partition-by-start-pcs pitches pcs [] [])
         partitions (map count pitches)]
     {:pitch (->> (flatten pitches)
                  ;; (filter-by-pcs #{0 2 5 7 9})
@@ -262,4 +267,5 @@
    :lower/a
    (utils/unfold-events (lower :lower -3))
    :ped/a
-   (utils/unfold-events (ped :ped -16))})
+   (utils/unfold-events (ped :ped -15))})
+
