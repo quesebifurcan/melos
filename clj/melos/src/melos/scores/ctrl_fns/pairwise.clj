@@ -24,7 +24,7 @@
                                  :duration dur))
                         events))
                  pair
-                 [2/4 8/4])]
+                 [4/4 3/4])]
         [a b]))))
 
 (defn sustain-dissonant-melody

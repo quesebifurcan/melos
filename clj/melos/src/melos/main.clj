@@ -10,3 +10,5 @@
   (time
    (export-to-json output-path
                    (segment-a/compose))))
+
+(-main "/Users/fred/Desktop/score.json")

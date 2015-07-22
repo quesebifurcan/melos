@@ -22,7 +22,9 @@
                                               :diss-value [0 1 2]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-4]
-                             :mod-dur-patterns [stepwise/sustain-dissonant-vertical-moments]
+                             ;; :mod-dur-patterns [pairwise/sustain-dissonant-melody]
+                             ;; :mod-dur-patterns [stepwise/remove-dissonant-vertical-moments]
+                             :mod-dur-patterns []
                              :tempo 240
                              :part-names [:upper :lower :ped]
                              :melody-sources (atom (event-seqs/organ))}))
