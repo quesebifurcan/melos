@@ -14,8 +14,10 @@
                        (fn [x]
                          (first (filter number? (map :pitch x))))
                            melodic-notes)]
-    (if (> (scaled-dissonance-value melodic-notes)
-           (scaled-dissonance-value [0 2 4]))
+    (if (and (> (scaled-dissonance-value melodic-notes)
+                (scaled-dissonance-value [0 2 4]))
+             (not (= (:part (first melodic-notes))
+                     (:part (second melodic-notes)))))
       (let [[a b]
             (map (fn [events dur]
                    (map (fn [event]
@@ -24,7 +26,7 @@
                                  :duration dur))
                         events))
                  pair
-                 [4/4 3/4])]
+                 [3/4 2/4])]
         [a b]))))
 
 (defn sustain-dissonant-melody

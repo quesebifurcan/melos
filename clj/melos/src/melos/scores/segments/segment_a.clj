@@ -24,6 +24,7 @@
                              :time-signatures [measures/measure-4]
                              ;; :mod-dur-patterns [pairwise/sustain-dissonant-melody]
                              ;; :mod-dur-patterns [stepwise/remove-dissonant-vertical-moments]
+                             ;; :mod-dur-patterns [stepwise/dissonance->durations-mapping]
                              :mod-dur-patterns []
                              :tempo 240
                              :part-names [:upper :lower :ped]
@@ -31,9 +32,9 @@
 
 (defn melodic-indices
   []
-  (let [cnts [200]]
+  (let [cnts [800]]
     (map (fn [cnt]
-           (take cnt (cycle [:upper/a :lower/a :upper/a :ped/a])))
+           (take cnt (cycle [:upper/a :lower/a :upper/a :ped/a :lower/a])))
          cnts)))
 
 (s/defn changes

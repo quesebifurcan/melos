@@ -60,8 +60,8 @@
           [true]))
 
 (defn allow-extension-fn-2
-  [pitch]
-  (contains? #{0 2 4 7 10} pitch))
+  [pcs pitch]
+  (contains? pcs (rem pitch 12)))
 
 (defn repeat-pitchclasses
   [pcs cnt pitches]
@@ -132,7 +132,10 @@
   (let [ranges [
                 ;; (range 8)
                 ;; (reverse (range 14))
-                (range 17)
+                (range 13)
+                (range 10)
+                (range 8)
+                (range 10)
                 ;; (reverse (range 16))
                 ;; (range 11)
                 ;; (reverse (range 11))
@@ -154,7 +157,7 @@
                  (map utils/maybe-vec))
      :part [part-name]
      ;; :allow-extension? (mapcat allow-extension-fn [3 3 2 3])
-     ;; :allow-extension? (map allow-extension-fn-2 pitches)
+     ;; :allow-extension? (map (partial allow-extension-fn-2 pcs) (flatten pitches))
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition partitions)
      :max-part-count [1]
@@ -200,15 +203,14 @@
 (defn lower
   [part-name transposition]
   (let [ranges [
-                 (range 14)
-                 (range 11)
-                 (range 17)]
+                 (range 13)
+                 ]
         ;; partitions (utils/combine-partitions [(count pitches)]
         ;;                                      [2 1 1 2 1 1 2 1 1 1])]
         partition-limit (map count ranges)
         pitches (apply concat ranges)
         partitions [2 1 1 2 1 1 1 2 1]
-        pcs #{0 2 5 7 9 10}
+        pcs #{0 2 5 7}
         pitches (partition-by-start-pcs pitches pcs [] [])
         pitches (mapcat partition-by-interval pitches)
         partitions (map count pitches)]
@@ -260,11 +262,133 @@
      :duration [1/4]
      }))
 
+(defn ped-2
+  [part-name transposition]
+  (let [ranges [
+                ;; (range 8)
+                ;; (reverse (range 14))
+                (range 0 15)
+                ;; (reverse (range 16))
+                ;; (range 11)
+                ;; (reverse (range 11))
+                ]
+        ;; ranges (map (partial filter-by-pcs #{0 2 5 7}) ranges)
+        pitches (apply concat ranges)
+        partition-limit (map count ranges)
+        ;; partitions (utils/combine-partitions partition-limit
+        ;;                                      [3 3 2])]
+        partitions [3 3 2 3 2 3]
+        ;; pitches (repeat-pitchclasses #{0 2 4 7 10} 2 pitches)
+        ;; pitches (partition-by #(contains? #{0 4 7 10} %) pitches)
+        pcs #{0 2 5 7 9}
+        pitches (partition-by-start-pcs pitches pcs [] [])
+        ;; partitions (pcs-partition pitches #{0 2 4 7 10})]
+        partitions (map count pitches)]
+    {:pitch (->> (flatten pitches)
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     ;; :allow-extension? (mapcat allow-extension-fn [3 3 2 3])
+     ;; :allow-extension? (map (partial allow-extension-fn-2 pcs) (flatten pitches))
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition partitions)
+     :max-part-count [1]
+     :duration [1/4]}))
+
+(defn chromatic-cycle
+  [
+   0 12
+   0 7 12 7
+   0 5 7 12 7 5
+   0 2 5 7 12 7 5 2
+   0 2 5 7 10 12 10 7 5 2
+   0 2 5 7 9 10 12 10 9 7 5 2
+   0 2 4 5 7 9 10 12 10 9 7 5 4 2
+   0 2 3 4 5 7 9 10 12 10 9 7 5 4 3 2
+   0 2 3 4 5 6 7 9 10 12 10 9 7 6 5 4 3 2
+   0 2 3 4 5 6 7 9 10 11 12 11 10 9 7 6 5 4 3 2
+   ])
+
+(defn diatonic-cycle
+  []
+  [
+   0 7
+   0 7 12 7
+   0 2 7 12 7 2
+   0 2 5 7 12 7 5
+   0 2 5 7 10 12 10 7 5 2
+   0 2 3 5 7 10 12 10 5 3 2
+   ])
+
+(defn diatonic-upper
+  [part-name transposition]
+  (let [pitches (chromatic-cycle)
+        partitions [2]]
+    {:pitch (->> pitches
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition partitions)
+     :max-part-count [1]
+     :duration [1/4]}))
+
+(defn diatonic-lower
+  [part-name transposition]
+  (let [pitches (chromatic-cycle)
+        partitions [3]]
+    {:pitch (->> pitches
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition partitions)
+     :max-part-count [1]
+     :duration [1/4]}))
+
+(defn diatonic-ped
+  [part-name transposition]
+  (let [pitches [
+                 0 7
+                 0 7
+                 0 7
+                 0 7
+                 0 7
+                 0 7
+                 0 7 12 7
+                 0 7 12 7
+                 0 7 12 7
+                 0 7 12 7
+                 0 7 12 7
+                 0 2 7 12 7 2
+                 0 2 7 12 7 2
+                 0 2 7 12 7 2
+                 0 2 7 12 7 2
+                 0 2 5 7 12 7 5
+                 0 2 5 7 12 7 5
+                 0 2 5 7 12 7 5
+                 0 2 5 7 10 12 10 7 5 2
+                 0 2 5 7 10 12 10 7 5 2
+                 0 2 3 5 7 10 12 10 5 3 2
+                 ]
+        partitions [1]]
+    {:pitch (->> pitches
+                 (utils/transpose transposition)
+                 (map utils/maybe-vec))
+     :part [part-name]
+     :fn utils/make-chord-from-pitch-vector-params
+     :partition (partial utils/cyclic-partition partitions)
+     :max-part-count [1]
+     :duration [1/4]}))
+
 (defn organ
   []
   {:upper/a
-   (utils/unfold-events (upper :upper -3))
+   (utils/unfold-events (diatonic-upper :upper -3))
    :lower/a
-   (utils/unfold-events (lower :lower -3))
+   (utils/unfold-events (diatonic-lower :lower -3))
    :ped/a
-   (utils/unfold-events (ped :ped -15))})
+   (utils/unfold-events (diatonic-ped :ped -15))})
+
+(map (partial allow-extension-fn-2 #{0 2 4})
+     (range 12))
