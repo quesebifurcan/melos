@@ -19,12 +19,13 @@
                                                ]))
                              :diss-fn-params {:max-count 10
                                               :max-lingering 300
-                                              :diss-value [0 1 2]}
+                                              :diss-value [0 1 5]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-4]
                              ;; :mod-dur-patterns [pairwise/sustain-dissonant-melody]
                              ;; :mod-dur-patterns [stepwise/remove-dissonant-vertical-moments]
                              ;; :mod-dur-patterns [stepwise/dissonance->durations-mapping]
+                             ;; :mod-dur-patterns [pairwise/sustain-parts-count-drops]
                              :mod-dur-patterns []
                              :tempo 240
                              :part-names [:upper :lower :ped]
@@ -32,7 +33,7 @@
 
 (defn melodic-indices
   []
-  (let [cnts [800]]
+  (let [cnts [400]]
     (map (fn [cnt]
            (take cnt (cycle [:upper/a :lower/a :upper/a :ped/a :lower/a])))
          cnts)))

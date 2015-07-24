@@ -15,7 +15,7 @@
   {:events
    (fnk [melodic-indices melody-sources]
         (sel-seq/collect-events-in-segment melodic-indices
-                                           melody-sources))
+                                                melody-sources))
    :extended-events
    (fnk [events diss-fn-params interval->diss-map]
         ;; Set dissonance-map (globally).

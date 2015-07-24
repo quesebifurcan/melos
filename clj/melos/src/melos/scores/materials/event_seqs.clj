@@ -296,6 +296,7 @@
      :duration [1/4]}))
 
 (defn chromatic-cycle
+  []
   [
    0 12
    0 7 12 7
@@ -341,6 +342,7 @@
                  (utils/transpose transposition)
                  (map utils/maybe-vec))
      :part [part-name]
+     :allow-extension? [false false true]
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition partitions)
      :max-part-count [1]
@@ -348,29 +350,7 @@
 
 (defn diatonic-ped
   [part-name transposition]
-  (let [pitches [
-                 0 7
-                 0 7
-                 0 7
-                 0 7
-                 0 7
-                 0 7
-                 0 7 12 7
-                 0 7 12 7
-                 0 7 12 7
-                 0 7 12 7
-                 0 7 12 7
-                 0 2 7 12 7 2
-                 0 2 7 12 7 2
-                 0 2 7 12 7 2
-                 0 2 7 12 7 2
-                 0 2 5 7 12 7 5
-                 0 2 5 7 12 7 5
-                 0 2 5 7 12 7 5
-                 0 2 5 7 10 12 10 7 5 2
-                 0 2 5 7 10 12 10 7 5 2
-                 0 2 3 5 7 10 12 10 5 3 2
-                 ]
+  (let [pitches (chromatic-cycle)
         partitions [1]]
     {:pitch (->> pitches
                  (utils/transpose transposition)
@@ -390,5 +370,6 @@
    :ped/a
    (utils/unfold-events (diatonic-ped :ped -15))})
 
-(map (partial allow-extension-fn-2 #{0 2 4})
-     (range 12))
+;; TODO: After unfolding all (approximated) partials, gradually "shift weight" from lower to higher partials.
+;; TODO: Chromatic canon? Which extensions/modifications?
+;; TODO: Duration? Strict process?
