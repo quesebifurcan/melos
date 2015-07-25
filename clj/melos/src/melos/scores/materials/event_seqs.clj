@@ -214,7 +214,6 @@
         pitches (partition-by-start-pcs pitches pcs [] [])
         pitches (mapcat partition-by-interval pitches)
         partitions (map count pitches)]
-    (println pitches)
     {:pitch (->> (flatten pitches)
                  ;; (filter-by-pcs #{0 2 5 7 9})
                  ;; (repeat-pitchclasses #{0 7} 2)
@@ -384,15 +383,48 @@
   (concat (chromatic-cycle-seed)
           (reverse (chromatic-cycle-seed))))
 
+(defn diatonic-cycle-2
+  []
+  (let [model [
+               
+               ;; 0 12
+               ;; 0 7 12 7
+               ;; 0 5 7 12 7 5
+               ;; 0 2 5 7 12 7 5 2
+               ;; 0 2 5 7 10 12 10 7 5 2
+               ;; 0 2 4 5 7 10 12 10 7 5 4 2
+               ;; 0 2 3 4 5 7 10 12 10 7 5 4 3 2
+               ;; 0 2 3 4 5 7 10 11 12 11 10 7 5 4 3 2
+               ;; 0 2 3 4 5 6 7 10 11 12 11 10 7 6 5 4 3 2
+               ;; 0 2 3 4 5 6 7 9 10 11 12 11 10 9 7 6 5 4 3 2
+               ;; 0 2 3 4 5 6 7 8 9 10 11 12 11 10 9 8 7 6 5 4 3 2
+
+               ]]
+    model
+  ;;           (map (partial + 5) model))))
+  ))
+
+
+
 (defn diatonic-cycle
   []
   [
+
    0 7
    0 7 12 7
    0 2 7 12 7 2
    0 2 5 7 12 7 5
    0 2 5 7 10 12 10 7 5 2
-   0 2 3 5 7 10 12 10 5 3 2
+   0 2 3 5 7 10 12 10 7 5 3 2
+   
+   ;; 3
+   ;; 3 10
+   ;; 3 5 10 5
+   ;; 2 3 5 10 5 3
+   ;; 2 3 5 10 12 10 5 3
+   ;; 2 3 5 7 10 12 10 7 5 3 2
+   ;; 0 2 3 5 7 10 12 10 7 5 3 2 
+
    ])
 
 ;; (def diatonic-rhythm
@@ -402,7 +434,7 @@
 
 (defn diatonic-upper
   [part-name transposition]
-  (let [pitches (chromatic-cycle)
+  (let [pitches (diatonic-cycle)
         partitions [2]]
     {:pitch (->> pitches
                  (utils/transpose transposition)
@@ -415,7 +447,7 @@
 
 (defn diatonic-lower
   [part-name transposition]
-  (let [pitches (chromatic-cycle)
+  (let [pitches (diatonic-cycle)
         partitions [3]]
     {:pitch (->> pitches
                  (utils/transpose transposition)
@@ -429,7 +461,7 @@
 
 (defn diatonic-ped
   [part-name transposition]
-  (let [pitches (chromatic-cycle)
+  (let [pitches (diatonic-cycle)
         partitions [1]]
     {:pitch (->> pitches
                  (utils/transpose transposition)

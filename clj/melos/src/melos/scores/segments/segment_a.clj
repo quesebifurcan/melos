@@ -26,6 +26,8 @@
                              ;; :mod-dur-patterns [stepwise/remove-dissonant-vertical-moments]
                              ;; :mod-dur-patterns [stepwise/dissonance->durations-mapping]
                              ;; :mod-dur-patterns [pairwise/sustain-parts-count-drops]
+                             ;; :mod-dur-patterns [stepwise/apply-melodic-pitch-class-mapping]
+                             ;; :mod-dur-patterns [stepwise/apply-durations]
                              :mod-dur-patterns []
                              :tempo 240
                              :part-names [:upper :lower :ped]
@@ -33,9 +35,16 @@
 
 (defn melodic-indices
   []
-  (let [cnts [1000]]
+  (let [cnts [500]]
     (map (fn [cnt]
-           (take cnt (cycle [:upper/a :lower/a :upper/a :ped/a :lower/a])))
+           (take cnt (cycle [
+                             :upper/a :lower/a :upper/a :ped/a :ped/a :lower/a
+                             :upper/a :lower/a :ped/a
+                             :upper/a :lower/a :ped/a :ped/a
+                             :upper/a :lower/a
+                             :upper/a :lower/a
+                             :upper/a :lower/a
+                             ])))
          cnts)))
 
 (s/defn changes

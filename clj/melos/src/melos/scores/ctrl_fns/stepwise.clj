@@ -40,3 +40,27 @@
          (let [dur (dissonance->durations vertical-moment)]
            (map #(assoc % :duration dur) vertical-moment)))
        events))
+
+(defn melodic-pitch-class-mapping
+  [vertical-moment]
+  (let [melodic-pitch-class (rem (+ 60 (:pitch (first (sort-by :count vertical-moment)))) 12)]
+    (cond (contains? #{9 11 4} melodic-pitch-class)
+          1/4
+          (contains? #{1 6 7} melodic-pitch-class)
+          2/4
+          :else
+          3/4)))
+
+(defn apply-melodic-pitch-class-mapping
+  [events]
+  (map (fn [vertical-moment]
+         (let [dur (melodic-pitch-class-mapping vertical-moment)]
+           (map #(assoc % :duration dur) vertical-moment)))
+       events))
+
+(defn apply-durations
+  [events]
+  (map (fn [vertical-moment dur]
+           (map #(assoc % :duration dur) vertical-moment))
+       events
+       (cycle [1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4 2/4 2/4 4/4])))
