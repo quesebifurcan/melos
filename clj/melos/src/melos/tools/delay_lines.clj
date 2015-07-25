@@ -23,8 +23,10 @@
   :- s/Bool
   [vertical-moment :- ms/VerticalMoment
    limit :- [s/Int]]
-  (let [limit (diss-calc/scaled-dissonance-value limit)]
-    (<= (dissonance-value vertical-moment) limit)))
+  (if (<= (count vertical-moment) 2)
+    true
+    (let [limit (diss-calc/scaled-dissonance-value limit)]
+      (<= (dissonance-value vertical-moment) limit))))
 
 (s/defn zero-count?
   :- s/Bool
@@ -119,7 +121,12 @@
                           (filter contains-zero-count)
                           (best-part-match events)
                           (filter #(consonant? % limit))
-                          (sort-by total-count)
+
+                          ;; (sort-by total-count)
+
+                          (sort-by (fn [x]
+                                     (let [pitches (map :pitch x)]
+                                       (diss-calc/scaled-dissonance-value pitches))))
                           ;; (sort-by #(count %))
                           ;; (reverse)
                           (first))]
