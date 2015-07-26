@@ -156,11 +156,13 @@
                  (utils/transpose transposition)
                  (map utils/maybe-vec))
      :part [part-name]
-     ;; :allow-extension? (mapcat allow-extension-fn [3 3 2 3])
+     :allow-extension? (map (fn [x]
+                              (contains? pcs x))
+                            (flatten pitches))
      ;; :allow-extension? (map (partial allow-extension-fn-2 pcs) (flatten pitches))
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition partitions)
-     :max-part-count [1]
+     :max-part-count [2]
      :duration [1/4]}))
 
 (defn upper-2
@@ -386,7 +388,7 @@
 (defn diatonic-cycle-2
   []
   (let [model [
-               
+
                ;; 0 12
                ;; 0 7 12 7
                ;; 0 5 7 12 7 5
@@ -410,20 +412,44 @@
   []
   [
 
+   ;; 0 7
+   ;; 0 7 12 7
+   ;; 0 2 7 12 7 2
+   ;; 0 2 5 7 12 7 5
+   ;; 0 2 5 7 10 12 10 7 5 2
+   ;; 0 2 3 5 7 10 12 10 7 5 3 2
+   ;; 0 2 3 5 7 8 10 12 10 7 5 3 2
+
    0 7
-   0 7 12 7
-   0 2 7 12 7 2
-   0 2 5 7 12 7 5
-   0 2 5 7 10 12 10 7 5 2
-   0 2 3 5 7 10 12 10 7 5 3 2
-   
+   0 3 7 3
+   0 2 3 7 3 2
+
+   0 5
+   0 5 7 5
+   0 5 7 8 7 5
+
+   0 3
+   0 2 3 2
+   0 2 3 7 8 7 3 2
+
+   ;; add notes in different order.
+
+   ;; 0 2
+   ;; 0 2 3 2
+   ;; 0 2 3 5 3 2
+   ;; 0 2 3 5 7 5 3 2
+   ;; 0 2 3 5 7 10 7 5 3 2
+   ;; 0 2 3 5 7 10 12 10 7 5 3 2
+   ;; 0 2 3 5 7 10 12 14 12 10 7 5 3 2
+   ;; 0 2 3 5 7 10 12 14 15 14 12 10 7 5 3 2
+
    ;; 3
    ;; 3 10
    ;; 3 5 10 5
    ;; 2 3 5 10 5 3
    ;; 2 3 5 10 12 10 5 3
    ;; 2 3 5 7 10 12 10 7 5 3 2
-   ;; 0 2 3 5 7 10 12 10 7 5 3 2 
+   ;; 0 2 3 5 7 10 12 10 7 5 3 2
 
    ])
 
@@ -474,12 +500,18 @@
 
 (defn organ
   []
+  ;; {:upper/a
+  ;;  (utils/unfold-events (diatonic-upper :upper -3))
+  ;;  :lower/a
+  ;;  (utils/unfold-events (diatonic-lower :lower -3))
+  ;;  :ped/a
+  ;;  (utils/unfold-events (diatonic-ped :ped -15))})
   {:upper/a
-   (utils/unfold-events (diatonic-upper :upper -3))
+   (utils/unfold-events (upper :upper -3))
    :lower/a
-   (utils/unfold-events (diatonic-lower :lower -3))
+   (utils/unfold-events (lower :lower -3))
    :ped/a
-   (utils/unfold-events (diatonic-ped :ped -15))})
+   (utils/unfold-events (ped-2 :ped -15))})
 
 ;; TODO: After unfolding all (approximated) partials, gradually "shift weight" from lower to higher partials.
 ;; TODO: Chromatic canon? Which extensions/modifications?

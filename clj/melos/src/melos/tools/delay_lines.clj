@@ -23,10 +23,8 @@
   :- s/Bool
   [vertical-moment :- ms/VerticalMoment
    limit :- [s/Int]]
-  (if (<= (count vertical-moment) 2)
-    true
-    (let [limit (diss-calc/scaled-dissonance-value limit)]
-      (<= (dissonance-value vertical-moment) limit))))
+  (let [limit (diss-calc/scaled-dissonance-value limit)]
+    (<= (dissonance-value vertical-moment) limit)))
 
 (s/defn zero-count?
   :- s/Bool
