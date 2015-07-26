@@ -157,7 +157,7 @@
                  (map utils/maybe-vec))
      :part [part-name]
      :allow-extension? (map (fn [x]
-                              (contains? pcs x))
+                              (contains? pcs (rem (+ 60 x) 12)))
                             (flatten pitches))
      ;; :allow-extension? (map (partial allow-extension-fn-2 pcs) (flatten pitches))
      :fn utils/make-chord-from-pitch-vector-params
@@ -205,7 +205,7 @@
 (defn lower
   [part-name transposition]
   (let [ranges [
-                 (range 13)
+                 (range -3 11)
                  ]
         ;; partitions (utils/combine-partitions [(count pitches)]
         ;;                                      [2 1 1 2 1 1 2 1 1 1])]
@@ -246,6 +246,26 @@
      :duration [1/4 1/4 1/4 1/4]
      }))
 
+(defn filter-curr
+  [count-limit curr]
+  (if (<= (count curr) count-limit)
+    curr
+    (recur count-limit
+           (butlast curr))))
+
+(defn sustain-pitchclasses
+  [pcs curr coll pitches]
+  (if (empty? pitches)
+    coll
+    (let [head (first pitches)
+          curr (->> curr
+                    (filter #(contains? pcs (rem (+ 60 %) 12)))
+                    (filter-curr 1))]
+      (recur pcs
+             (conj curr head)
+             (conj coll (conj curr head))
+             (rest pitches)))))
+
 (defn ped
   [part-name transposition]
   (let [pitches (range 12 0 -1)
@@ -254,10 +274,15 @@
     {:pitch (->> (flatten pitches)
                  ;; (filter-by-pcs #{0 2 4 5 7 9 11})
                  (utils/transpose transposition)
-                 (map utils/maybe-vec))
+                 (sustain-pitchclasses #{9 4} [] []))
+                 ;; (map utils/maybe-vec))
      :part [part-name]
-     ;; :dissonance-contributor? [false]
-     ;; :max-count [1]
+     :dissonance-contributor? [false]
+     ;; :max-count [5]
+     :max-part-count [2]
+     ;; :allow-extension? (map (fn [x]
+     ;;                          (contains? #{0 2 4 7} (rem (+ 60 x) 12)))
+     ;;                        (flatten pitches))
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition [1])
      :duration [1/4]
@@ -507,7 +532,7 @@
   ;;  :ped/a
   ;;  (utils/unfold-events (diatonic-ped :ped -15))})
   {:upper/a
-   (utils/unfold-events (upper :upper -3))
+   (utils/unfold-events (ped :upper -3))
    :lower/a
    (utils/unfold-events (lower :lower -3))
    :ped/a
@@ -516,3 +541,7 @@
 ;; TODO: After unfolding all (approximated) partials, gradually "shift weight" from lower to higher partials.
 ;; TODO: Chromatic canon? Which extensions/modifications?
 ;; TODO: Duration? Strict process?
+
+(let [a [12 12 12 12 11 10 9 8 7 7 7 6 5 4]]
+  (sustain-pitchclasses #{0 7} [] [] a))
+
