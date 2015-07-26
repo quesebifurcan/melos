@@ -17,9 +17,12 @@ def apply_accidentals(staff):
     prev_chord = None
     prev_duplicates = []
     for event in iterate(staff).by_class((Chord, Rest)):
-        if isinstance(event, Rest) or len(event.written_pitches) < 2:
+        if (isinstance(event, Rest) or len(event.written_pitches) < 2):
             prev_chord = None
             prev_duplicates = []
+        # Don't force display of accidentals when the previous chord is repeated.
+        elif (prev_chord and set(event.written_pitches) == set(prev_chord.written_pitches)):
+            continue
         else:
             curr_dpcn = [x.diatonic_pitch_class_name for x in event.written_pitches]
             curr_dpcn_duplicates = []
@@ -27,21 +30,21 @@ def apply_accidentals(staff):
                 group = list(g)
                 if len(group) > 1:
                     curr_dpcn_duplicates.append(k)
-            for note_head in event.note_heads:
-                dpcn = note_head.written_pitch.diatonic_pitch_class_name
-                if dpcn in curr_dpcn_duplicates:
-                    note_head.is_forced = True
-            if prev_chord:
-                prev_dpcn = [x.diatonic_pitch_class_name for x in prev_chord.written_pitches]
                 for note_head in event.note_heads:
-                    if (note_head.written_pitch.diatonic_pitch_class_name in prev_dpcn and
-                        not note_head.written_pitch in prev_chord.written_pitches):
+                    dpcn = note_head.written_pitch.diatonic_pitch_class_name
+                    if dpcn in curr_dpcn_duplicates:
                         note_head.is_forced = True
-                        continue
-                    if note_head.written_pitch.diatonic_pitch_class_name in prev_duplicates:
-                        note_head.is_forced = True
-            prev_duplicates = curr_dpcn_duplicates
-            prev_chord = event
+                if prev_chord:
+                    prev_dpcn = [x.diatonic_pitch_class_name for x in prev_chord.written_pitches]
+                    for note_head in event.note_heads:
+                        if (note_head.written_pitch.diatonic_pitch_class_name in prev_dpcn and
+                            not note_head.written_pitch in prev_chord.written_pitches):
+                            note_head.is_forced = True
+                            continue
+                        if note_head.written_pitch.diatonic_pitch_class_name in prev_duplicates:
+                            note_head.is_forced = True
+                prev_duplicates = curr_dpcn_duplicates
+                prev_chord = event
 
 def make_note(node):
     num, denom = node.get('duration')

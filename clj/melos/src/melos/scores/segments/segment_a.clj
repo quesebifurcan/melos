@@ -35,7 +35,7 @@
 
 (defn melodic-indices
   []
-  (let [cnts [300]]
+  (let [cnts [200]]
     (map (fn [cnt]
            (take cnt (cycle [
                              :upper/a :lower/a :upper/a :ped/a :ped/a :lower/a

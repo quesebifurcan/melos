@@ -531,7 +531,8 @@
   ;;  (utils/unfold-events (diatonic-lower :lower -3))
   ;;  :ped/a
   ;;  (utils/unfold-events (diatonic-ped :ped -15))})
-  {:upper/a
+  {
+   :upper/a
    (utils/unfold-events (ped :upper -3))
    :lower/a
    (utils/unfold-events (lower :lower -3))
@@ -542,6 +543,4 @@
 ;; TODO: Chromatic canon? Which extensions/modifications?
 ;; TODO: Duration? Strict process?
 
-(let [a [12 12 12 12 11 10 9 8 7 7 7 6 5 4]]
-  (sustain-pitchclasses #{0 7} [] [] a))
 
