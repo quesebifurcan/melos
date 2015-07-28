@@ -148,7 +148,7 @@
         partitions [3 3 2 3 2 3]
         ;; pitches (repeat-pitchclasses #{0 2 4 7 10} 2 pitches)
         ;; pitches (partition-by #(contains? #{0 4 7 10} %) pitches)
-        pcs #{0 2 5 7 9}
+        pcs #{0 2 3 5 7 9 10}
         pitches (partition-by-start-pcs pitches pcs [] [])
         ;; partitions (pcs-partition pitches #{0 2 4 7 10})]
         partitions (map count pitches)]
@@ -162,7 +162,7 @@
      ;; :allow-extension? (map (partial allow-extension-fn-2 pcs) (flatten pitches))
      :fn utils/make-chord-from-pitch-vector-params
      :partition (partial utils/cyclic-partition partitions)
-     :max-part-count [2]
+     :max-part-count [1]
      :duration [1/4]}))
 
 (defn upper-2
@@ -205,7 +205,7 @@
 (defn lower
   [part-name transposition]
   (let [ranges [
-                 (range -3 11)
+                 (range 0 11)
                  ]
         ;; partitions (utils/combine-partitions [(count pitches)]
         ;;                                      [2 1 1 2 1 1 2 1 1 1])]
@@ -437,25 +437,39 @@
   []
   [
 
-   ;; 0 7
-   ;; 0 7 12 7
-   ;; 0 2 7 12 7 2
-   ;; 0 2 5 7 12 7 5
-   ;; 0 2 5 7 10 12 10 7 5 2
-   ;; 0 2 3 5 7 10 12 10 7 5 3 2
-   ;; 0 2 3 5 7 8 10 12 10 7 5 3 2
+   0 7
+   0 7 12 7
+   0 2 7 12 7 2
+   0 2 5 7 12 7 5
+   0 2 5 7 10 12 10 7 5 2
+   0 2 3 5 7 10 12 10 7 5 3 2
 
    0 7
-   0 3 7 3
-   0 2 3 7 3 2
+   0 7 12
+   0 2 7 12
+   0 2 5 7 12
+   0 2 5 7 10 12
+   0 2 3 5 7 10 12
 
-   0 5
-   0 5 7 5
-   0 5 7 8 7 5
+   7
+   12 7
+   12 7 2
+   12 7 5
+   12 10 7 5 2
+   12 10 7 5 3 2
+   
 
-   0 3
-   0 2 3 2
-   0 2 3 7 8 7 3 2
+   ;; 0 7
+   ;; 0 3 7 3
+   ;; 0 2 3 7 3 2
+
+   ;; 0 5
+   ;; 0 5 7 5
+   ;; 0 5 7 8 7 5
+
+   ;; 0 3
+   ;; 0 2 3 2
+   ;; 0 2 3 7 8 7 3 2
 
    ;; add notes in different order.
 
@@ -533,7 +547,7 @@
   ;;  (utils/unfold-events (diatonic-ped :ped -15))})
   {
    :upper/a
-   (utils/unfold-events (ped :upper -3))
+   (utils/unfold-events (upper :upper -3))
    :lower/a
    (utils/unfold-events (lower :lower -3))
    :ped/a
@@ -542,5 +556,3 @@
 ;; TODO: After unfolding all (approximated) partials, gradually "shift weight" from lower to higher partials.
 ;; TODO: Chromatic canon? Which extensions/modifications?
 ;; TODO: Duration? Strict process?
-
-

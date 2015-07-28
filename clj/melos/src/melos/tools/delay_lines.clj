@@ -119,10 +119,10 @@
                           (filter contains-zero-count)
                           (best-part-match events)
                           (filter #(consonant? % limit))
-                          ;; (sort-by total-count)
-                          (sort-by (fn [x]
-                                     (let [pitches (map :pitch x)]
-                                       (diss-calc/scaled-dissonance-value pitches))))
+                          (sort-by total-count)
+                          ;; (sort-by (fn [x]
+                          ;;            (let [pitches (map :pitch x)]
+                          ;;              (diss-calc/scaled-dissonance-value pitches))))
                           ;; (sort-by #(count %))
                           ;; (reverse)
                           (first))]

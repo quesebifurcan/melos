@@ -19,7 +19,7 @@
                                                ]))
                              :diss-fn-params {:max-count 10
                                               :max-lingering 300
-                                              :diss-value [0 1 2]}
+                                              :diss-value [0 2 4 5]}
                              :interval->diss-map dissonance-maps/default
                              :time-signatures [measures/measure-4]
                              ;; :mod-dur-patterns [pairwise/sustain-dissonant-melody]
@@ -28,24 +28,33 @@
                              ;; :mod-dur-patterns [pairwise/sustain-parts-count-drops]
                              ;; :mod-dur-patterns [stepwise/apply-melodic-pitch-class-mapping]
                              ;; :mod-dur-patterns [stepwise/apply-durations]
-                             :mod-dur-patterns []
+                             :mod-dur-patterns [stepwise/sort-continuous]
                              :tempo 240
                              :part-names [:upper :lower :ped]
                              :melody-sources (atom (event-seqs/organ))}))
 
 (defn melodic-indices
   []
-  (let [cnts [200]]
-    (map (fn [cnt]
-           (take cnt (cycle [
-                             :upper/a :lower/a :upper/a :ped/a :ped/a :lower/a
-                             :upper/a :lower/a :ped/a
-                             :upper/a :lower/a :ped/a :ped/a
-                             :upper/a :lower/a
-                             :upper/a :lower/a
-                             :upper/a :lower/a
-                             ])))
-         cnts)))
+  (let [cnts [1000 4000 4000 4000]]
+    (map (fn [cnt pattern]
+           ;; (take cnt (cycle [
+           ;;                   ;; :upper/a :lower/a :upper/a :ped/a :ped/a :lower/a
+           ;;                   ;; :upper/a :lower/a :upper/a :ped/a
+           ;;                   ;; :upper/a :lower/a :ped/a
+           ;;                   ;; :upper/a :lower/a :ped/a :ped/a
+           ;;                   ;; :upper/a :lower/a
+           ;;                   ;; :upper/a :lower/a
+           ;;                   ;; :upper/a :lower/a
+           ;;                   ])))
+           (take cnt (cycle pattern)))
+         cnts
+         [
+          [:upper/a :lower/a :ped/a]
+          [:upper/a :lower/a :upper/a :ped/a]
+          [:upper/a :lower/a :upper/a :lower/a :ped/a]
+          [:upper/a :lower/a :upper/a :ped/a :lower/a :ped/a]
+          ])))
+
 
 (s/defn changes
   :- [ms/PartialScoreSegment]
