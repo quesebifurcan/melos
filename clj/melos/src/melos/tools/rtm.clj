@@ -74,7 +74,7 @@
 (declare insert-events)
 
 (defn extend-last
-  [events duration]
+  [duration events]
   (let [extended (->> (last events)
                       (map (fn [event]
                              (update-in event
@@ -85,12 +85,12 @@
             extended)))
 
 (defn make-r-tree
-  [events measures]
+  [measures events]
   (let [total-dur (duration-sum events)
         rtm-tree (init-rtm-tree total-dur measures)
         rtm-tree-dur (get-nested-measure-dur rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
-        events (extend-last events dur-diff)]
+        events (extend-last dur-diff events)]
     (->> (insert-events rtm-tree events)
          ((fn [x] {:children (:children x)})))))
 
