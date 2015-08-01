@@ -79,10 +79,9 @@
                     :changes (changes)
                     :graph score-graph/lazy-segment-graph}))
 
-(require '[melos.tools.rtm :as rtm])
-(require '[melos.tools.filter-parts :as filter-parts])
-
-(require '[melos.tools.selector-sequence :refer [collect-events-in-segment]]
+(require '[melos.tools.rtm :as rtm]
+         '[melos.tools.filter-parts :as filter-parts]
+         '[melos.tools.selector-sequence :refer [collect-events-in-segment]]
          '[melos.tools.utils :as utils]
          '[melos.tools.cycle-params :as cycle-params]
          '[clojure.algo.generic.functor :as functor]
@@ -116,19 +115,15 @@
          (:merged-horizontally)
          )))
 
-(defn upper-part
-  [{:keys [transposition part-name]}]
-  (utils/unfold-events (event-seqs/upper part-name transposition)))
-
 (defn calc-event-combinations
   [state changes]
   (map (partial evaluate-once state)
        changes))
 
 (defn apply-rhythm
-  [tempo measures events]
+  [last-event-extension tempo measures events]
   (->> events
-       (rtm/extend-last 7/4)
+       (rtm/extend-last last-event-extension)
        (rtm/make-r-tree measures)
        ((fn [rhythmic-tree]
           {:tempo tempo
@@ -138,6 +133,10 @@
                            :events (filter-parts/split-out-part rhythmic-tree part-name)})
                         [:upper :lower :ped])
                        (rtm/merge-all-tied))}))))
+
+(defn upper-part
+  [{:keys [transposition part-name]}]
+  (utils/unfold-events (event-seqs/upper part-name transposition)))
 
 (let [changes (unfold-parameters
                {[:melody-sources :upper/a :params :transposition] [-10 10 0]})
@@ -153,12 +152,9 @@
              :tempo 240
              :part-names [:upper :lower :ped]
              :melodic-indices (take 21 (cycle [:upper/a]))}
-      events (->> (calc-event-combinations state changes)
-                  ;; filter here.
-                  (second))]
+      events (calc-event-combinations state changes)]
   (->> events
-       (apply-rhythm 240 [measures/measure-4])
-       (conj [])
+       (map (partial apply-rhythm 7/4 240 [measures/measure-4]))
        (utils/export-to-json
         "/Users/fred/Desktop/score.json")
        ))
