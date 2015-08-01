@@ -139,10 +139,24 @@
   (utils/unfold-events (event-seqs/upper part-name transposition)))
 
 (let [changes (unfold-parameters
-               {[:melody-sources :upper/a :params :transposition] [-10 10 0]})
-      state {:melody-sources {:upper/a {:fn upper-part
+               {[:melody-sources :upper/a :params :transposition] [-10 10 0]
+                [:melodic-indices] [
+                                    (take 21 (cycle [:upper/a :lower/a :ped/a]))
+                                    (take 18 (cycle [:upper/a :lower/a :upper/a :ped/a]))
+                                    ]
+                [:diss-fn-params :diss-value] [[0 2 4 5] [0 1 2]]
+                })
+      state {:melody-sources {
+                              :upper/a {:fn upper-part
                                         :params {:transposition -3
-                                                 :part-name :upper}}}
+                                                 :part-name :upper}}
+                              :lower/a {:fn upper-part
+                                        :params {:transposition -5
+                                                 :part-name :lower}}
+                              :ped/a {:fn upper-part
+                                      :params {:transposition -15
+                                               :part-name :ped}}
+                              }
              :diss-fn-params {:max-count 10
                               :max-lingering 300
                               :diss-value [0 2 4 5]}
@@ -151,10 +165,14 @@
              :mod-dur-patterns []
              :tempo 240
              :part-names [:upper :lower :ped]
-             :melodic-indices (take 21 (cycle [:upper/a]))}
+             :melodic-indices []}
       events (calc-event-combinations state changes)]
-  (->> events
+
+  (->> (sort-by (fn [x]
+                  (apply + (map count x)))
+                events)
        (map (partial apply-rhythm 7/4 240 [measures/measure-4]))
        (utils/export-to-json
         "/Users/fred/Desktop/score.json")
        ))
+
