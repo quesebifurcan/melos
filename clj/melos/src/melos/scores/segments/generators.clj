@@ -106,12 +106,10 @@
 
 (defn evaluate-once
   [state changes]
-  (let [
-        state (reduce (fn [m [k v]]
+  (let [state (reduce (fn [m [k v]]
                         (update-in m k (fn [_] v)))
                       state
-                      changes)
-        ]
+                      changes)]
     (->> state
          (evaluate-nested-fns)
          (score-graph/lazy-segment-graph)
@@ -126,6 +124,20 @@
   [state changes]
   (map (partial evaluate-once state)
        changes))
+
+(defn apply-rhythm
+  [tempo measures events]
+  (->> events
+       (rtm/extend-last 7/4)
+       (rtm/make-r-tree measures)
+       ((fn [rhythmic-tree]
+          {:tempo tempo
+           :parts (->> (map
+                        (fn [part-name]
+                          {:part-name part-name
+                           :events (filter-parts/split-out-part rhythmic-tree part-name)})
+                        [:upper :lower :ped])
+                       (rtm/merge-all-tied))}))))
 
 (let [changes (unfold-parameters
                {[:melody-sources :upper/a :params :transposition] [-10 10 0]})
@@ -145,16 +157,7 @@
                   ;; filter here.
                   (second))]
   (->> events
-       (rtm/extend-last 7/4)
-       (rtm/make-r-tree [measures/measure-4])
-       ((fn [rhythmic-tree]
-          {:tempo 240
-           :parts (->> (map
-                        (fn [part-name]
-                          {:part-name part-name
-                           :events (filter-parts/split-out-part rhythmic-tree part-name)})
-                        [:upper :lower :ped])
-                       (rtm/merge-all-tied))}))
+       (apply-rhythm 240 [measures/measure-4])
        (conj [])
        (utils/export-to-json
         "/Users/fred/Desktop/score.json")
