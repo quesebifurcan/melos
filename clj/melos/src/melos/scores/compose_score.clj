@@ -1,16 +1,15 @@
-(ns melos.scores.segments.generators
+(ns melos.scores.compose-score
   (:require [schema.core :as s]
             [melos.tools.schemata :as ms]
             [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
             [melos.tools.utils :as utils]
-            [melos.scores.compose-segment :refer [compose-segment]]
             [melos.scores.graphs.score-graph :as score-graph]
             [melos.scores.materials.event-seqs :as event-seqs]
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
-            [melos.scores.ctrl-fns.stepwise :as stepwise]
-            [melos.scores.segments.unfold-event-seq :as unfold-event-seq]
-            [melos.scores.ctrl-fns.pairwise :as pairwise]))
+            [melos.scores.materials.stepwise-mod :as stepwise]
+            [melos.scores.materials.event-seqs :as event-seqs]
+            [melos.scores.materials.pairwise-mod :as pairwise]))
 
 (require '[melos.tools.rtm :as rtm]
          '[melos.tools.filter-parts :as filter-parts]
@@ -20,6 +19,29 @@
          '[clojure.algo.generic.functor :as functor]
          '[clojure.math.combinatorics :as combinatorics])
 
+(defn- update-state
+  [initial-state updates]
+  (reduce (fn [m [k v]]
+            (update-in m k (fn [_] v)))
+          initial-state
+          updates))
+
+(defn- evaluate-nested-fns
+  [state]
+  (clojure.walk/postwalk
+   (fn [form]
+     (if (and (map? form)
+              (contains? form :fn)
+              (contains? form :params))
+       ((:fn form) (:params form))
+       form))
+   state))
+
+(defn update-score-state
+  [initial-state updates]
+  (->> (update-state initial-state updates)
+       (evaluate-nested-fns)))
+
 (defn unfold-parameters
   [m]
   (map (fn [x] (zipmap (keys m) x))
@@ -27,13 +49,14 @@
 
 (defn calc-event-combination
   [state updates]
-  (->> (unfold-event-seq/unfold-events state updates)
+  (->> (update-score-state state updates)
        (score-graph/lazy-segment-graph)
        (:result)))
 
 (defn calc-event-combinations
   [state changes]
-  (map (partial calc-event-combination state) changes))
+  (map (partial calc-event-combination state)
+       changes))
 
 (defn upper-part
   [{:keys [transposition part-name]}]
@@ -82,3 +105,7 @@
         filters #(sort-by (fn [x] (apply + (map count x))) %)]
     (->> (calc-event-combinations state changes)
          (compose-all filters))))
+
+;; main
+;; (compose event-seq rtm-data)
+;; (compose event-seq rtm-data)
