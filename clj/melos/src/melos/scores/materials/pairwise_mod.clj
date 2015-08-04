@@ -1,4 +1,4 @@
-(ns melos.scores.ctrl-fns.pairwise
+(ns melos.scores.materials.pairwise-mod
   (:require [melos.tools.dissonance-calculator :refer [scaled-dissonance-value]]
             [melos.tools.modify-durations :as mod-dur]))
 
@@ -54,4 +54,5 @@
 ;; (defn sustain-parts-count-drops
 ;;   [events]
 ;;   (mod-dur/modify-durations events [parts-count-drop]))
+
 

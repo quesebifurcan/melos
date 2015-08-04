@@ -1,4 +1,4 @@
-(ns melos.scores.ctrl-fns.stepwise
+(ns melos.scores.materials.stepwise-mod
   (:require [melos.tools.dissonance-calculator :refer [scaled-dissonance-value]]
             [schema.core :as s]
             [melos.tools.schemata :as ms]))
@@ -180,4 +180,5 @@
  []
  []
  [[1 1 1] [1] [1 1 1] [1] [1 1] [1 1 1] [1 1 1] [1 1 1] [1] [1 1 1]])
+
 
