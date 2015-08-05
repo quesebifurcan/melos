@@ -8,6 +8,7 @@
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
             [melos.scores.materials.stepwise-mod :as stepwise]
+            [melos.tools.segment.compose :as compose-segment]
             [melos.scores.materials.event-seqs :as event-seqs]
             [melos.scores.materials.pairwise-mod :as pairwise]))
 
@@ -47,16 +48,15 @@
   (map (fn [x] (zipmap (keys m) x))
        (apply combinatorics/cartesian-product (vals m))))
 
-(defn calc-event-combination
-  [state updates]
-  (->> (update-score-state state updates)
-       (graphs/lazy-segment-graph)
-       (:result)))
+;; (defn calc-event-combination
+;;   [state updates]
+;;   (update-score-state state updates))
+;;        (compose-segment/compose-event-seq)))
 
-(defn calc-event-combinations
-  [state changes]
-  (map (partial calc-event-combination state)
-       changes))
+;; (defn calc-event-combinations
+;;   [state changes]
+;;   (map (partial calc-event-combination state)
+;;        changes))
 
 (defn upper-part
   [{:keys [transposition part-name]}]
@@ -65,12 +65,11 @@
 (defn compose-all
   [filters phrases]
   (->> (filters phrases)
-       (map (fn [phrase] (-> (graphs/lazy-rtm-graph {:tempo 240
-                                                          :event-seq phrase
-                                                          :measures [measures/measure-4]
-                                                          :part-names [:upper :lower :ped]
-                                                          :last-event-extension 7/4})
-                             (:result))))))
+       (map (fn [phrase] (compose-segment/apply-rhythm {:tempo 240
+                                                        :measures [measures/measure-4]
+                                                        :part-names [:upper :lower :ped]
+                                                        :last-event-extension 7/4}
+                                                       phrase)))))
 
 (defn compose
   []
@@ -103,7 +102,9 @@
                :part-names [:upper :lower :ped]
                :melodic-indices []}
         filters #(sort-by (fn [x] (apply + (map count x))) %)]
-    (->> (calc-event-combinations state changes)
+    (->> (map (fn [change-set] (update-score-state state change-set))
+              changes)
+         (map compose-segment/compose-event-seq)
          (compose-all filters))))
 
 ;; main
