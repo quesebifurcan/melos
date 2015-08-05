@@ -1,12 +1,12 @@
-(ns melos.scores.graphs.score-graph
-    (:require [plumbing.graph :as graph]
-              [plumbing.core :refer [fnk]]
-              [melos.tools.selector-sequence :as sel-seq]
-              [melos.tools.rtm :as rtm]
-              [melos.tools.filter-parts :as filter-parts]
-              [melos.tools.default-horizontal-merge :as horizontal-merge]
-              [melos.tools.dissonance-calculator :as diss-calc]
-              [melos.tools.delay-lines :as delay-lines]))
+(ns melos.tools.segment.graphs
+  (:require [plumbing.graph :as graph]
+            [plumbing.core :refer [fnk]]
+            [melos.tools.selector-sequence :as sel-seq]
+            [melos.tools.rtm :as rtm]
+            [melos.tools.filter-parts :as filter-parts]
+            [melos.tools.default-horizontal-merge :as horizontal-merge]
+            [melos.tools.dissonance-calculator :as diss-calc]
+            [melos.tools.delay-lines :as delay-lines]))
 
 (def score-segment->event-seq
   {:events

@@ -3,7 +3,7 @@
             [melos.tools.schemata :as ms]
             [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
             [melos.tools.utils :as utils]
-            [melos.scores.graphs.score-graph :as score-graph]
+            [melos.tools.segment.graphs :as graphs]
             [melos.scores.materials.event-seqs :as event-seqs]
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
@@ -50,7 +50,7 @@
 (defn calc-event-combination
   [state updates]
   (->> (update-score-state state updates)
-       (score-graph/lazy-segment-graph)
+       (graphs/lazy-segment-graph)
        (:result)))
 
 (defn calc-event-combinations
@@ -65,7 +65,7 @@
 (defn compose-all
   [filters phrases]
   (->> (filters phrases)
-       (map (fn [phrase] (-> (score-graph/lazy-rtm-graph {:tempo 240
+       (map (fn [phrase] (-> (graphs/lazy-rtm-graph {:tempo 240
                                                           :event-seq phrase
                                                           :measures [measures/measure-4]
                                                           :part-names [:upper :lower :ped]
