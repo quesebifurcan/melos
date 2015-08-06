@@ -8,7 +8,6 @@
             [melos.scores.materials.measures :as measures]
             [melos.scores.materials.dissonance-maps :as dissonance-maps]
             [melos.scores.materials.stepwise-mod :as stepwise]
-            [melos.tools.segment.compose :as compose-segment]
             [melos.scores.materials.event-seqs :as event-seqs]
             [melos.scores.materials.pairwise-mod :as pairwise]))
 
@@ -20,28 +19,12 @@
          '[clojure.algo.generic.functor :as functor]
          '[clojure.math.combinatorics :as combinatorics])
 
-(defn- update-state
-  [initial-state updates]
-  (reduce (fn [m [k v]]
-            (update-in m k (fn [_] v)))
-          initial-state
-          updates))
-
-(defn- evaluate-nested-fns
-  [state]
-  (clojure.walk/postwalk
-   (fn [form]
-     (if (and (map? form)
-              (contains? form :fn)
-              (contains? form :params))
-       ((:fn form) (:params form))
-       form))
-   state))
+;; TODO: move?
 
 (defn update-score-state
   [initial-state updates]
-  (->> (update-state initial-state updates)
-       (evaluate-nested-fns)))
+  (->> (utils/update-state initial-state updates)
+       (utils/evaluate-nested-fns)))
 
 (defn unfold-parameters
   [m]
@@ -65,19 +48,17 @@
 (defn compose-all
   [filters phrases]
   (->> (filters phrases)
-       (map (fn [phrase] (compose-segment/apply-rhythm {:tempo 240
-                                                        :measures [measures/measure-4]
-                                                        :part-names [:upper :lower :ped]
-                                                        :last-event-extension 7/4}
-                                                       phrase)))))
+       (map graphs/compose-segment)))
 
 (defn compose
   []
   (let [changes (unfold-parameters
                  {[:melody-sources :upper/a :params :transposition] [-10 10 0]
                   [:melodic-indices] [
-                                      (take 21 (cycle [:upper/a :lower/a :ped/a]))
-                                      (take 18 (cycle [:upper/a :lower/a :upper/a :ped/a]))
+                                      {:fn (fn [x] (take 21 (cycle x)))
+                                       :params [:upper/a :lower/a :ped/a]}
+                                      {:fn (fn [x] (take 10 (cycle x)))
+                                       :params [:upper/a :lower/a :upper/a :ped/a]}
                                       ]
                   [:diss-fn-params :diss-value] [[0 2 4 5] [0 1 2]]
                   })
@@ -97,15 +78,30 @@
                                 :diss-value [0 2 4 5]}
                :interval->diss-map dissonance-maps/default
                :time-signatures [measures/measure-4]
+               :measures [measures/measure-4]
                :mod-dur-patterns []
                :tempo 240
+               :last-event-extension 7/4
                :part-names [:upper :lower :ped]
                :melodic-indices []}
-        filters #(sort-by (fn [x] (apply + (map count x))) %)]
+        filters #(sort-by (fn [x]
+                            (apply + (map count (:merged-chord-seq x))))
+                          %)]
     (->> (map (fn [change-set] (update-score-state state change-set))
               changes)
-         (map compose-segment/compose-event-seq)
          (compose-all filters))))
+
+;; (into {}
+;;       (compose))
+
+;; (into {}
+;;       (:result
+;;        (first
+;;         (compose))))
+
+         ;; (map compose-segment/compose-event-seq)
+         ;; (compose-all filters))))
+
 
 ;; main
 ;; (compose event-seq rtm-data)

@@ -200,3 +200,9 @@
          (filter-parts-by-count)
          (filter-by-time-in-vertical-moment max-lingering)
          (filter-by-dissonance-value diss-value))))
+
+(defn extend-events
+  [diss-fn-params events]
+  (-> (handle-dissonance diss-fn-params)
+      (reductions [] events)
+      (rest)))
