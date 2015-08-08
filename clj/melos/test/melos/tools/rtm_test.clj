@@ -1,5 +1,5 @@
 (ns melos.tools.rtm-test
-  (:require [melos.tools.rtm :refer :all]
+  (:require [melos.tools.rhythm-tree.rtm :refer :all]
             [clojure.test :refer :all]))
 
 (deftest test-all-children-same-pitch?

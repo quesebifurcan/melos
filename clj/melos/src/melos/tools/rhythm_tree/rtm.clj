@@ -1,4 +1,4 @@
-(ns melos.tools.rtm
+(ns melos.tools.rhythm-tree.rtm
   (:require [schema.core :as s]
             [melos.tools.schemata :as ms]))
 

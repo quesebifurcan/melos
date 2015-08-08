@@ -1,6 +1,6 @@
 (ns melos.scores.materials.pairwise-mod
-  (:require [melos.tools.dissonance-calculator :refer [scaled-dissonance-value]]
-            [melos.tools.modify-durations :as mod-dur]))
+  (:require [melos.tools.chord.dissonance-calculator :refer [scaled-dissonance-value]]
+            [melos.tools.chord-seq.modify-durations :as mod-dur]))
 
 (defn dissonant-melody-movement-mod
   [pair]

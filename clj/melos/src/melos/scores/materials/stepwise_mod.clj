@@ -1,5 +1,5 @@
 (ns melos.scores.materials.stepwise-mod
-  (:require [melos.tools.dissonance-calculator :refer [scaled-dissonance-value]]
+  (:require [melos.tools.chord.dissonance-calculator :refer [scaled-dissonance-value]]
             [schema.core :as s]
             [melos.tools.schemata :as ms]))
 

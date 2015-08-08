@@ -1,9 +1,9 @@
-(ns melos.tools.delay-lines
+(ns melos.tools.chord-seq.delay-lines
   (:require [clojure.math.combinatorics :as combinatorics]
             [clojure.math.numeric-tower :as math]
             [schema.core :as s]
             [melos.tools.schemata :as ms]
-            [melos.tools.dissonance-calculator :as diss-calc]))
+            [melos.tools.chord.dissonance-calculator :as diss-calc]))
 
 (s/defn filter-dissonance-contributors
   :- [s/Int]

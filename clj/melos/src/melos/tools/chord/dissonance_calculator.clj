@@ -1,4 +1,4 @@
-(ns melos.tools.dissonance-calculator
+(ns melos.tools.chord.dissonance-calculator
   (:require [clojure.math.combinatorics :as combinatorics]
             [clojure.algo.generic.functor :as functor]
             [clojure.math.numeric-tower :as math]

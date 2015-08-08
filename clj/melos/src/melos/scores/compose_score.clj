@@ -11,9 +11,9 @@
             [melos.scores.materials.event-seqs :as event-seqs]
             [melos.scores.materials.pairwise-mod :as pairwise]))
 
-(require '[melos.tools.rtm :as rtm]
+(require '[melos.tools.rhythm-tree.rtm :as rtm]
          '[melos.tools.filter-parts :as filter-parts]
-         '[melos.tools.selector-sequence :refer [collect-events-in-segment]]
+         '[melos.tools.chord-seq.selector-sequence :refer [collect-events-in-segment]]
          '[melos.tools.utils :as utils]
          '[melos.tools.cycle-params :as cycle-params]
          '[clojure.algo.generic.functor :as functor]
@@ -30,16 +30,6 @@
   [m]
   (map (fn [x] (zipmap (keys m) x))
        (apply combinatorics/cartesian-product (vals m))))
-
-;; (defn calc-event-combination
-;;   [state updates]
-;;   (update-score-state state updates))
-;;        (compose-segment/compose-event-seq)))
-
-;; (defn calc-event-combinations
-;;   [state changes]
-;;   (map (partial calc-event-combination state)
-;;        changes))
 
 (defn upper-part
   [{:keys [transposition part-name]}]

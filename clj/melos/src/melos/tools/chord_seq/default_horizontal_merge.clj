@@ -1,4 +1,4 @@
-(ns melos.tools.default-horizontal-merge)
+(ns melos.tools.chord-seq.default-horizontal-merge)
 
 ;; Merge horizontally
 
@@ -29,3 +29,4 @@
                       (rest events))
          :else
          (cons head (maybe-merge events)))))
+
