@@ -1,10 +1,69 @@
-(ns melos.chord-seq.delay-lines
-  (:require [clojure.math
+(ns melos.chord-seq
+  (:require [melos.utils.utils :refer [rotate]]
+            [schema.core :as s]
+            [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
             [melos.chord.dissonance-calculator :as diss-calc]
-            [melos.schemas.schemas :as ms]
-            [schema.core :as s]))
+            [melos.schemas.schemas :as ms]))
+
+;; Collect events in segment.
+
+(defn get-melodic-segment
+  [part-seq part->event]
+  (map part->event part-seq))
+
+(defn get-and-rotate
+  [melody-sources accessor]
+  (let [event (first (get-in @melody-sources [accessor]))]
+    (do (swap! melody-sources
+               update-in
+               [accessor]
+               (partial drop 1))
+        event)))
+
+(defn collect-events-in-segment
+  [melodic-indices events-seqs]
+  (mapcat (fn [x] (get-and-rotate events-seqs x))
+          melodic-indices))
+
+;; Merge horizontally.
+
+(s/defn can-merge?
+  :- s/Bool
+  [curr :- ms/Chord
+   next :- ms/Chord]
+  (let [old-curr (filter #(> (:count %) 0) next)
+        news (filter #(= (:count %) 0) next)]
+    (and (= (count curr) (count old-curr))
+         (every? #(:merge-left? %) news)
+         (every? #(:merge-right? %) old-curr))))
+
+(s/defn merge-elts
+  :- ms/Chord
+  [a :- ms/Chord
+   b :- ms/Chord]
+  (let [melodic-notes (filter #(= (:count %) 0) b)]
+    (concat a melodic-notes)))
+
+(s/defn maybe-merge
+  :- [ms/Chord]
+  ([events :- [ms/Chord]]
+   (if (seq events)
+     (maybe-merge (first events)
+                  (rest events))))
+  ([head :- ms/Chord
+    events :- [ms/Chord]]
+   (cond (empty? events)
+         (list head)
+         (can-merge? head (first events))
+         (maybe-merge (merge-elts head
+                                  (first events))
+                      (rest events))
+         :else
+         (cons head (maybe-merge events)))))
+
+;; Extend events.
 
 (s/defn filter-dissonance-contributors
   :- [s/Int]
@@ -207,3 +266,31 @@
   (-> (handle-dissonance diss-fn-params)
       (reductions [] events)
       (rest)))
+
+;; Modify durations.
+
+(s/defn pairwise-mod
+  :- [ms/Chord]
+  [chords :- [ms/Chord]
+   tests :- [s/Any]
+   coll :- [ms/Chord]]
+  (let [pair (take 2 chords)]
+    (cond (empty? pair)
+          coll
+          :else
+          (let [result (drop-while
+                        nil?
+                        (map #(% pair) tests))]
+            (if (empty? result)
+              (pairwise-mod (rest chords)
+                            tests
+                            (concat coll [(first chords)]))
+              (pairwise-mod (drop 2 chords)
+                            tests
+                            (concat coll (into [] (first result)))))))))
+
+(s/defn modify-durations
+  :- [ms/Chord]
+  [chords :- [ms/Chord]
+   mod-fns :- [s/Any]]
+  (pairwise-mod chords mod-fns []))

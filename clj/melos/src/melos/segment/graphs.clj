@@ -1,8 +1,7 @@
 (ns melos.segment.graphs
-  (:require [melos.chord-seq
-             [default-horizontal-merge :as horizontal-merge]
-             [delay-lines :as delay-lines]
-             [selector-sequence :as sel-seq]]
+  (:require [melos.chord-seq :refer [maybe-merge
+                                     extend-events
+                                     collect-events-in-segment]]
             [melos.chord.dissonance-calculator :as diss-calc]
             [melos.part.filter-parts :as filter-parts]
             [melos.rhythm-tree.rtm :as rtm]
@@ -13,20 +12,20 @@
 (def segment-graph
   {:events
    (fnk [melodic-indices melody-sources-atom]
-        (sel-seq/collect-events-in-segment melodic-indices
+        (collect-events-in-segment melodic-indices
                                            melody-sources-atom))
    :melody-sources-atom
    (fnk [melody-sources]
         (atom melody-sources))
    :extended-events
    (fnk [events diss-fn-params]
-        (delay-lines/extend-events diss-fn-params events))
+        (extend-events diss-fn-params events))
    :modified-durations
    (fnk [extended-events mod-dur-patterns]
         ((apply comp mod-dur-patterns) extended-events))
    :merged-chord-seq
    (fnk [modified-durations]
-        (horizontal-merge/maybe-merge modified-durations))
+        (maybe-merge modified-durations))
    :extended-last
    (fnk [last-event-extension merged-chord-seq]
         (rtm/extend-last last-event-extension merged-chord-seq))

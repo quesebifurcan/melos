@@ -1,5 +1,5 @@
 (ns score.materials.pairwise-mod
-  (:require [melos.chord-seq.modify-durations :as mod-dur]
+  (:require [melos.chord-seq :as chord-seq]
             [melos.chord.dissonance-calculator :as diss-calc]))
 
 (defn dissonant-melody-movement-mod
@@ -34,7 +34,7 @@
 
 (defn sustain-dissonant-melody
   [events]
-  (mod-dur/modify-durations events [dissonant-melody-movement-mod]))
+  (chord-seq/modify-durations events [dissonant-melody-movement-mod]))
 
 ;; (defn parts-count-drop
 ;;   [pair]
