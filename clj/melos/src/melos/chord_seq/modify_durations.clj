@@ -1,11 +1,14 @@
 (ns melos.chord-seq.modify-durations
   (:require [melos.note.make-note :refer [make-note]]
-            [melos.schemas.schemas :as ms]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [melos.schemas.schemas :as ms]))
 
-(defn pairwise-mod
-  [events tests coll]
-  (let [pair (take 2 events)]
+(s/defn pairwise-mod
+  :- [ms/Chord]
+  [chords :- [ms/Chord]
+   tests :- [s/Any]
+   coll :- [ms/Chord]]
+  (let [pair (take 2 chords)]
     (cond (empty? pair)
           coll
           :else
@@ -13,15 +16,16 @@
                         nil?
                         (map #(% pair) tests))]
             (if (empty? result)
-              (pairwise-mod (rest events)
+              (pairwise-mod (rest chords)
                             tests
-                            (concat coll [(first events)]))
-              (pairwise-mod (drop 2 events)
+                            (concat coll [(first chords)]))
+              (pairwise-mod (drop 2 chords)
                             tests
                             (concat coll (into [] (first result)))))))))
 
 (s/defn modify-durations
   :- [ms/Chord]
-  [events :- [ms/Chord]
+  [chords :- [ms/Chord]
    mod-fns :- [s/Any]]
-  (pairwise-mod events mod-fns []))
+  (pairwise-mod chords mod-fns []))
+
