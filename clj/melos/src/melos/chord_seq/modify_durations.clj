@@ -21,7 +21,7 @@
                             (concat coll (into [] (first result)))))))))
 
 (s/defn modify-durations
-  :- [ms/VerticalMoment]
-  [events :- [ms/VerticalMoment]
+  :- [ms/Chord]
+  [events :- [ms/Chord]
    mod-fns :- [s/Any]]
   (pairwise-mod events mod-fns []))

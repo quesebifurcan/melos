@@ -8,7 +8,7 @@
 
 (s/defn filter-dissonance-contributors
   :- [s/Int]
-  [vertical-moment :- ms/VerticalMoment]
+  [vertical-moment :- ms/Chord]
   (->> vertical-moment
        (filter #(:dissonance-contributor? %))
        (map :pitch)
@@ -16,13 +16,13 @@
 
 (s/defn dissonance-value
   :- s/Num
-  [vertical-moment :- ms/VerticalMoment]
+  [vertical-moment :- ms/Chord]
   (diss-calc/scaled-dissonance-value
    (filter-dissonance-contributors vertical-moment)))
 
 (s/defn consonant?
   :- s/Bool
-  [vertical-moment :- ms/VerticalMoment
+  [vertical-moment :- ms/Chord
    limit :- [s/Int]]
   (let [limit (diss-calc/scaled-dissonance-value limit)]
     (<= (dissonance-value vertical-moment) limit)))
@@ -35,7 +35,7 @@
 
 (s/defn contains-zero-count
   :- s/Bool
-  [vertical-moment :- ms/VerticalMoment]
+  [vertical-moment :- ms/Chord]
   ((complement nil?)
    (some #(= % 0) (map :count vertical-moment))))
 
@@ -45,9 +45,9 @@
                               (- (count events) 1)))
 
 (s/defn find-best-candidate
-  :- ms/VerticalMoment
+  :- ms/Chord
   [f :- s/Any
-   events :- ms/VerticalMoment
+   events :- ms/Chord
    limit :- s/Num]
   (let [candidates (get-candidates events)]
     (->> candidates
@@ -57,38 +57,38 @@
          (f limit))))
 
 (s/defn filter-by-count
-  :- ms/VerticalMoment
+  :- ms/Chord
   [limit :- s/Num
-   events :- ms/VerticalMoment]
+   events :- ms/Chord]
   (if (<= (count events) limit)
     events
     (find-best-candidate filter-by-count events limit)))
 
 (s/defn filter-by-count-aggressive
-  :- ms/VerticalMoment
+  :- ms/Chord
   [limit :- s/Num
-   events :- ms/VerticalMoment]
+   events :- ms/Chord]
   (if (<= (count events) limit)
     events
     (filter zero-count? events)))
 
 (s/defn filter-by-time-in-vertical-moment
-  :- ms/VerticalMoment
+  :- ms/Chord
   [limit :- s/Num
-   events :- ms/VerticalMoment]
+   events :- ms/Chord]
   (filter #(< (:count %) limit) events))
 
 (s/defn all-parts-present?
   :- s/Bool
   [part-names :- [ms/PartName]
-   events :- ms/VerticalMoment]
+   events :- ms/Chord]
   (= (set part-names)
      (set (map :part events))))
 
 (s/defn best-part-match
-  :- [ms/VerticalMoment]
-  [events :- ms/VerticalMoment
-   candidates :- [ms/VerticalMoment]]
+  :- [ms/Chord]
+  [events :- ms/Chord
+   candidates :- [ms/Chord]]
   (let [result (filter (partial all-parts-present?
                                 (map :part events))
                        candidates)]
@@ -98,18 +98,18 @@
 
 (s/defn total-count
   :- s/Int
-  [events :- ms/VerticalMoment]
+  [events :- ms/Chord]
   (apply + (map :count events)))
 
 (s/defn group-events
-  :- [ms/VerticalMoment]
-  [events :- ms/VerticalMoment]
+  :- [ms/Chord]
+  [events :- ms/Chord]
   (->> events
        (sort-by :group)
        (partition-by :group)))
 
 (s/defn filter-by-dissonance-value
-  :- ms/VerticalMoment
+  :- ms/Chord
   [limit events]
   (let [grouped-events (group-events events)]
   (if (or (< (count grouped-events) 2)
@@ -134,21 +134,21 @@
         (recur limit candidates))))))
 
 (s/defn forward-time
-  :- ms/VerticalMoment
-  [events :- ms/VerticalMoment]
+  :- ms/Chord
+  [events :- ms/Chord]
   (->> events
        (filter :allow-extension?)
        (map #(update-in % [:count] inc))))
 
 (s/defn join-events
-  :- ms/VerticalMoment
-  [new-event :- ms/VerticalMoment
-   events :- ms/VerticalMoment]
+  :- ms/Chord
+  [new-event :- ms/Chord
+   events :- ms/Chord]
   ;; TODO: filter distinct events.
   (concat events new-event))
 
 (s/defn coll-part-counts-map
-  [vertical-moment :- ms/VerticalMoment]
+  [vertical-moment :- ms/Chord]
   (let [partitioned-events (->> vertical-moment
                                 (sort-by :part)
                                 (partition-by :part))]
@@ -156,8 +156,8 @@
                 (map (comp :max-part-count first) partitioned-events))))
 
 (s/defn filter-parts-by-count
-  :- ms/VerticalMoment
-  [events :- ms/VerticalMoment]
+  :- ms/Chord
+  [events :- ms/Chord]
   (let [part-counts (coll-part-counts-map events)]
     (mapcat (fn [[part-name limit]]
               (let [xs (filter #(= (:part %) part-name) events)]

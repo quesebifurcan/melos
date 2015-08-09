@@ -125,7 +125,7 @@
        (map (fn [x] (zipmap (keys m) x)))
        (map f)
        (partition-fn)
-       (map #(s/validate [ms/VerticalMoment] %)))))
+       (map #(s/validate [ms/Chord] %)))))
 
 (defn valid-melodic-indices?
   [indices source]

@@ -6,8 +6,8 @@
 
 (s/defn can-merge?
   :- s/Bool
-  [curr :- ms/VerticalMoment
-   next :- ms/VerticalMoment]
+  [curr :- ms/Chord
+   next :- ms/Chord]
   (let [old-curr (filter #(> (:count %) 0) next)
         news (filter #(= (:count %) 0) next)]
     (and (= (count curr) (count old-curr))
@@ -15,20 +15,20 @@
          (every? #(:merge-right? %) old-curr))))
 
 (s/defn merge-elts
-  :- ms/VerticalMoment
-  [a :- ms/VerticalMoment
-   b :- ms/VerticalMoment]
+  :- ms/Chord
+  [a :- ms/Chord
+   b :- ms/Chord]
   (let [melodic-notes (filter #(= (:count %) 0) b)]
     (concat a melodic-notes)))
 
 (s/defn maybe-merge
-  :- [ms/VerticalMoment]
-  ([events :- [ms/VerticalMoment]]
+  :- [ms/Chord]
+  ([events :- [ms/Chord]]
    (if (seq events)
      (maybe-merge (first events)
                   (rest events))))
-  ([head :- ms/VerticalMoment
-    events :- [ms/VerticalMoment]]
+  ([head :- ms/Chord
+    events :- [ms/Chord]]
    (cond (empty? events)
          (list head)
          (can-merge? head (first events))

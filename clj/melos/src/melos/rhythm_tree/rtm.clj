@@ -6,7 +6,7 @@
 
 (s/defn get-melodic-event
   :- ms/Note
-  [vertical-moment :- ms/VerticalMoment]
+  [vertical-moment :- ms/Chord]
   (->> vertical-moment
        (filter #(= (:count %) 0))
        (first)))

@@ -24,7 +24,7 @@
               :max-part-count s/Int
               :count s/Int))
 
-(def VerticalMoment
+(def Chord
   (s/both (s/pred (complement nil?)
                   [Note])))
 

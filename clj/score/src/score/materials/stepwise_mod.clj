@@ -146,15 +146,15 @@
       (step coll #{})))
 
 (s/defn maybe-split-vertical-moment
-  :- [ms/VerticalMoment]
+  :- [ms/Chord]
   [vertical-moment]
   (if (> (count vertical-moment) 1)
-    (s/validate [ms/VerticalMoment]
+    (s/validate [ms/Chord]
                 (->> (map (fn [x] (assoc x :count 0 :duration 1/4))
                           (sort-by :count vertical-moment))
                      (reductions conj [])
                      (rest)))
-    (s/validate [ms/VerticalMoment]
+    (s/validate [ms/Chord]
                 [vertical-moment])))
 
 (defn sort-continuous
