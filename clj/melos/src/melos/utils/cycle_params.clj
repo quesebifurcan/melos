@@ -1,4 +1,4 @@
-(ns melos.tools.cycle-params
+(ns melos.utils.cycle-params
   (:require [clojure.walk :as walk]
             [melos.tools.schemata :as ms]
             [melos.utils :refer [merge-in rotate]]

@@ -6,19 +6,18 @@
              [pairwise-mod :as pairwise]
              [stepwise-mod :as stepwise]]
             [melos.segment.graphs :as graphs]
-            [melos.tools
-             [cycle-params :refer [unfold-parameter-cycles]]
-             [schemata :as ms]]
+            [melos.tools.schemata :as ms]
             [melos.utils :as utils]
+            [melos.utils.cycle-params :refer [unfold-parameter-cycles]]
+            [clojure.math.combinatorics :as combinatorics]
             [schema.core :as s]))
 
-(require '[melos.rhythm-tree.rtm :as rtm]
-         '[melos.part.filter-parts :as filter-parts]
-         '[melos.chord-seq.selector-sequence :refer [collect-events-in-segment]]
-         '[melos.utils :as utils]
-         '[melos.tools.cycle-params :as cycle-params]
-         '[clojure.algo.generic.functor :as functor]
-         '[clojure.math.combinatorics :as combinatorics])
+;; (require '[melos.rhythm-tree.rtm :as rtm]
+;;          '[melos.part.filter-parts :as filter-parts]
+;;          '[melos.chord-seq.selector-sequence :refer [collect-events-in-segment]]
+;;          '[melos.utils :as utils]
+;;          '[clojure.algo.generic.functor :as functor]
+;;          '[clojure.math.combinatorics :as combinatorics])
 
 ;; TODO: move?
 
