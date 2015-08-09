@@ -7,7 +7,7 @@ TITLE=$1
 AUTHOR=$2
 
 REPO_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
-CLJ_DIR=$REPO_DIR/clj/melos
+CLJ_DIR=$REPO_DIR/clj/score
 PY_DIR=$REPO_DIR/py
 OUTPUT_DIR=$REPO_DIR/output
 JSON_SCORE_FILE_NAME=$OUTPUT_DIR/output.json
