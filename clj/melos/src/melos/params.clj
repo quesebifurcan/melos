@@ -5,6 +5,9 @@
              [utils :refer [merge-in rotate]]]
             [schema.core :as s]))
 
+;;-----------------------------------------------------------------------------
+;; Unfold parameter cycles.
+
 (defn is-part-of-seq
   [s i]
   (let [cycle-dur (apply + s)
@@ -54,3 +57,16 @@
   (->> (maybe-coll-change params 0)
        (map create-nested-map)
        (take cnt)))
+
+;;-----------------------------------------------------------------------------
+
+(defn evaluate-nested-fns
+  [state]
+  (clojure.walk/postwalk
+   (fn [form]
+     (if (and (map? form)
+              (contains? form :fn)
+              (contains? form :params))
+       ((:fn form) (:params form))
+       form))
+   state))

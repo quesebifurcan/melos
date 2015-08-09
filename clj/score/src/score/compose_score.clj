@@ -3,9 +3,11 @@
             [melos
              [graphs :as graphs]
              [schemas :as ms]
+             [params :as params]
              [utils :as utils]]
             [melos.utils.cycle-params :refer [unfold-parameter-cycles]]
             [schema.core :as s]
+            [score.combinations :as combinations]
             [score.materials
              [event-seqs :as event-seqs]
              [measures :as measures]
@@ -15,16 +17,12 @@
 (defn update-score-state
   [initial-state updates]
   (->> (utils/update-state initial-state updates)
-       (utils/evaluate-nested-fns)))
-
-(defn unfold-parameters
-  [m]
-  (map (fn [x] (zipmap (keys m) x))
-       (apply combinatorics/cartesian-product (vals m))))
+       (params/evaluate-nested-fns)))
 
 (defn upper-part
   [{:keys [transposition part-name]}]
-  (utils/unfold-events (event-seqs/upper part-name transposition)))
+  (->> (event-seqs/upper part-name transposition)
+       (utils/unfold-events)))
 
 (defn compose-all
   [filters phrases]
@@ -33,7 +31,7 @@
 
 (defn compose
   []
-  (let [changes (unfold-parameters
+  (let [changes (combinations/unfold-parameters
                  {[:melody-sources :upper/a :params :transposition] [-10 10 0]
                   [:melodic-indices] [
                                       {:fn (fn [x] (take 21 (cycle x)))
