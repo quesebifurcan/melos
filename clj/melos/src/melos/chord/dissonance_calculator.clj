@@ -1,10 +1,11 @@
 (ns melos.chord.dissonance-calculator
-  (:require [clojure.math.combinatorics :as combinatorics]
-            [clojure.algo.generic.functor :as functor]
-            [clojure.math.numeric-tower :as math]
-            [schema.core :as s]
+  (:require [clojure.algo.generic.functor :as functor]
+            [clojure.math
+             [combinatorics :as combinatorics]
+             [numeric-tower :as math]]
             [melos.tools.schemata :as ms]
-            [melos.tools.utils :refer [triangular-n]]))
+            [melos.utils :refer [triangular-n]]
+            [schema.core :as s]))
 
 (def dissonance-map-default
   "Map complementary intervals to relative dissonance values.

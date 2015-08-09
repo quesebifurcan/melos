@@ -1,6 +1,6 @@
 (ns melos.scores.materials.measures)
 
-(require '[melos.tools.utils :refer [ratio->non-reduced-ratio-vector]])
+(require '[melos.utils :refer [ratio->non-reduced-ratio-vector]])
 
 (defn ratio-calc
   [f args]

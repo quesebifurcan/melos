@@ -1,7 +1,7 @@
 (ns melos.chord-seq.modify-durations
-  (:require [schema.core :as s]
-            [melos.tools.make-note :refer [make-note]]
-            [melos.tools.schemata :as ms]))
+  (:require [melos.note.make-note :refer [make-note]]
+            [melos.tools.schemata :as ms]
+            [schema.core :as s]))
 
 (defn pairwise-mod
   [events tests coll]

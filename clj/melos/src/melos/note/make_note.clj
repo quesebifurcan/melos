@@ -1,4 +1,4 @@
-(ns melos.tools.make-note)
+(ns melos.note.make-note)
 
 (defn note-default
   []

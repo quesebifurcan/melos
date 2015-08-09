@@ -8,14 +8,14 @@
             [melos.segment.graphs :as graphs]
             [melos.tools
              [cycle-params :refer [unfold-parameter-cycles]]
-             [schemata :as ms]
-             [utils :as utils]]
+             [schemata :as ms]]
+            [melos.utils :as utils]
             [schema.core :as s]))
 
-(require '[melos.tools.rhythm-tree.rtm :as rtm]
+(require '[melos.rhythm-tree.rtm :as rtm]
          '[melos.tools.filter-parts :as filter-parts]
-         '[melos.tools.chord-seq.selector-sequence :refer [collect-events-in-segment]]
-         '[melos.tools.utils :as utils]
+         '[melos.chord-seq.selector-sequence :refer [collect-events-in-segment]]
+         '[melos.utils :as utils]
          '[melos.tools.cycle-params :as cycle-params]
          '[clojure.algo.generic.functor :as functor]
          '[clojure.math.combinatorics :as combinatorics])

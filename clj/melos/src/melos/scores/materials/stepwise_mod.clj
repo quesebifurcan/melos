@@ -1,5 +1,6 @@
 (ns melos.scores.materials.stepwise-mod
   (:require [melos.chord.dissonance-calculator :refer [scaled-dissonance-value]]
+            [melos.note.make-note :refer [make-note]]
             [melos.tools.schemata :as ms]
             [schema.core :as s]))
 
@@ -86,8 +87,6 @@
            (map #(assoc % :duration dur) vertical-moment))
        events
        durations)))
-
-(require '[melos.tools.make-note :refer [make-note]])
 
 (defn average-pitch
   [vertical-moments]

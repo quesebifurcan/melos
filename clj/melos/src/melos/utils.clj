@@ -1,11 +1,10 @@
-(ns melos.tools.utils
-  (:require [clojure.java.io :as io]
+(ns melos.utils
+  (:require [clojure.data.json :as json]
+            [clojure.java.io :as io]
             [clojure.walk :as walk]
-            [schema.core :as s]
-            [clojure.data.json :as json]
-            [schema.core :as s]
+            [melos.note.make-note :refer [make-note]]
             [melos.tools.schemata :as ms]
-            [melos.tools.make-note :refer [make-note]]))
+            [schema.core :as s]))
 
 (defn abs [n] (max n (- n)))
 
@@ -34,8 +33,8 @@
 (defn- triangular*
   ([] (triangular* 0 1))
   ([sum n]
-     (let [new-sum (+ sum n)]
-       (cons new-sum (lazy-seq (triangular* new-sum (inc n)))))))
+   (let [new-sum (+ sum n)]
+     (cons new-sum (lazy-seq (triangular* new-sum (inc n)))))))
 
 (def triangular (triangular*))
 
@@ -77,10 +76,10 @@
 (defn make-chord-from-pitch-vector-params
   [{:keys [pitch] :as m}]
   (let [group (gensym "G__")]
-  (map (fn [p]
-         (make-note (merge {:pitch p :group group}
-                           (dissoc m :pitch))))
-       pitch)))
+    (map (fn [p]
+           (make-note (merge {:pitch p :group group}
+                             (dissoc m :pitch))))
+         pitch)))
 
 (defn parse-params
   [x]
