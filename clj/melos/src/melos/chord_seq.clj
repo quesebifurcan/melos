@@ -1,13 +1,24 @@
 (ns melos.chord-seq
-  (:require [clojure.math
+  (:require [schema.core :as s]
+            [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
             [melos
-             [chord :as diss-calc]
+             [chord :as chord]
              [schemas :as ms]
-             [utils :refer [rotate]]]
-            [schema.core :as s]))
+             [utils :refer [rotate]]]))
 
+(s/defn get-melodic-durations
+  :- [s/Num]
+  [chords :- [ms/Chord]]
+  (map chord/get-melodic-duration chords))
+
+(s/defn sum-melodic-durations
+  :- s/Num
+  [chords :- [ms/Chord]]
+  (reduce + 0 (get-melodic-durations chords)))
+
+;;-----------------------------------------------------------------------------
 ;; Collect events in segment.
 
 (defn get-melodic-segment
@@ -28,7 +39,8 @@
   (mapcat (fn [x] (get-and-rotate events-seqs x))
           melodic-indices))
 
-;; Merge horizontally.
+;;-----------------------------------------------------------------------------
+;; Merge events horizontally.
 
 (s/defn can-merge?
   :- s/Bool
@@ -64,28 +76,29 @@
          :else
          (cons head (maybe-merge events)))))
 
+;;-----------------------------------------------------------------------------
 ;; Extend events.
 
 (s/defn filter-dissonance-contributors
   :- [s/Int]
-  [vertical-moment :- ms/Chord]
-  (->> vertical-moment
-       (filter #(:dissonance-contributor? %))
+  [chord :- ms/Chord]
+  (->> chord
+       (chord/dissonance-contributors)
        (map :pitch)
        (filter number?)))
 
 (s/defn dissonance-value
   :- s/Num
-  [vertical-moment :- ms/Chord]
-  (diss-calc/scaled-dissonance-value
-   (filter-dissonance-contributors vertical-moment)))
+  [chord :- ms/Chord]
+  (chord/scaled-dissonance-value
+   (filter-dissonance-contributors chord)))
 
 (s/defn consonant?
   :- s/Bool
-  [vertical-moment :- ms/Chord
+  [chord :- ms/Chord
    limit :- [s/Int]]
-  (let [limit (diss-calc/scaled-dissonance-value limit)]
-    (<= (dissonance-value vertical-moment) limit)))
+  (let [limit (chord/scaled-dissonance-value limit)]
+    (<= (dissonance-value chord) limit)))
 
 (s/defn zero-count?
   :- s/Bool
@@ -95,9 +108,9 @@
 
 (s/defn contains-zero-count
   :- s/Bool
-  [vertical-moment :- ms/Chord]
+  [chord :- ms/Chord]
   ((complement nil?)
-   (some #(= % 0) (map :count vertical-moment))))
+   (some #(= % 0) (map :count chord))))
 
 (s/defn get-candidates
   [events]
@@ -132,7 +145,7 @@
     events
     (filter zero-count? events)))
 
-(s/defn filter-by-time-in-vertical-moment
+(s/defn filter-by-time-in-chord
   :- ms/Chord
   [limit :- s/Num
    events :- ms/Chord]
@@ -183,7 +196,7 @@
                             (sort-by total-count)
                             ;; (sort-by (fn [x]
                             ;;            (let [pitches (map :pitch x)]
-                            ;;              (diss-calc/scaled-dissonance-value pitches))))
+                            ;;              (chord/scaled-dissonance-value pitches))))
                             ;; (sort-by #(count %))
                             ;; (reverse)
                             (first))]
@@ -208,8 +221,8 @@
   (concat events new-event))
 
 (s/defn coll-part-counts-map
-  [vertical-moment :- ms/Chord]
-  (let [partitioned-events (->> vertical-moment
+  [chord :- ms/Chord]
+  (let [partitioned-events (->> chord
                                 (sort-by :part)
                                 (partition-by :part))]
     (zipmap (map (comp :part first) partitioned-events)
@@ -227,18 +240,18 @@
             part-counts)))
 
 (defn filter-part-idiomatic
-  [vertical-moment]
-  (let [melodic-event (first (filter #(= 0 (:count %)) vertical-moment))]
+  [chord]
+  (let [melodic-event (chord/get-melodic-event chord)]
     (if (empty? melodic-event)
-      vertical-moment
+      chord
       (filter #(< (- (max (:pitch melodic-event) (:pitch %))
                      (min (:pitch melodic-event) (:pitch %)))
                   12)
-              vertical-moment))))
+              chord))))
 
 (defn filter-idiomatic
-  [vertical-moment]
-  (let [groups (->> (sort-by :part vertical-moment)
+  [chord]
+  (let [groups (->> (sort-by :part chord)
                     (partition-by :part))]
     (mapcat filter-part-idiomatic groups)))
 
@@ -259,7 +272,7 @@
          (filter event-count-ok?)
          (filter-idiomatic)
          (filter-parts-by-count)
-         (filter-by-time-in-vertical-moment max-lingering)
+         (filter-by-time-in-chord max-lingering)
          (filter-by-dissonance-value diss-value))))
 
 (defn extend-events
@@ -268,6 +281,7 @@
       (reductions [] events)
       (rest)))
 
+;;-----------------------------------------------------------------------------
 ;; Modify durations.
 
 (s/defn pairwise-mod

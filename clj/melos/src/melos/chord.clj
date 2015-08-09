@@ -8,6 +8,27 @@
              [utils :refer [triangular-n]]]
             [schema.core :as s]))
 
+(s/defn get-melodic-event
+  :- s/Any
+  [chord :- ms/Chord]
+  (->> chord
+       (filter #(= (:count %) 0))
+       (first)))
+
+(s/defn get-melodic-duration
+  :- s/Num
+  [chord :- ms/Chord]
+  ((comp :duration get-melodic-event) chord))
+
+(defn pitchset
+  [chord]
+  (set (map :pitch chord)))
+
+(s/defn dissonance-contributors
+  :- [ms/Note]
+  [chord :- ms/Chord]
+  (filter #(:dissonance-contributor? %) chord))
+
 (def dissonance-map-default
   "Map complementary intervals to relative dissonance values.
 

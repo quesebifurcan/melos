@@ -1,15 +1,10 @@
 (ns melos.rhythm-tree
   (:require [melos.schemas :as ms]
+            [melos.chord :as chord]
+            [melos.chord-seq :as chord-seq]
             [schema.core :as s]))
 
 ;; Cycle measures across total duration.
-
-(s/defn get-melodic-event
-  :- ms/Note
-  [vertical-moment :- ms/Chord]
-  (->> vertical-moment
-       (filter #(= (:count %) 0))
-       (first)))
 
 (defn is-active-node?
   [node]
@@ -54,15 +49,6 @@
 
 ;; Build rhythmic tree.
 
-(defn get-melodic-durations
-  [vertical-moments]
-  (map (comp :duration get-melodic-event)
-       vertical-moments))
-
-(defn duration-sum
-  [events]
-  (reduce + 0 (get-melodic-durations events)))
-
 (defn init-rtm-tree
   [duration measures]
   {:duration :?
@@ -86,7 +72,7 @@
 
 (defn make-r-tree
   [measures events]
-  (let [total-dur (duration-sum events)
+  (let [total-dur (chord-seq/sum-melodic-durations events)
         rtm-tree (init-rtm-tree total-dur measures)
         rtm-tree-dur (get-nested-measure-dur rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
@@ -110,7 +96,7 @@
   (cond
     (empty? events)
     nil
-    (< (:duration (get-melodic-event (first events))) 1/8)
+    (< (:duration (chord/get-melodic-event (first events))) 1/8)
     (if (empty? (rest events))
       nil
       (let [new-first (first (rest events))
@@ -142,16 +128,12 @@
 
 ;; If all :children of node have the same pitch, move them to node.
 
-(defn pitchset-of-event
-  [event]
-  (set (map :pitch event)))
-
 (defn non-empty-pitchsets
   [node]
   (let [children (:children node)
         events (map :events children)]
     (filter #(not (empty? %))
-            (map pitchset-of-event events))))
+            (map chord/pitchset events))))
 
 (defn all-children-same-pitch?
   [node]
