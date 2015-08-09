@@ -1,5 +1,5 @@
 (ns score.main
-  (:require 
+  (:require
    [schema.core :as s]
    [score.compose-score :refer [compose]]
    [melos.utils
@@ -12,15 +12,3 @@
   (time
    (utils/export-to-json output-path
                    (compose))))
-
-
-(-main "/Users/fred/Desktop/score.json")
-
-;; (require '[melos.chord-seq :as chord-seq])
-
-;; chord-seq/modify-durations
-
-;; tools/scaled-dissonance-value
-
-;; tools
-

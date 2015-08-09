@@ -12,8 +12,6 @@
              [utils :as utils]]
             [schema.core :as s]))
 
-;; TODO: move?
-
 (defn update-score-state
   [initial-state updates]
   (->> (utils/update-state initial-state updates)
@@ -72,19 +70,3 @@
     (->> (map (fn [change-set] (update-score-state state change-set))
               changes)
          (compose-all filters))))
-
-;; (into {}
-;;       (compose))
-
-;; (into {}
-;;       (:result
-;;        (first
-;;         (compose))))
-
-         ;; (map compose-segment/compose-event-seq)
-         ;; (compose-all filters))))
-
-
-;; main
-;; (compose event-seq rtm-data)
-;; (compose event-seq rtm-data)
