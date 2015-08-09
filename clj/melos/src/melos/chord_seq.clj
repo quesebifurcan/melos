@@ -287,7 +287,7 @@
 (s/defn pairwise-mod
   :- [ms/Chord]
   [chords :- [ms/Chord]
-   tests :- [s/Any]
+   match-fns :- [s/Any]
    coll :- [ms/Chord]]
   (let [pair (take 2 chords)]
     (cond (empty? pair)
@@ -295,13 +295,13 @@
           :else
           (let [result (drop-while
                         nil?
-                        (map #(% pair) tests))]
+                        (map #(% pair) match-fns))]
             (if (empty? result)
               (pairwise-mod (rest chords)
-                            tests
+                            match-fns
                             (concat coll [(first chords)]))
               (pairwise-mod (drop 2 chords)
-                            tests
+                            match-fns
                             (concat coll (into [] (first result)))))))))
 
 (s/defn modify-durations

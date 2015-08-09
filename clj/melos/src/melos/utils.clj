@@ -174,17 +174,6 @@
           initial-state
           updates))
 
-(defn evaluate-nested-fns
-  [state]
-  (clojure.walk/postwalk
-   (fn [form]
-     (if (and (map? form)
-              (contains? form :fn)
-              (contains? form :params))
-       ((:fn form) (:params form))
-       form))
-   state))
-
 (defn lindenmayer
   "A simple lindenmayer machine. Borrowed from
   https://brehaut.net/blog/2011/l_systems."
