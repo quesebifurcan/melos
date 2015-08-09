@@ -1,9 +1,10 @@
-(ns melos.utils.utils
+(ns melos.utils
   (:require [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
-            [melos.note.make-note :refer [make-note]]
-            [melos.schemas.schemas :as ms]
+            [melos
+             [note :refer [make-note]]
+             [schemas :as ms]]
             [schema.core :as s]))
 
 (defn abs [n] (max n (- n)))
@@ -183,3 +184,10 @@
        ((:fn form) (:params form))
        form))
    state))
+
+(defn lindenmayer
+  "A simple lindenmayer machine. Borrowed from
+  https://brehaut.net/blog/2011/l_systems."
+  [rule depth s]
+  (if (zero? depth) s
+      (mapcat #(lindenmayer rule (dec depth) (rule % [%])) s)))

@@ -1,7 +1,8 @@
 (ns score.materials.stepwise-mod
-  (:require [melos.chord.dissonance-calculator :refer [scaled-dissonance-value]]
-            [melos.note.make-note :refer [make-note]]
-            [melos.schemas.schemas :as ms]
+  (:require [melos
+             [chord :refer [scaled-dissonance-value]]
+             [note :refer [make-note]]
+             [schemas :as ms]]
             [schema.core :as s]))
 
 (defn sustain-dissonant-vertical-moment
@@ -83,10 +84,10 @@
     ;; (doall (map (fn [x] (println x)) durations))
     ;; (assert (not (contains? (set durations) nil)))
     ;; events))
-  (map (fn [vertical-moment dur]
+    (map (fn [vertical-moment dur]
            (map #(assoc % :duration dur) vertical-moment))
-       events
-       durations)))
+         events
+         durations)))
 
 (defn average-pitch
   [vertical-moments]
@@ -131,19 +132,19 @@
                    (rest xs))))))
 
 (defn distinct-by
-    "Returns a lazy sequence of the elements of coll, removing any elements that
+  "Returns a lazy sequence of the elements of coll, removing any elements that
     return duplicate values when passed to a function f."
-    [f coll]
-    (let [step (fn step [xs seen]
-                 (lazy-seq
-                  ((fn [[x :as xs] seen]
-                     (when-let [s (seq xs)]
-                       (let [fx (f x)]
-                         (if (contains? seen fx)
-                           (recur (rest s) seen)
-                           (cons x (step (rest s) (conj seen fx)))))))
-                   xs seen)))]
-      (step coll #{})))
+  [f coll]
+  (let [step (fn step [xs seen]
+               (lazy-seq
+                ((fn [[x :as xs] seen]
+                   (when-let [s (seq xs)]
+                     (let [fx (f x)]
+                       (if (contains? seen fx)
+                         (recur (rest s) seen)
+                         (cons x (step (rest s) (conj seen fx)))))))
+                 xs seen)))]
+    (step coll #{})))
 
 (s/defn maybe-split-vertical-moment
   :- [ms/Chord]

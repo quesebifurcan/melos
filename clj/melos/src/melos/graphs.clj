@@ -1,10 +1,9 @@
-(ns melos.segment.graphs
-  (:require [melos.chord-seq :refer [maybe-merge
-                                     extend-events
-                                     collect-events-in-segment]]
-            [melos.chord.dissonance-calculator :as diss-calc]
-            [melos.part.filter-parts :as filter-parts]
-            [melos.rhythm-tree.rtm :as rtm]
+(ns melos.graphs
+  (:require [melos
+             [chord :as diss-calc]
+             [chord-seq :refer [collect-events-in-segment extend-events maybe-merge]]
+             [part :as filter-parts]
+             [rhythm-tree :as rtm]]
             [plumbing
              [core :refer [fnk]]
              [graph :as graph]]))

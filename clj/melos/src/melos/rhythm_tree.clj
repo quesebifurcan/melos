@@ -1,5 +1,5 @@
-(ns melos.rhythm-tree.rtm
-  (:require [melos.schemas.schemas :as ms]
+(ns melos.rhythm-tree
+  (:require [melos.schemas :as ms]
             [schema.core :as s]))
 
 ;; Cycle measures across total duration.

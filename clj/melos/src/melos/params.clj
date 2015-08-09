@@ -1,7 +1,8 @@
-(ns melos.utils.cycle-params
+(ns melos.params
   (:require [clojure.walk :as walk]
-            [melos.schemas.schemas :as ms]
-            [melos.utils.utils :refer [merge-in rotate]]
+            [melos
+             [schemas :as ms]
+             [utils :refer [merge-in rotate]]]
             [schema.core :as s]))
 
 (defn is-part-of-seq

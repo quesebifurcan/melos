@@ -1,16 +1,16 @@
 (ns score.compose-score
   (:require [clojure.math.combinatorics :as combinatorics]
-            [melos.schemas.schemas :as ms]
+            [melos
+             [graphs :as graphs]
+             [schemas :as ms]
+             [utils :as utils]]
+            [melos.utils.cycle-params :refer [unfold-parameter-cycles]]
+            [schema.core :as s]
             [score.materials
              [event-seqs :as event-seqs]
              [measures :as measures]
              [pairwise-mod :as pairwise]
-             [stepwise-mod :as stepwise]]
-            [melos.segment.graphs :as graphs]
-            [melos.utils
-             [cycle-params :refer [unfold-parameter-cycles]]
-             [utils :as utils]]
-            [schema.core :as s]))
+             [stepwise-mod :as stepwise]]))
 
 (defn update-score-state
   [initial-state updates]

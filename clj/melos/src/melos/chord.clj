@@ -1,10 +1,11 @@
-(ns melos.chord.dissonance-calculator
+(ns melos.chord
   (:require [clojure.algo.generic.functor :as functor]
             [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
-            [melos.schemas.schemas :as ms]
-            [melos.utils.utils :refer [triangular-n]]
+            [melos
+             [schemas :as ms]
+             [utils :refer [triangular-n]]]
             [schema.core :as s]))
 
 (def dissonance-map-default

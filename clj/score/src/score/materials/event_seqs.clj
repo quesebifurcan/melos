@@ -1,7 +1,6 @@
 (ns score.materials.event-seqs
-  (:require [melos.utils
-             [cycle-params :as cycle-params]
-             [utils :as utils]]))
+  (:require [melos.utils :as utils]
+            [melos.utils.cycle-params :as cycle-params]))
 
 ;; 1. types of contours
 ;; 2. ranges?
@@ -206,8 +205,8 @@
 (defn lower
   [part-name transposition]
   (let [ranges [
-                 (range 0 11)
-                 ]
+                (range 0 11)
+                ]
         ;; partitions (utils/combine-partitions [(count pitches)]
         ;;                                      [2 1 1 2 1 1 2 1 1 1])]
         partition-limit (map count ranges)
@@ -276,7 +275,7 @@
                  ;; (filter-by-pcs #{0 2 4 5 7 9 11})
                  (utils/transpose transposition)
                  (sustain-pitchclasses #{9 4} [] []))
-                 ;; (map utils/maybe-vec))
+     ;; (map utils/maybe-vec))
      :part [part-name]
      :dissonance-contributor? [false]
      ;; :max-count [5]
@@ -429,8 +428,8 @@
 
                ]]
     model
-  ;;           (map (partial + 5) model))))
-  ))
+    ;;           (map (partial + 5) model))))
+    ))
 
 
 

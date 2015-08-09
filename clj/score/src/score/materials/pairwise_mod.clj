@@ -1,6 +1,7 @@
 (ns score.materials.pairwise-mod
-  (:require [melos.chord-seq :as chord-seq]
-            [melos.chord.dissonance-calculator :as diss-calc]))
+  (:require [melos
+             [chord :as diss-calc]
+             [chord-seq :as chord-seq]]))
 
 (defn dissonant-melody-movement-mod
   [pair]
@@ -8,7 +9,7 @@
                        (fn [x] (filter #(= (:count %) 0) x))
                        pair)
         melodic-notes-1 (filter :dissonance-contributor?
-                              melodic-notes)
+                                melodic-notes)
         ;; melodic-notes (partition-by :part melodic-notes-1)
         ;; melodic-pitches (map
         ;;                (fn [x]

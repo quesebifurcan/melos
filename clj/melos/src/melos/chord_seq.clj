@@ -1,11 +1,12 @@
 (ns melos.chord-seq
-  (:require [melos.utils.utils :refer [rotate]]
-            [schema.core :as s]
-            [clojure.math
+  (:require [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
-            [melos.chord.dissonance-calculator :as diss-calc]
-            [melos.schemas.schemas :as ms]))
+            [melos
+             [chord :as diss-calc]
+             [schemas :as ms]
+             [utils :refer [rotate]]]
+            [schema.core :as s]))
 
 ;; Collect events in segment.
 
@@ -171,26 +172,26 @@
   :- ms/Chord
   [limit events]
   (let [grouped-events (group-events events)]
-  (if (or (< (count grouped-events) 2)
-          (consonant? events limit))
-    events
-    (let [candidates (->> (get-candidates grouped-events)
-                          (map flatten)
-                          (filter contains-zero-count)
-                          (best-part-match events)
-                          (filter #(consonant? % limit))
-                          (sort-by total-count)
-                          ;; (sort-by (fn [x]
-                          ;;            (let [pitches (map :pitch x)]
-                          ;;              (diss-calc/scaled-dissonance-value pitches))))
-                          ;; (sort-by #(count %))
-                          ;; (reverse)
-                          (first))]
-      (if (empty? candidates)
-        ;; If no candidates are valid, return a vector with the most
-        ;; recently added events.
-        (filter zero-count? events)
-        (recur limit candidates))))))
+    (if (or (< (count grouped-events) 2)
+            (consonant? events limit))
+      events
+      (let [candidates (->> (get-candidates grouped-events)
+                            (map flatten)
+                            (filter contains-zero-count)
+                            (best-part-match events)
+                            (filter #(consonant? % limit))
+                            (sort-by total-count)
+                            ;; (sort-by (fn [x]
+                            ;;            (let [pitches (map :pitch x)]
+                            ;;              (diss-calc/scaled-dissonance-value pitches))))
+                            ;; (sort-by #(count %))
+                            ;; (reverse)
+                            (first))]
+        (if (empty? candidates)
+          ;; If no candidates are valid, return a vector with the most
+          ;; recently added events.
+          (filter zero-count? events)
+          (recur limit candidates))))))
 
 (s/defn forward-time
   :- ms/Chord
@@ -211,8 +212,8 @@
   (let [partitioned-events (->> vertical-moment
                                 (sort-by :part)
                                 (partition-by :part))]
-        (zipmap (map (comp :part first) partitioned-events)
-                (map (comp :max-part-count first) partitioned-events))))
+    (zipmap (map (comp :part first) partitioned-events)
+            (map (comp :max-part-count first) partitioned-events))))
 
 (s/defn filter-parts-by-count
   :- ms/Chord
