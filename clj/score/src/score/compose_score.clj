@@ -29,39 +29,60 @@
   (->> (filters phrases)
        (map graphs/compose-segment)))
 
+(defn initial-state
+  []
+  {:melody-sources {:upper/a {:fn upper-part
+                              :params {:transposition -3
+                                       :part-name :upper}}
+                    :lower/a {:fn upper-part
+                              :params {:transposition -5
+                                       :part-name :lower}}
+                    :ped/a {:fn upper-part
+                            :params {:transposition -15
+                                     :part-name :ped}}}
+   :diss-fn-params {:max-count 10
+                    :max-lingering 300
+                    :diss-value [0 2 4 5]}
+   :time-signatures [measures/measure-4]
+   :measures [measures/measure-4]
+   :mod-dur-patterns []
+   :tempo 240
+   :last-event-extension 7/4
+   :part-names [:upper :lower :ped]
+   :melodic-indices []})
+
+(defn melody-source
+  [f params]
+  (map (fn [p] {:fn f :params p})
+       params))
+
+(defn parameter-updates
+  []
+  {[:melody-sources :upper/a :params :transposition] [-10 10 0]
+   [:melodic-indices] [{:fn (fn [x] (take 21 (cycle x)))
+                        :params [:upper/a :lower/a :ped/a]}
+                       {:fn (fn [x] (take 10 (cycle x)))
+                        :params [:upper/a :lower/a :upper/a :ped/a]}]
+   [:diss-fn-params :diss-value] [[0 2 4 5] [0 1 2]]
+   [:melody-sources :upper/a]
+   ;; Cartesian product of all params:
+   (map (fn [x] (utils/update-state {} x))
+        (combinations/unfold-parameters
+         {[:fn] [upper-part]
+          [:params :transposition] [-10 1 20]
+          [:params :part-name] [:upper]}))
+   [:melody-sources :lower/a] [{:fn upper-part
+                                :params {:transposition -5
+                                         :part-name :lower}}]
+   [:melody-sources :ped/a] [{:fn upper-part
+                              :params {:transposition -15
+                                       :part-name :ped}}]})
+
 (defn compose
   []
   (let [changes (combinations/unfold-parameters
-                 {[:melody-sources :upper/a :params :transposition] [-10 10 0]
-                  [:melodic-indices] [
-                                      {:fn (fn [x] (take 21 (cycle x)))
-                                       :params [:upper/a :lower/a :ped/a]}
-                                      {:fn (fn [x] (take 10 (cycle x)))
-                                       :params [:upper/a :lower/a :upper/a :ped/a]}
-                                      ]
-                  [:diss-fn-params :diss-value] [[0 2 4 5] [0 1 2]]
-                  })
-        state {:melody-sources {
-                                :upper/a {:fn upper-part
-                                          :params {:transposition -3
-                                                   :part-name :upper}}
-                                :lower/a {:fn upper-part
-                                          :params {:transposition -5
-                                                   :part-name :lower}}
-                                :ped/a {:fn upper-part
-                                        :params {:transposition -15
-                                                 :part-name :ped}}
-                                }
-               :diss-fn-params {:max-count 10
-                                :max-lingering 300
-                                :diss-value [0 2 4 5]}
-               :time-signatures [measures/measure-4]
-               :measures [measures/measure-4]
-               :mod-dur-patterns []
-               :tempo 240
-               :last-event-extension 7/4
-               :part-names [:upper :lower :ped]
-               :melodic-indices []}
+                 (parameter-updates))
+        state (initial-state)
         filters #(sort-by (fn [x]
                             (apply + (map count (:merged-chord-seq x))))
                           %)]
