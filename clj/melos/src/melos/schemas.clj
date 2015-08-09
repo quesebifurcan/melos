@@ -46,9 +46,9 @@
 (def ScoreSegment
   {:melodic-indices [s/Keyword]
    :diss-fn-params PartialDissonanceFnParams
-   :time-signatures s/Any
-   :interval->diss-map DissonanceMapping
    :tempo s/Int
+   :measures s/Any
+   :last-event-extension s/Num
    :mod-dur-patterns s/Any
    :part-names [PartName]
    :melody-sources s/Any})
