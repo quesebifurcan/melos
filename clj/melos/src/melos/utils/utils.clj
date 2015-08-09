@@ -1,9 +1,9 @@
-(ns melos.utils
+(ns melos.utils.utils
   (:require [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
             [melos.note.make-note :refer [make-note]]
-            [melos.tools.schemata :as ms]
+            [melos.schemas.schemas :as ms]
             [schema.core :as s]))
 
 (defn abs [n] (max n (- n)))

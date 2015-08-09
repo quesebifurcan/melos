@@ -3,8 +3,8 @@
             [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
-            [melos.tools.schemata :as ms]
-            [melos.utils :refer [triangular-n]]
+            [melos.schemas.schemas :as ms]
+            [melos.utils.utils :refer [triangular-n]]
             [schema.core :as s]))
 
 (def dissonance-map-default

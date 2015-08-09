@@ -1,5 +1,5 @@
 (ns melos.chord-seq.selector-sequence
-  (:require [melos.utils :refer [rotate]]))
+  (:require [melos.utils.utils :refer [rotate]]))
 
 (defn get-melodic-segment
   [part-seq part->event]

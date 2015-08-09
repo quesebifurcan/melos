@@ -1,4 +1,4 @@
-(ns melos.tools.schemata
+(ns melos.schemas.schemas
   (:require [schema.core :as s]))
 
 (def PartName (s/enum nil :lower :upper :ped))

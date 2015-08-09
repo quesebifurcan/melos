@@ -1,23 +1,17 @@
 (ns melos.scores.compose-score
-  (:require [melos.scores.materials
+  (:require [clojure.math.combinatorics :as combinatorics]
+            [melos.schemas.schemas :as ms]
+            [melos.scores.materials
              [dissonance-maps :as dissonance-maps]
              [event-seqs :as event-seqs]
              [measures :as measures]
              [pairwise-mod :as pairwise]
              [stepwise-mod :as stepwise]]
             [melos.segment.graphs :as graphs]
-            [melos.tools.schemata :as ms]
-            [melos.utils :as utils]
-            [melos.utils.cycle-params :refer [unfold-parameter-cycles]]
-            [clojure.math.combinatorics :as combinatorics]
+            [melos.utils
+             [cycle-params :refer [unfold-parameter-cycles]]
+             [utils :as utils]]
             [schema.core :as s]))
-
-;; (require '[melos.rhythm-tree.rtm :as rtm]
-;;          '[melos.part.filter-parts :as filter-parts]
-;;          '[melos.chord-seq.selector-sequence :refer [collect-events-in-segment]]
-;;          '[melos.utils :as utils]
-;;          '[clojure.algo.generic.functor :as functor]
-;;          '[clojure.math.combinatorics :as combinatorics])
 
 ;; TODO: move?
 

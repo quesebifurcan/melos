@@ -3,7 +3,7 @@
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
             [melos.chord.dissonance-calculator :as diss-calc]
-            [melos.tools.schemata :as ms]
+            [melos.schemas.schemas :as ms]
             [schema.core :as s]))
 
 (s/defn filter-dissonance-contributors

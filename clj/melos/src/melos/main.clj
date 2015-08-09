@@ -1,6 +1,6 @@
 (ns melos.main
   (:require [melos.scores.compose-score :refer [compose]]
-            [melos.utils :refer [export-to-json]]
+            [melos.utils.utils :refer [export-to-json]]
             [schema.core :as s]))
 
 (s/set-fn-validation! true)

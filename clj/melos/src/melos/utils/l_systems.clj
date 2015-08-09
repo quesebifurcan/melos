@@ -1,4 +1,4 @@
-(ns melos.tools.l-systems)
+(ns melos.utils.l-systems)
 
 (defn lindenmayer
   "A simple lindenmayer machine. Borrowed from

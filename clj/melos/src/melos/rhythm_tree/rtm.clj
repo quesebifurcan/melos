@@ -1,6 +1,6 @@
 (ns melos.rhythm-tree.rtm
-  (:require [schema.core :as s]
-            [melos.tools.schemata :as ms]))
+  (:require [melos.schemas.schemas :as ms]
+            [schema.core :as s]))
 
 ;; Cycle measures across total duration.
 

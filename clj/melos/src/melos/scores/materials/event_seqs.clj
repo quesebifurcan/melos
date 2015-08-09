@@ -1,6 +1,7 @@
 (ns melos.scores.materials.event-seqs
-  (:require [melos.utils :as utils]
-            [melos.utils.cycle-params :as cycle-params]))
+  (:require [melos.utils
+             [cycle-params :as cycle-params]
+             [utils :as utils]]))
 
 ;; 1. types of contours
 ;; 2. ranges?
