@@ -1,15 +1,16 @@
 (ns melos.scores.compose-score
-  (:require [schema.core :as s]
-            [melos.tools.schemata :as ms]
-            [melos.tools.cycle-params :refer [unfold-parameter-cycles]]
-            [melos.tools.utils :as utils]
-            [melos.tools.segment.graphs :as graphs]
-            [melos.scores.materials.event-seqs :as event-seqs]
-            [melos.scores.materials.measures :as measures]
-            [melos.scores.materials.dissonance-maps :as dissonance-maps]
-            [melos.scores.materials.stepwise-mod :as stepwise]
-            [melos.scores.materials.event-seqs :as event-seqs]
-            [melos.scores.materials.pairwise-mod :as pairwise]))
+  (:require [melos.scores.materials
+             [dissonance-maps :as dissonance-maps]
+             [event-seqs :as event-seqs]
+             [measures :as measures]
+             [pairwise-mod :as pairwise]
+             [stepwise-mod :as stepwise]]
+            [melos.segment.graphs :as graphs]
+            [melos.tools
+             [cycle-params :refer [unfold-parameter-cycles]]
+             [schemata :as ms]
+             [utils :as utils]]
+            [schema.core :as s]))
 
 (require '[melos.tools.rhythm-tree.rtm :as rtm]
          '[melos.tools.filter-parts :as filter-parts]

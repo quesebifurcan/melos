@@ -1,4 +1,4 @@
-(ns melos.tools.chord-seq.modify-durations
+(ns melos.chord-seq.modify-durations
   (:require [schema.core :as s]
             [melos.tools.make-note :refer [make-note]]
             [melos.tools.schemata :as ms]))

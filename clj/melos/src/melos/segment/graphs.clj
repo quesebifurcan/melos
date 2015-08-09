@@ -1,12 +1,14 @@
-(ns melos.tools.segment.graphs
-  (:require [plumbing.graph :as graph]
-            [plumbing.core :refer [fnk]]
-            [melos.tools.chord-seq.selector-sequence :as sel-seq]
-            [melos.tools.rhythm-tree.rtm :as rtm]
+(ns melos.segment.graphs
+  (:require [melos.chord-seq
+             [default-horizontal-merge :as horizontal-merge]
+             [delay-lines :as delay-lines]
+             [selector-sequence :as sel-seq]]
+            [melos.chord.dissonance-calculator :as diss-calc]
+            [melos.rhythm-tree.rtm :as rtm]
             [melos.tools.filter-parts :as filter-parts]
-            [melos.tools.chord-seq.default-horizontal-merge :as horizontal-merge]
-            [melos.tools.chord.dissonance-calculator :as diss-calc]
-            [melos.tools.chord-seq.delay-lines :as delay-lines]))
+            [plumbing
+             [core :refer [fnk]]
+             [graph :as graph]]))
 
 (def segment-graph
   {:events

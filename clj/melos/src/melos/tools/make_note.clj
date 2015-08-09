@@ -16,7 +16,7 @@
    :is-rest? false
    :max-count 100
    :max-part-count 1
-   :onset 0
+   :onset 1
    :intensity 1})
 
 (defn make-note

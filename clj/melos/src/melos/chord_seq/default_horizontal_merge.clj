@@ -1,4 +1,4 @@
-(ns melos.tools.chord-seq.default-horizontal-merge)
+(ns melos.chord-seq.default-horizontal-merge)
 
 ;; Merge horizontally
 

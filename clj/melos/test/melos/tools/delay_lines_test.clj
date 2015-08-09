@@ -1,7 +1,7 @@
 (ns melos.tools.delay-lines-test
-  (:require [melos.tools.chord-seq.delay-lines :refer :all]
-            [melos.tools.make-note :refer [make-note]]
-            [clojure.test :refer :all]))
+  (:require [clojure.test :refer :all]
+            [melos.chord-seq.delay-lines :refer :all]
+            [melos.tools.make-note :refer [make-note]]))
 
 (defn- make-n-notes
   [n params]

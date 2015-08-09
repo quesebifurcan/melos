@@ -1,4 +1,4 @@
-(ns melos.tools.chord-seq.selector-sequence
+(ns melos.chord-seq.selector-sequence
   (:require [melos.tools.utils :refer [rotate]]))
 
 (defn get-melodic-segment

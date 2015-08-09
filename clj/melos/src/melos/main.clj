@@ -12,3 +12,12 @@
                    (compose))))
 
 (-main "/Users/fred/Desktop/score.json")
+
+;; (require '[melos.chord-seq :as chord-seq])
+
+;; chord-seq/modify-durations
+
+;; tools/scaled-dissonance-value
+
+;; tools
+
