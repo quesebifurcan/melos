@@ -1,4 +1,4 @@
-(ns melos.scores.materials.stepwise-mod
+(ns score.materials.stepwise-mod
   (:require [melos.chord.dissonance-calculator :refer [scaled-dissonance-value]]
             [melos.note.make-note :refer [make-note]]
             [melos.schemas.schemas :as ms]

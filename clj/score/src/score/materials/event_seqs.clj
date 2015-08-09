@@ -1,4 +1,4 @@
-(ns melos.scores.materials.event-seqs
+(ns score.materials.event-seqs
   (:require [melos.utils
              [cycle-params :as cycle-params]
              [utils :as utils]]))

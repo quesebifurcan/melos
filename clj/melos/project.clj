@@ -7,7 +7,6 @@
                  [org.clojure/tools.trace "0.7.8"]
                  [prismatic/plumbing "0.4.2"]
                  [prismatic/schema "0.4.0"]]
-  :main melos.main
   :global-vars {*print-length* 25}
   :plugins [[lein-marginalia "0.8.0"]])
 

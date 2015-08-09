@@ -1,8 +1,7 @@
-(ns melos.scores.compose-score
+(ns score.compose-score
   (:require [clojure.math.combinatorics :as combinatorics]
             [melos.schemas.schemas :as ms]
-            [melos.scores.materials
-             [dissonance-maps :as dissonance-maps]
+            [score.materials
              [event-seqs :as event-seqs]
              [measures :as measures]
              [pairwise-mod :as pairwise]
@@ -60,7 +59,6 @@
                :diss-fn-params {:max-count 10
                                 :max-lingering 300
                                 :diss-value [0 2 4 5]}
-               :interval->diss-map dissonance-maps/default
                :time-signatures [measures/measure-4]
                :measures [measures/measure-4]
                :mod-dur-patterns []

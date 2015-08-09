@@ -1,15 +1,18 @@
-(ns melos.main
-  (:require [melos.scores.compose-score :refer [compose]]
-            [melos.utils.utils :refer [export-to-json]]
-            [schema.core :as s]))
+(ns score.main
+  (:require 
+   [schema.core :as s]
+   [score.compose-score :refer [compose]]
+   [melos.utils
+    [utils :as utils]]))
 
 (s/set-fn-validation! true)
 
 (defn -main
   [output-path]
   (time
-   (export-to-json output-path
+   (utils/export-to-json output-path
                    (compose))))
+
 
 (-main "/Users/fred/Desktop/score.json")
 

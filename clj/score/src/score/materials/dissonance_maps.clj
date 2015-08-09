@@ -1,4 +1,4 @@
-(ns melos.scores.materials.dissonance-maps
+(ns score.materials.dissonance-maps
   (:require [clojure.algo.generic.functor :as functor]
             [clojure.math.numeric-tower :as math]))
 

@@ -1,6 +1,6 @@
-(ns melos.scores.materials.pairwise-mod
+(ns score.materials.pairwise-mod
   (:require [melos.chord-seq.modify-durations :as mod-dur]
-            [melos.chord.dissonance-calculator :refer [scaled-dissonance-value]]))
+            [melos.chord.dissonance-calculator :as diss-calc]))
 
 (defn dissonant-melody-movement-mod
   [pair]
@@ -18,8 +18,8 @@
     ;; (println (map :part melodic-notes-1))
     ;; (println (map :part melodic-notes-1))
     ;; (println melodic-pitches)
-    (if (and (>= (scaled-dissonance-value melodic-pitches)
-                 (scaled-dissonance-value [0 1]))
+    (if (and (>= (diss-calc/scaled-dissonance-value melodic-pitches)
+                 (diss-calc/scaled-dissonance-value [0 1]))
              (> (count (set (map :part melodic-notes-1))) 1))
       (let [[a b]
             (map (fn [events dur]

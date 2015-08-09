@@ -83,18 +83,3 @@
     (let [divisor (calc-dissonance-divisor pitches)]
       (/ (@dissonance-value pitches) divisor))))
 
-(let [a [
-         ;; [0 2 4 5]
-         ;; [0 1]
-         ;; [0 1 2]
-         ;; [0 1 4]
-         ;; [0 1 5]
-         ;; [0 2 5]
-         ;; [0 2 4 5]
-         [0 1]
-         [0 1 2]
-         ;; [0 1 4]
-         ]]
-  (map (fn [x]
-         [x (scaled-dissonance-value x)])
-       a))
