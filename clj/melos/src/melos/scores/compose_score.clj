@@ -13,7 +13,7 @@
             [schema.core :as s]))
 
 (require '[melos.rhythm-tree.rtm :as rtm]
-         '[melos.tools.filter-parts :as filter-parts]
+         '[melos.part.filter-parts :as filter-parts]
          '[melos.chord-seq.selector-sequence :refer [collect-events-in-segment]]
          '[melos.utils :as utils]
          '[melos.tools.cycle-params :as cycle-params]

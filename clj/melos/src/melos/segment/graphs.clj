@@ -4,8 +4,8 @@
              [delay-lines :as delay-lines]
              [selector-sequence :as sel-seq]]
             [melos.chord.dissonance-calculator :as diss-calc]
+            [melos.part.filter-parts :as filter-parts]
             [melos.rhythm-tree.rtm :as rtm]
-            [melos.tools.filter-parts :as filter-parts]
             [plumbing
              [core :refer [fnk]]
              [graph :as graph]]))

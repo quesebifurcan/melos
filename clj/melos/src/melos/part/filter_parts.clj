@@ -1,4 +1,4 @@
-(ns melos.tools.filter-parts
+(ns melos.part.filter-parts
   (:require [melos.rhythm-tree.rtm :as rtm]))
 
 (defn maybe-insert-rest
