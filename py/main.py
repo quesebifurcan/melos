@@ -87,6 +87,41 @@ def apply_score_overrides(score):
     scheme = schemetools.Scheme('tuplet-number::calc-fraction-text')
     override(score).tuplet_number.text = scheme
     override(score).tuplet_bracket.direction = 'up'
+
+    # override(score).tie.direction = 'up'
+    # # override(score).tie.direction = 'up'
+    # scheme = schemetools.SchemePair(-10, 10)
+    # override(score).tie.extra_x_extent = scheme
+    # override(score).tie.details__height_limit = 2
+    # override(score).tie.details__horizontal_distance_penalty_factor = 40
+    # override(score).tie.details__horizontal_distance_penalty_factor = 100
+    # override(score).tie.details__vertical_distance_penalty_factor = 100
+    # # override(score).tie.details__note_head_gap = 0.7
+    # # override(score).tie.details__tie_tie_collision_penalty = 100
+    # # override(score).tie.thickness = 0.3
+    # # override(score).note_column.padding = 5
+    # # scheme = schemetools.SchemePair(0.5, 0.8)
+    # print override(score).tie._storage_format_specification
+    # print override(score).tie._one_line_menu_summary
+    # # for x in dir(override(score).tie):
+    # #     print x
+    # # override(score).tie.normalized_endpoints = scheme
+    override(score).tie.minimum_length = 3
+    # # # override(score).tie.details__outer_tie_length_vertical_distance_symmetry_penalty_factor = 1000
+    # # # override(score).tie.details__between_length_limit = 0
+    # # override(score).tie.minimum_length = 10
+    # # # override(score).tie.details__tie_tie_collision_penalty = 1000
+    # # # override(score).tie.details__multi_tie_region_size = 1
+    # override(score).tie.details__same_dir_as_stem_penalty = 100
+    # # # override(score).tie.details__stem_gap = 0.8
+    # # # override(score).tie.details__ratio = 0.8
+    # # # override(score).stem.direction = 'down'
+
+    # override(score).spacing_spanner.uniform_stretching = True
+    # moment = schemetools.SchemeMoment(1, 16)
+    # set_(score).proportional_notation_duration = moment
+    # override(score).spacing_spanner.strict_note_spacing = True
+
     spacing_vector = layouttools.make_spacing_vector(0, 0, 30, 0)
     return score
 
@@ -107,10 +142,15 @@ def make_lilypond_file(score, title='', author=''):
     lilypond_file.paper_block.top_markup_spacing = spacing_vector
     # LAYOUT BLOCK
     lilypond_file.layout_block.left_margin = 10
-    spacing_vector = layouttools.make_spacing_vector(0, 0, 1, 0)
+    spacing_vector = layouttools.make_spacing_vector(0, 0, 8, 0)
     override(score).staff_grouper.staff_staff_spacing = spacing_vector
     spacing_vector = layouttools.make_spacing_vector(0, 0, 3, 0)
     override(score).vertical_axis_group.staff_staff_spacing = spacing_vector
+
+    override(score).tuplet_bracket.padding = 1
+    override(score).tuplet_bracket.staff_padding = 2
+    set_(score).tuplet_full_length = True
+
     return lilypond_file
 
 def main():
@@ -173,10 +213,41 @@ def main():
                 # Only set the time-signature of the upper-most staff.
                 is_measure_root = False
 
+    def adjust_tie(chord, direction):
+        override(chord).tie.details__horizontal_distance_penalty_factor = 100
+        override(chord).tie.details__vertical_distance_penalty_factor = 100
+        # override(chord).tie.minimum_length = 4
+        # override(chord).tie.details__same_dir_as_stem_penalty = 30
+        override(chord).tie.direction = direction
+
+    def has_only_upper_tied(curr, next_):
+        curr_pitches, next_pitches = curr.written_pitches, next_.written_pitches
+        common = set(curr_pitches).intersection(set(next_pitches))
+        highest_next = max(x.numbered_pitch for x in next_pitches)
+        return len(common) == 1 and list(common)[0].numbered_pitch == highest_next.numbered_pitch
+
+    def has_only_lower_tied(curr, next_):
+        curr_pitches, next_pitches = curr.written_pitches, next_.written_pitches
+        common = set(curr_pitches).intersection(set(next_pitches))
+        highest_next = max(x.numbered_pitch for x in next_pitches)
+        return len(common) == 1 and list(common)[0].numbered_pitch != highest_next.numbered_pitch
+
     # Attach ties.
     for staff in (upper_staff, lower_staff, ped_staff):
         attach(Tie(), staff[:])
         apply_accidentals(staff)
+        leaves = list(iterate(staff).by_class((Chord, Rest)))
+        for curr, next_ in zip(leaves[:], leaves[1:]):
+            override(curr).tie.details__height_limit = 0.85
+            override(curr).tie.minimum_length = 3
+            if (isinstance(curr, Chord) and
+                isinstance(next_, Chord) and
+                len(next_.written_pitches) > 1):
+                if has_only_upper_tied(curr, next_):
+                    adjust_tie(curr, 'up')
+                elif has_only_lower_tied(curr, next_):
+                    adjust_tie(curr, 'down')
+
 
     score = Score([manuals_group, ped_staff])
     apply_score_overrides(score)
