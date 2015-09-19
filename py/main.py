@@ -88,39 +88,12 @@ def apply_score_overrides(score):
     override(score).tuplet_number.text = scheme
     override(score).tuplet_bracket.direction = 'up'
 
-    # override(score).tie.direction = 'up'
-    # # override(score).tie.direction = 'up'
-    # scheme = schemetools.SchemePair(-10, 10)
-    # override(score).tie.extra_x_extent = scheme
-    # override(score).tie.details__height_limit = 2
-    # override(score).tie.details__horizontal_distance_penalty_factor = 40
-    # override(score).tie.details__horizontal_distance_penalty_factor = 100
-    # override(score).tie.details__vertical_distance_penalty_factor = 100
-    # # override(score).tie.details__note_head_gap = 0.7
-    # # override(score).tie.details__tie_tie_collision_penalty = 100
-    # # override(score).tie.thickness = 0.3
-    # # override(score).note_column.padding = 5
-    # # scheme = schemetools.SchemePair(0.5, 0.8)
-    # print override(score).tie._storage_format_specification
-    # print override(score).tie._one_line_menu_summary
-    # # for x in dir(override(score).tie):
-    # #     print x
-    # # override(score).tie.normalized_endpoints = scheme
     override(score).tie.minimum_length = 3
-    # # # override(score).tie.details__outer_tie_length_vertical_distance_symmetry_penalty_factor = 1000
-    # # # override(score).tie.details__between_length_limit = 0
-    # # override(score).tie.minimum_length = 10
-    # # # override(score).tie.details__tie_tie_collision_penalty = 1000
-    # # # override(score).tie.details__multi_tie_region_size = 1
-    # override(score).tie.details__same_dir_as_stem_penalty = 100
-    # # # override(score).tie.details__stem_gap = 0.8
-    # # # override(score).tie.details__ratio = 0.8
-    # # # override(score).stem.direction = 'down'
 
-    # override(score).spacing_spanner.uniform_stretching = True
-    # moment = schemetools.SchemeMoment(1, 16)
-    # set_(score).proportional_notation_duration = moment
-    # override(score).spacing_spanner.strict_note_spacing = True
+    override(score).spacing_spanner.uniform_stretching = True
+    moment = schemetools.SchemeMoment(1, 8)
+    set_(score).proportional_notation_duration = moment
+    override(score).spacing_spanner.strict_note_spacing = True
 
     spacing_vector = layouttools.make_spacing_vector(0, 0, 30, 0)
     return score
