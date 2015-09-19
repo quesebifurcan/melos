@@ -8,20 +8,13 @@
 
 (def Note
   (sorted-map :pitch Pitch
-              :delta-dur s/Num
               :duration s/Num
-              :dissonance-contributor? s/Bool
-              :allow-extension? s/Bool
-              :color s/Any
               :merge-left? s/Bool
               :merge-right? s/Bool
               :group s/Any
-              :onset s/Num
               :is-rest? s/Bool
               :part PartName
-              :intensity s/Num
               :max-count s/Int
-              :max-part-count s/Int
               :count s/Int))
 
 (def Chord
@@ -34,7 +27,7 @@
 (def DissonanceFnParams
   {:max-count s/Int
    :max-lingering s/Int
-   :diss-value [s/Num]})
+   :diss-params s/Any})
 
 (def PartialDissonanceFnParams
   (zipmap (map (fn [k] (s/optional-key k))

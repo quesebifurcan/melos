@@ -60,12 +60,12 @@
   [path score]
   (->> score
        ;; Replace ratios with vector ratios for better json.
-       (walk/postwalk (fn [form]
-                        (if (get form :delta-dur)
-                          (update-in form
-                                     [:delta-dur]
-                                     ratio->non-reduced-ratio-vector)
-                          form)))
+       ;; (walk/postwalk (fn [form]
+       ;;                  (if (get form :duration)
+       ;;                    (update-in form
+       ;;                               [:duration]
+       ;;                               ratio->non-reduced-ratio-vector)
+       ;;                    form)))
        (write-json-to-file path)))
 
 (defn mapply
@@ -81,6 +81,14 @@
            (make-note (merge {:pitch p :group group}
                              (dissoc m :pitch))))
          pitch)))
+
+(defn make-chord-from-pitch-vector-params-2
+  [{:keys [pitch] :as m}]
+  (map (fn [p]
+         (let [group (gensym "G__")]
+           (make-note (merge {:pitch p :group group}
+                             (dissoc m :pitch)))))
+         pitch))
 
 (defn parse-params
   [x]

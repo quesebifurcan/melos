@@ -36,24 +36,3 @@
 (defn sustain-dissonant-melody
   [events]
   (chord-seq/modify-durations events [dissonant-melody-movement-mod]))
-
-;; (defn parts-count-drop
-;;   [pair]
-;;   (if (and (>= (count (first pair)) 1)
-;;            (= (count (second pair)) 1))
-;;     (let [[a b]
-;;           (map (fn [events dur]
-;;                  (map (fn [event]
-;;                         (assoc event
-;;                                :delta-dur dur
-;;                                :duration dur))
-;;                       events))
-;;                pair
-;;                [3/4 2/4])]
-;;       [a b])))
-
-;; (defn sustain-parts-count-drops
-;;   [events]
-;;   (mod-dur/modify-durations events [parts-count-drop]))
-
-
