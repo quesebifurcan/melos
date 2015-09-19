@@ -3,7 +3,6 @@
             [melos
              [note :as note]
              [chord :as chord]
-             [graphs :as graphs]
              [chord-seq :as chord-seq]
              [rhythm-tree :as rhythm-tree]
              [part :as part]

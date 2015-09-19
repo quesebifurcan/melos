@@ -29,3 +29,13 @@
 (defn split-out-part
   [tree part-name]
   (filter-by-part-names part-name tree))
+
+(defn compose-part
+  [tempo part-names rtm-tree]
+  {:tempo tempo
+   :parts (->> (map
+                (fn [part-name]
+                  {:part-name part-name
+                   :events (split-out-part rtm-tree part-name)})
+                part-names)
+               (rtm/merge-all-tied))})

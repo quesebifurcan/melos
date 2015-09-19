@@ -27,7 +27,7 @@
 (def DissonanceFnParams
   {:max-count s/Int
    :max-lingering s/Int
-   :diss-value [s/Num]})
+   :diss-params s/Any})
 
 (def PartialDissonanceFnParams
   (zipmap (map (fn [k] (s/optional-key k))
