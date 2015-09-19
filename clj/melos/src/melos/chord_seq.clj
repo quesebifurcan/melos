@@ -1,12 +1,13 @@
 (ns melos.chord-seq
-  (:require [schema.core :as s]
-            [clojure.math
+  (:require [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
+            [clojure.set :as set]
             [melos
              [chord :as chord]
              [schemas :as ms]
-             [utils :refer [rotate]]]))
+             [utils :refer [rotate]]]
+            [schema.core :as s]))
 
 (s/defn get-melodic-durations
   :- [s/Num]
@@ -47,8 +48,12 @@
   [curr :- ms/Chord
    next :- ms/Chord]
   (let [old-curr (filter #(> (:count %) 0) next)
-        news (filter #(= (:count %) 0) next)]
+        news (filter #(= (:count %) 0) next)
+        old-parts (set (map :part old-curr))
+        new-parts (set (map :part news))]
     (and (= (count curr) (count old-curr))
+         ;; Make sure that two sequential events in one part are not merged.
+         (empty? (clojure.set/intersection old-parts new-parts))
          (every? #(:merge-left? %) news)
          (every? #(:merge-right? %) old-curr))))
 
@@ -59,22 +64,22 @@
   (let [melodic-notes (filter #(= (:count %) 0) b)]
     (concat a melodic-notes)))
 
-(s/defn maybe-merge
+(s/defn merge-horizontally
   :- [ms/Chord]
   ([events :- [ms/Chord]]
    (if (seq events)
-     (maybe-merge (first events)
-                  (rest events))))
+     (merge-horizontally (first events)
+                         (rest events))))
   ([head :- ms/Chord
     events :- [ms/Chord]]
    (cond (empty? events)
          (list head)
          (can-merge? head (first events))
-         (maybe-merge (merge-elts head
-                                  (first events))
-                      (rest events))
+         (merge-horizontally (merge-elts head
+                                         (first events))
+                             (rest events))
          :else
-         (cons head (maybe-merge events)))))
+         (cons head (merge-horizontally events)))))
 
 ;;-----------------------------------------------------------------------------
 ;; Extend events.
@@ -181,44 +186,107 @@
        (sort-by :group)
        (partition-by :group)))
 
-(s/defn filter-by-dissonance-value
-  :- ms/Chord
-  [limit events]
-  (let [grouped-events (group-events events)]
-    (if (or (< (count grouped-events) 2)
-            (consonant? events limit))
-      events
-      (let [candidates (->> (get-candidates grouped-events)
-                            (map flatten)
-                            (filter contains-zero-count)
-                            (best-part-match events)
-                            (filter #(consonant? % limit))
-                            (sort-by total-count)
-                            ;; (sort-by (fn [x]
-                            ;;            (let [pitches (map :pitch x)]
-                            ;;              (chord/scaled-dissonance-value pitches))))
-                            ;; (sort-by #(count %))
-                            ;; (reverse)
-                            (first))]
-        (if (empty? candidates)
-          ;; If no candidates are valid, return a vector with the most
-          ;; recently added events.
-          (filter zero-count? events)
-          (recur limit candidates))))))
+(defn all-but-oldest
+  [events]
+  (->> events
+       (sort-by :count)
+       (butlast)))
+
+;; PENALTIES
+
+(defn part-match-penalty
+  [all-part-names events]
+  (let [part-names (set (map :part events))]
+    (- (count all-part-names)
+       (count part-names))))
+
+(defn dissonance-penalty
+  [events]
+  (let [pitches (map :pitch events)]
+    (chord/scaled-dissonance-value pitches)))
+
+(defn age-penalty
+  [events]
+  (apply + (map :count events)))
+
+(def diss-params
+  {:check (fn [events]
+            (<= (chord/scaled-dissonance-value (map :pitch events))
+                (chord/scaled-dissonance-value [0 1 3])))
+   :sort_ [part-match-penalty age-penalty]})
+
+(defn normalize
+  [xs]
+  (let [max_ (apply max xs)
+        min_ (apply min xs)
+        div (- max_ min_)]
+    (if (or (= 0 div)
+            (apply = xs))
+      (map (fn [x] 0) xs)
+      (map (fn [x] (/ (- x min_) (- max_ min_)))
+           xs))))
+
+(defn transpose [m]
+  (apply mapv vector m))
+
+;; TODO: normalize -- compare to theoretical max/min for dissonance.
+
+(defn filter-by-dissonance-value
+  [diss-params events]
+  (if (or ((:check diss-params) events)
+          (<= (count (group-events events)) 1))
+    events
+    (let [grouped-events (group-events events)
+          candidates (->> (get-candidates grouped-events)
+                          (map flatten)
+                          (filter contains-zero-count))
+          all-parts (map :part events)
+          part-match-scores (map (partial part-match-penalty all-parts)
+                                 candidates)
+          part-match-norm (->> (normalize part-match-scores)
+                               (map (fn [x] (* x 3))))
+          age-penalty-scores (map age-penalty candidates)
+          age-penalty-norm (normalize age-penalty-scores)
+          dissonance-scores (map (fn [x] (chord/scaled-dissonance-value
+                                          (map :pitch x)))
+                                 candidates)
+          dissonance-norm (normalize dissonance-scores)
+          sorted (sort-by (fn [[x y z zz]]
+                            (+ y z))
+                          (transpose [candidates part-match-norm age-penalty-norm dissonance-norm]))
+          best (first (first sorted))]
+      (if ((:check diss-params) best)
+        best
+        (recur diss-params (->> (sort-by (fn [x] (chord/scaled-dissonance-value
+                                                  (map :pitch x)))
+                                         candidates)
+                                (first)))))))
 
 (s/defn forward-time
   :- ms/Chord
   [events :- ms/Chord]
   (->> events
-       (filter :allow-extension?)
+       ;; (filter :allow-extension?)
        (map #(update-in % [:count] inc))))
+
+(defn filter-distinct
+  [chord]
+  (->> chord
+       (sort-by (juxt :part :pitch))
+       (partition-by (juxt :part :pitch))
+       (map (fn [x] ((comp first (partial sort-by :count)) x)))))
 
 (s/defn join-events
   :- ms/Chord
   [new-event :- ms/Chord
    events :- ms/Chord]
-  ;; TODO: filter distinct events.
-  (concat events new-event))
+  (let [curr-parts (set (map :part new-event))
+        events (filter (fn [event]
+                         (not (contains? curr-parts (:part event))))
+                       events)]
+  (->> (concat events new-event)
+       ;; (filter-distinct)
+       )))
 
 (s/defn coll-part-counts-map
   [chord :- ms/Chord]
@@ -228,15 +296,22 @@
     (zipmap (map (comp :part first) partitioned-events)
             (map (comp :max-part-count first) partitioned-events))))
 
+(defn filter-part-by-count
+  [xs limit]
+  (if (<= (count xs) limit)
+    xs
+    (recur (butlast (sort-by :count xs)) limit)))
+
 (s/defn filter-parts-by-count
   :- ms/Chord
   [events :- ms/Chord]
   (let [part-counts (coll-part-counts-map events)]
     (mapcat (fn [[part-name limit]]
               (let [xs (filter #(= (:part %) part-name) events)]
-                (if (<= (count xs) limit)
-                  xs
-                  (filter #(= (:count %) 0) xs))))
+                ;; (if (<= (count xs) limit)
+                ;;   xs
+                ;;   (filter #(= (:count %) 0) xs))))
+                (filter-part-by-count xs limit)))
             part-counts)))
 
 (defn filter-part-idiomatic
@@ -259,27 +334,42 @@
   [{:keys [count max-count]}]
   (<= count max-count))
 
+;; (defn apply-pre-fn
+;;   [chord]
+;;   (let [fns (filter (complement nil?) (map :pre chord))]
+;;     (->> ((apply comp fns) chord)
+;;          (map (fn [x] (assoc x :pre nil))))))
+
 (defn handle-dissonance
   "Return a function which can be used to control dissonance values in
   one segment of the piece."
-  [{:keys [max-count diss-value max-lingering] :as m}]
+  [{:keys [max-count diss-params max-lingering] :as m}]
   (s/validate ms/DissonanceFnParams m)
   (fn [events event]
     (->> events
          (forward-time)
          (join-events event)
+         ;; (apply-pre-fn)
          ;; (filter-by-count-aggressive max-count)
          (filter event-count-ok?)
-         (filter-idiomatic)
          (filter-parts-by-count)
-         (filter-by-time-in-chord max-lingering)
-         (filter-by-dissonance-value diss-value))))
+         ;; (filter-idiomatic)
+         ;; (filter-by-time-in-chord max-lingering)
+         (filter-by-dissonance-value diss-params))))
 
 (defn extend-events
   [diss-fn-params events]
   (-> (handle-dissonance diss-fn-params)
       (reductions [] events)
       (rest)))
+
+;; add new event
+;; apply hard filters
+
+;; try to accept
+;; try to remove the oldest
+;; if not working, remove the most dissonant and recur
+
 
 ;;-----------------------------------------------------------------------------
 ;; Modify durations.
