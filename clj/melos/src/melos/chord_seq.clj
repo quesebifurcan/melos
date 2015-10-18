@@ -348,14 +348,18 @@
   (fn [events event]
     (->> events
          (forward-time)
+
          (join-events event)
          ;; (apply-pre-fn)
          ;; (filter-by-count-aggressive max-count)
+
          (filter event-count-ok?)
          (filter-parts-by-count)
          ;; (filter-idiomatic)
          ;; (filter-by-time-in-chord max-lingering)
-         (filter-by-dissonance-value diss-params))))
+
+         (filter-by-dissonance-value diss-params)
+         )))
 
 (defn extend-events
   [diss-fn-params events]

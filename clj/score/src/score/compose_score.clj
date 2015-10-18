@@ -47,13 +47,13 @@
 
 (defn compose-parts
   [measures tempo part-names event-seq]
-  (let [head (stepwise-mod/maybe-split-vertical-moment 
+  (let [head (stepwise-mod/maybe-split-vertical-moment
               (first event-seq))
         event-seq-mod (concat head (rest event-seq))]
-  (->> event-seq-mod
-       (rhythm-tree/extend-last 7/4)
-       (rhythm-tree/make-r-tree measures)
-       (part/compose-part tempo part-names))))
+    (->> event-seq-mod
+         (rhythm-tree/extend-last 3/4)
+         (rhythm-tree/make-r-tree measures)
+         (part/compose-part tempo part-names))))
 
 (defn make-overlaps [pitches]
   (->> pitches
@@ -73,19 +73,26 @@
    :duration [1/4]})
 
 (defn upper
-  [part-name transposition]
-  {:pitch [[0] [0 7] [0 7 12] [0 7 12] [7 12] [12] [-1] [-1 0] [-1 0 2]]
+  [part-name transposition dur]
+  {:pitch [
+           ;; [0] [0 7] [0 7 12] [0 7 12] [7 12] [12]
+           ;; [0] [0 2] [0 2 5] [0 2 5]
+           [0] [0 7] [0 7 14] [0 7 9 14]
+           ]
    :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
    :partition (partial utils/cyclic-partition [1])
-   :max-part-count [3]
+   :max-part-count [4]
    :merge-left? [true]
    :merge-right? [true]
-   :duration [1/4]})
+   :duration [dur]})
+
+;; (first
+;;  (utils/unfold-events (upper :upper 0)))
 
 (defn diatonic-ped
-  [part-name transposition]
-  {:pitch (->> (range 10 0 -1)
+  [pitches part-name transposition]
+  {:pitch (->> pitches
                (utils/transpose transposition)
                (map (fn [x] [x])))
                ;; (make-overlaps))
@@ -100,7 +107,8 @@
 
 (defn diatonic-ped-2
   [part-name transposition]
-  {:pitch (->> (range 8 0 -1)
+  ;; {:pitch (->> (range 8 0 -1)
+  {:pitch (->> (range -4 8)
                (utils/transpose transposition)
                (map (fn [x] [x])))
    :part [part-name]
@@ -111,20 +119,135 @@
    :merge-right? [true]
    :duration [1/4]})
 
+;; (def event-seqs
+;;   {:upper {:pitch [[0] [0 7] [0 7 12] [0 7 12] [7 12] [12] [-1] [-1 0] [-1 0 2]]
+;;            :part [:upper]
+;;            :fn utils/make-chord-from-pitch-vector-params
+;;            :partition (partial utils/cyclic-partition [1])
+;;            :max-part-count [3]
+;;            :merge-left? [true]
+;;            :merge-right? [true]
+;;            :duration [1/4]}
+;;    :lower {:pitch (->> pitches
+;;                        (utils/transpose transposition)
+;;                        (map (fn [x] [x])))
+;;            ;; (make-overlaps))
+;;            :part [part-name]
+;;            :fn utils/make-chord-from-pitch-vector-params
+;;            :partition (partial utils/cyclic-partition [2])
+;;            :max-part-count [1]
+;;            ;; :max-lingering [200]
+;;            :merge-left? [true]
+;;            :merge-right? [true]
+;;            :duration [1/4]}
+;;    :ped {:pitch (->> [0 2 11 17 16 1 1 1 1 1 1]
+;;                      (utils/transpose 2)
+;;                      (map (fn [x] [x])))
+;;          :part [part-name]
+;;          :fn utils/make-chord-from-pitch-vector-params
+;;          :partition (partial utils/cyclic-partition [1])
+;;          :max-part-count [1]
+;;          :merge-left? [true]
+;;          :merge-right? [true]
+;;          :duration [1/4]}
+
+;; (let [a [
+;;          [[0] [0 1] [0 2]]
+;;          [[2] [2 3] [2 4]]
+;;          ]
+;;       grp (fn [x] [x])
+;;       b (map grp (range 20))
+;;       c [0 7 12 0 7 12 14 2 7 2 7 9 14 2 7 9 12 0 7]
+;;       d (map (comp grp grp) c)
+;;       e [[7] [7 5] [7 4] [4 5] [3 5] [2 5] [2 4] [4 1]]
+;;       f [[0] [0 12] [0 9 12] [0 7 12] [0 7 9 12]]
+;;       ]
+;;   f)
+
+(defn make-phrase
+  [chords]
+  (map (fn [chord]
+         (let [group (gensym "G__")]
+           (map (fn [pitch]
+                  (note/make-note {:pitch pitch :group group :part :upper :max-part-count 3}))
+                chord)))
+       chords))
+
+(defn split-at-pcs
+  [scale]
+  (partition-by (fn [pitch] (contains? #{0 2 4 7} pitch)) scale))
+
+;; (->>
+;;  (partition 3
+;;             3
+;;             []
+;;             (split-at-pcs (range 0 12)))
+;;  (map #(apply concat %)))
+
+(defn build-chord
+  [pitches]
+  (rest (reductions conj [] pitches)))
+
+(def test-pitches
+  (->> [[0 2] [2 4] [4 7] [4 6]]
+       (map (fn [x] (apply range x)))
+       (map build-chord)
+       (map make-phrase)))
+
 (def materials
-  {:upper [
-           (utils/unfold-events (upper :upper -3))
-           (utils/unfold-events (upper :upper 3))
-           ]
-   :lower [
-           (utils/unfold-events (diatonic-ped :lower -7))
-           (utils/unfold-events (diatonic-ped :lower -5))
-           ]
-   :ped [
-         (utils/unfold-events (diatonic-ped-2 :ped -20))
-         (utils/unfold-events (diatonic-ped-2 :ped -10))
-         ]
-   :melodic-indices [(take 50 (cycle [:upper :lower :ped]))]
+  {:upper
+           ;; test-pitches
+           ;; (utils/unfold-events (upper :upper -3))
+
+           ;; (utils/unfold-events (diatonic-ped (range 10) :upper -3))
+           ;; (utils/unfold-events (diatonic-ped (range 10) :upper -1))
+           ;; (utils/unfold-events (diatonic-ped (range 10) :upper 1))
+
+           ;; (utils/unfold-events (diatonic-ped (range 0 10 2) :upper -3))
+           ;; (utils/unfold-events (diatonic-ped (range 0 10 2) :upper -1))
+           ;; (utils/unfold-events (diatonic-ped (range 0 10 2) :upper 1))
+
+           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -5))
+           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -4))
+           ;; (map make-phrase (cycle [[[0] [0 1] [0 2]] [[2] [2 3] [2 4]] [[4] [4 5]]]))
+           ;; (map make-phrase (cycle [[[0] [0 1] [0 2]] [[2] [2 3] [2 4]] [[4] [4 5]]]))
+           ;; (map make-phrase (cycle [[[0] [0 1] [0 2]] [[-3 9]]]))
+           ;; (utils/unfold-events (upper :upper 3))
+   [
+    (utils/unfold-events (upper :upper -1 1/4))
+    ;; (utils/unfold-events (upper :upper -2 1/4))
+    ;; (utils/unfold-events (upper :upper -3 1/4))
+    ;; (utils/unfold-events (upper :upper -4 1/4))
+    ;; (utils/unfold-events (upper :upper -5 1/4))
+    ;; (utils/unfold-events (upper :upper -6 1/4))
+    ]
+   ;; (concat
+   ;;  (map (fn [offset] (drop offset
+   ;;                          (utils/unfold-events (upper :upper -3 1/4))))
+   ;;       (range 4))
+   ;;  (map (fn [offset] (drop offset
+   ;;                          (utils/unfold-events (upper :upper -3 2/4))))
+   ;;       (range 4)))
+
+   :lower (map (fn [offset] (drop offset
+                                  (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
+                                  (range 8))
+           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -6))
+           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -5))
+           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -4))
+   :ped (map (fn [offset] (drop offset
+                                (utils/unfold-events (diatonic-ped-2 :ped -20))))
+             (range 20))
+   ;; :ped [
+   ;;       (utils/unfold-events (diatonic-ped-2 :ped -20))
+   ;;       ;; (utils/unfold-events (diatonic-ped-2 :ped -19))
+   ;;       ;; (utils/unfold-events (diatonic-ped-2 :ped -18))
+   ;;       ;; (utils/unfold-events (diatonic-ped-2 :ped -17))
+   ;;       ]
+   :melodic-indices [
+                     ;; (take 50 (cycle [:upper :lower :ped]))
+                     (take 20 (cycle [:upper :lower :ped]))
+                     ]
    })
 
 (defn make-chord-seq
@@ -135,8 +258,9 @@
     (chord-seq/collect-events-in-segment melodic-indices
                                          melody-sources-atom)))
 
-(def chord-seqs
-  (->> materials
+(defn chord-seqs
+  [source]
+  (->> source
        (combinations/unfold-parameters)
        (map make-chord-seq)))
 
@@ -144,6 +268,7 @@
   {:check (fn [events]
             (<= (chord/scaled-dissonance-value (map :pitch events))
                 (chord/scaled-dissonance-value [0 2 4 5])))})
+                ;; 1000))})
 
 (defn initial-state
   [events]
@@ -152,7 +277,7 @@
                     :max-lingering 300
                     ;; TODO: pass on diss-value
                     :diss-params diss-params}
-   :tempo 120
+   :tempo 200
    :measures [measures/measure-4]
    :pre []
    ;; :post [(partial rhythm-tree/extend-last 7/4)]
@@ -173,36 +298,152 @@
 
 (defn filter-events-fn
   [events]
-  (and (>= (count events) 5)
+  (and (>= (count events) 8)
        (every? (partial part-count-sufficient? 3) events)))
 
-(defn compose []
+(defn average-pitch
+  [vertical-moments]
+  (let [pitches (map :pitch (flatten vertical-moments))]
+    (/ (apply + pitches)
+       (count pitches))))
+
+(defn distinct-by
+  "Returns a lazy sequence of the elements of coll, removing any elements that
+    return duplicate values when passed to a function f."
+  [f coll]
+  (let [step (fn step [xs seen]
+               (lazy-seq
+                ((fn [[x :as xs] seen]
+                   (when-let [s (seq xs)]
+                     (let [fx (f x)]
+                       (if (contains? seen fx)
+                         (recur (rest s) seen)
+                         (cons x (step (rest s) (conj seen fx)))))))
+                 xs seen)))]
+    (step coll #{})))
+
+(defn pitch-profile
+  [vertical-moments]
+  (map (fn [x] (map :pitch x)) vertical-moments))
+
+(require '[progressbar.core :refer [progressbar]])
+;; user> (doall (map identity (progressbar (range 10) :print-every 2)))
+
+(defn calculate-sequences [chord-seqs]
   (let [states (map initial-state chord-seqs)]
-  (->> states
-       (map compose-event-seq)
-       ;; (first)
-       ;; (map (partial compose-parts
-       ;;               [measures/measure-4]
-       ;;               120
-       ;;               [:upper :lower :ped])))))
-       ;; (partition-by
-       ;;  (partial part-count-sufficient? 2))
-       (apply concat)
-       (partition-by partition-events-fn)
-       (filter filter-events-fn)
-       ;; (apply concat)
-       (map (partial compose-parts
-                     [measures/measure-4]
-                     120
-                     [:upper :lower :ped]))
-       ;; (map (fn [x]
-       ;;        (map (comp count parts-in-chord) x)))
-       ;; (map (fn [x] (count x)))
+  (->>
+       (map compose-event-seq (progressbar (into [] states)))
+
+       ((fn [x]
+          (do (println "\nNumber of generated phrases:" (count x))
+              x)))
+
+       (mapcat (fn [x]
+                 (->> x
+                      (partition-by partition-events-fn)
+                      (filter filter-events-fn)
+                      (take 1)
+                      )))
+
+       ((fn [x]
+          (do (println "Number of items before uniquify:" (count x))
+              x)))
+
+       (distinct-by pitch-profile)
+
+       ((fn [x]
+          (do (println "Number of items after uniquify:" (count x))
+              x)))
+
+       (sort-by (fn [x] (let [pitches (map :pitch (first x))]
+                          (/ (apply + pitches) (count pitches)))))
+
+       (take 10)
        )))
 
+(defn new-session
+  [name sources]
+  (spit
+   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" name ".edn")
+   (prn-str (calculate-sequences (chord-seqs sources)))))
+
+(def sessions
+  {
+   "testing" materials
+   "testing-2" materials
+   })
+
+(defn calc-all-sessions
+  []
+  (map (fn [[k v]]
+         (new-session k v))
+       sessions))
+
+(use 'clojure.data)
+(require 'clojure.edn)
+
+(defn compose []
+  (let
+      [data
+       (concat
+        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+        )
+       ]
+    (map (partial compose-parts
+                  [measures/measure-4]
+                  200
+                  [:upper :lower :ped])
+         data)
+    ))
+
+
+;; (calc-all-sessions)
+;; (compose)
+
+
+;; (utils/read-json-file
+;;  (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".json"))
+;; (file-seq (clojure.java.io/file "../../analysis"))
+
+
+;; (count
+;; (compose (calculate-sequences)))
+
+;; most expensive functions: handle-dissonance, chord-seq/merge-horizontally
+
+;; (->>
+;;  (compose)
+;;  (count))
+
+
+;; (time
+;;  (->> (compose)
+;;       (count))
+;;  )
+
+
+;; (compose)
+
 ;; measures tempo part-names
-
-(compose)
-
+;; (compose)
 ;; (partition-by #(>= % 3)
 ;;               [0 1 3 3 2 4 3 3 3 1 2 4 2 3 3 3 2])
+
+;; (defn asdf
+;;   [pitches]
+;;   {:pitch (->> [0 1 2 3 4 5 6]
+;;                (utils/transpose 10)
+;;                (map (fn [x] [x])))
+;;    :part [:upper]
+;;    :fn utils/make-chord-from-pitch-vector-params
+;;    :partition (partial utils/cyclic-partition [2])
+;;    :max-part-count [1]
+;;    :merge-left? [true]
+;;    :merge-right? [true]
+;;    :duration [1/4]})
+
+;; (asdf 1234)

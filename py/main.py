@@ -135,9 +135,11 @@ def main():
     parser.add_argument('midi_out')
     args = parser.parse_args()
 
+    print "Loading {}".format(args.input_file)
     with open(args.input_file, 'r') as infile:
         score_segments = json.load(infile)
 
+    print "Creating staves and instruments..."
     upper_staff = Staff()
     lower_staff = Staff()
     ped_staff = Staff()
@@ -165,7 +167,9 @@ def main():
         'ped': ped_staff,
     }
     tempo = None
-    for segment in score_segments:
+    print "Parsing score..."
+    for i, segment in enumerate(score_segments):
+        print "    parsing segment {}...".format(i)
         parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
         if tempo == curr_tempo:
             curr_tempo = None
@@ -176,6 +180,7 @@ def main():
             events = part.get('events')
             top = named_staff_dict.get(part_name)
             is_measure_root = True
+            # print '        parsing part "{}"...'.format(part_name)
             for node in events.get('children'):
                 interpret_node(
                     top,
@@ -223,6 +228,7 @@ def main():
 
 
     score = Score([manuals_group, ped_staff])
+    print "Apply score overrides..."
     apply_score_overrides(score)
 
     lilypond_file = make_lilypond_file(
@@ -231,8 +237,9 @@ def main():
         args.author,
     )
 
-    # import sys; sys.exit()
+    print "Persist score as pdf..."
     persist(lilypond_file).as_pdf(args.score_out)
+    print "Persist score as midi..."
     persist(lilypond_file).as_midi(args.midi_out)
 
 
