@@ -15,6 +15,9 @@
              [measures :as measures]
              [stepwise-mod :as stepwise-mod]]))
 
+(use 'clojure.data)
+(require 'clojure.edn)
+
 ;;-----------------------------------------------------------------------------
 ;; SCORE
 
@@ -196,58 +199,26 @@
 
 (def materials
   {:upper
-           ;; test-pitches
-           ;; (utils/unfold-events (upper :upper -3))
-
-           ;; (utils/unfold-events (diatonic-ped (range 10) :upper -3))
-           ;; (utils/unfold-events (diatonic-ped (range 10) :upper -1))
-           ;; (utils/unfold-events (diatonic-ped (range 10) :upper 1))
-
-           ;; (utils/unfold-events (diatonic-ped (range 0 10 2) :upper -3))
-           ;; (utils/unfold-events (diatonic-ped (range 0 10 2) :upper -1))
-           ;; (utils/unfold-events (diatonic-ped (range 0 10 2) :upper 1))
-
-           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -5))
-           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -4))
-           ;; (map make-phrase (cycle [[[0] [0 1] [0 2]] [[2] [2 3] [2 4]] [[4] [4 5]]]))
-           ;; (map make-phrase (cycle [[[0] [0 1] [0 2]] [[2] [2 3] [2 4]] [[4] [4 5]]]))
-           ;; (map make-phrase (cycle [[[0] [0 1] [0 2]] [[-3 9]]]))
-           ;; (utils/unfold-events (upper :upper 3))
-   [
-    (utils/unfold-events (upper :upper -1 1/4))
-    ;; (utils/unfold-events (upper :upper -2 1/4))
-    ;; (utils/unfold-events (upper :upper -3 1/4))
-    ;; (utils/unfold-events (upper :upper -4 1/4))
-    ;; (utils/unfold-events (upper :upper -5 1/4))
-    ;; (utils/unfold-events (upper :upper -6 1/4))
-    ]
-   ;; (concat
-   ;;  (map (fn [offset] (drop offset
-   ;;                          (utils/unfold-events (upper :upper -3 1/4))))
-   ;;       (range 4))
-   ;;  (map (fn [offset] (drop offset
-   ;;                          (utils/unfold-events (upper :upper -3 2/4))))
-   ;;       (range 4)))
-
+   [(utils/unfold-events (upper :upper -1 1/4))]
    :lower (map (fn [offset] (drop offset
                                   (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
                                   (range 8))
-           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -6))
-           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -5))
-           ;; (utils/unfold-events (diatonic-ped (range 10) :lower -4))
    :ped (map (fn [offset] (drop offset
                                 (utils/unfold-events (diatonic-ped-2 :ped -20))))
              (range 20))
-   ;; :ped [
-   ;;       (utils/unfold-events (diatonic-ped-2 :ped -20))
-   ;;       ;; (utils/unfold-events (diatonic-ped-2 :ped -19))
-   ;;       ;; (utils/unfold-events (diatonic-ped-2 :ped -18))
-   ;;       ;; (utils/unfold-events (diatonic-ped-2 :ped -17))
-   ;;       ]
-   :melodic-indices [
-                     ;; (take 50 (cycle [:upper :lower :ped]))
-                     (take 20 (cycle [:upper :lower :ped]))
-                     ]
+   :melodic-indices [(take 20 (cycle [:upper :lower :ped]))]
+   })
+
+(def materials-2
+  {:upper
+   [(utils/unfold-events (upper :upper 8 1/4))]
+   :lower (map (fn [offset] (drop offset
+                                  (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
+               (range 8))
+   :ped (map (fn [offset] (drop offset
+                                (utils/unfold-events (diatonic-ped-2 :ped -13))))
+             (range 20))
+   :melodic-indices [(take 20 (cycle [:upper :lower :ped]))]
    })
 
 (defn make-chord-seq
@@ -370,7 +341,7 @@
 (def sessions
   {
    "testing" materials
-   "testing-2" materials
+   "testing-2" materials-2
    })
 
 (defn calc-all-sessions
@@ -379,18 +350,11 @@
          (new-session k v))
        sessions))
 
-(use 'clojure.data)
-(require 'clojure.edn)
-
 (defn compose []
   (let
       [data
        (concat
-        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+        (clojure.edn/read-string (slurp (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-2" ".edn")))
         )
        ]
     (map (partial compose-parts

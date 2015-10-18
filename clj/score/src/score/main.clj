@@ -12,5 +12,3 @@
   (time
      (utils/export-to-json output-path
                            (compose-score-1/compose))))
-
-(-main "/Users/fred/Desktop/score.json")
