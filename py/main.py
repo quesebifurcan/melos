@@ -5,6 +5,8 @@ import json
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
+from termcolor import colored
+
 # TODO: Add additional info to each segment (stylistic indications, tempi etc.)
 
 def is_tuplet(d):
@@ -135,11 +137,11 @@ def main():
     parser.add_argument('midi_out')
     args = parser.parse_args()
 
-    print "Loading {}".format(args.input_file)
+    print colored("Loading {}".format(args.input_file), 'cyan')
     with open(args.input_file, 'r') as infile:
         score_segments = json.load(infile)
 
-    print "Creating staves and instruments..."
+    print colored("Creating staves and instruments...", 'cyan')
     upper_staff = Staff()
     lower_staff = Staff()
     ped_staff = Staff()
@@ -167,9 +169,9 @@ def main():
         'ped': ped_staff,
     }
     tempo = None
-    print "Parsing score..."
+    print colored("Parsing score...", 'cyan')
     for i, segment in enumerate(score_segments):
-        print "    parsing segment {}...".format(i)
+        print colored("    parsing segment {}...".format(i), 'green')
         parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
         if tempo == curr_tempo:
             curr_tempo = None
@@ -228,7 +230,7 @@ def main():
 
 
     score = Score([manuals_group, ped_staff])
-    print "Apply score overrides..."
+    print colored("Apply score overrides...", 'cyan')
     apply_score_overrides(score)
 
     lilypond_file = make_lilypond_file(
@@ -237,9 +239,9 @@ def main():
         args.author,
     )
 
-    print "Persist score as pdf..."
+    print colored("Persist score as pdf...", 'cyan')
     persist(lilypond_file).as_pdf(args.score_out)
-    print "Persist score as midi..."
+    print colored("Persist score as midi...", 'cyan')
     persist(lilypond_file).as_midi(args.midi_out)
 
 
