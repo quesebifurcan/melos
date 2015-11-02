@@ -354,7 +354,8 @@
          ;; (filter-by-count-aggressive max-count)
 
          (filter event-count-ok?)
-         (filter-parts-by-count)
+
+         ;; (filter-parts-by-count)
          ;; (filter-idiomatic)
          ;; (filter-by-time-in-chord max-lingering)
 

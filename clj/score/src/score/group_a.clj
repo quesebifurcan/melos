@@ -15,21 +15,16 @@
            form))
    forms))
 
-(transpose-all-numbers -1
-                       [[0] [1] [2] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]])
-
-
 (defn upper
   [{:keys [part-name transposition dur]}]
   {:pitch (transpose-all-numbers transposition [
-           [0] [1] [2] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]
+           [0] [1 8] [2 8] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]
            ])
    :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
    :partition (partial utils/cyclic-partition [3 3 3 4])
-   :max-part-count [4]
-   ;; :merge-left? [true]
-   ;; :merge-right? [true]
+   :merge-left? [false]
+   :merge-right? [false]
    :duration [dur]})
 
 (defn diatonic-ped
@@ -41,7 +36,6 @@
    :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
    :partition (partial utils/cyclic-partition [2])
-   :max-part-count [1]
    ;; :max-lingering [200]
    ;; :merge-left? [true]
    ;; :merge-right? [true]
@@ -49,7 +43,6 @@
 
 (defn diatonic-ped-2
   [part-name transposition]
-  ;; {:pitch (->> (range 8 0 -1)
   {:pitch (->> (range -4 8)
                (utils/transpose transposition)
                (map (fn [x] [x])))
