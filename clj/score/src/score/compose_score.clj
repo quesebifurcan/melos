@@ -181,9 +181,9 @@
         (clojure.edn/read-string
          (slurp
           (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        (clojure.edn/read-string
-         (slurp
-          (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
+        ;; (clojure.edn/read-string
+        ;;  (slurp
+        ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
         ;; (clojure.edn/read-string
         ;;  (slurp
         ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
