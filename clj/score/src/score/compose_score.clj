@@ -207,3 +207,7 @@
              [measures/measure-3]])
 
     ))
+
+;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
+
+;; Superfluous time signatures?

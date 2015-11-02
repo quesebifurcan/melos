@@ -22,10 +22,7 @@
 (defn upper
   [{:keys [part-name transposition dur]}]
   {:pitch (transpose-all-numbers transposition [
-           ;; [0] [0 7] [0 7 14] [0 7 9 14]
            [0] [1] [2] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]
-           ;; [-1] [0] [1] [6] [7] [8] [0] [1] [2] [-8] [-7] [-6] [-5]
-            ;; [-1] [0] [1] [6] [7] [8] [0] [1] [2] [-6] [-5] [-4] [-3]
            ])
    :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
@@ -33,7 +30,7 @@
    :max-part-count [4]
    ;; :merge-left? [true]
    ;; :merge-right? [true]
-   :duration [1/4]})
+   :duration [dur]})
 
 (defn diatonic-ped
   [pitches part-name transposition]
@@ -65,16 +62,19 @@
    :duration [1/4]})
 
 (def materials
-  {:upper
-   (map (fn [x]
-          (utils/unfold-events (upper x)))
-        (unfold-parameters
-         {:part-name [:upper] :transposition [-1 0 2 3] :dur [2/4]})
-        )
+  {
+   :upper (->> {:part-name [:upper]
+                :transposition [-1 0 2 3]
+                :dur [1/4]}
+               (unfold-parameters)
+               (map (comp utils/unfold-events upper)))
+
    :lower (map (fn [offset] (drop offset
                                   (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
-                                  (range 8))
+                                  (range 4))
+
    :ped (map (fn [offset] (drop offset
                                 (utils/unfold-events (diatonic-ped-2 :ped -20))))
-             (range 20))
+             (range 4))
+
    :melodic-indices [(take 20 (cycle [:upper :lower :ped]))]})
