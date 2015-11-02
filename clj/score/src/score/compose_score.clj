@@ -119,6 +119,13 @@
   [vertical-moments]
   (map (fn [x] (map :pitch x)) vertical-moments))
 
+(defn max-pitch
+  [vertical-moments]
+  (->> vertical-moments
+       (pitch-profile)
+       (flatten)
+       (apply max)))
+
 (require '[progressbar.core :refer [progressbar]])
 
 (defn calculate-sequences [chord-seqs]
@@ -147,8 +154,7 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
-       (sort-by (fn [x] (let [pitches (map :pitch (first x))]
-                          (/ (apply + pitches) (count pitches)))))
+       (sort-by max-pitch)
 
        )))
 
@@ -201,4 +207,3 @@
              [measures/measure-3]])
 
     ))
-

@@ -7,20 +7,26 @@
 
 (defn transpose-all-numbers
   [step forms]
-  (clojure.walk/prewalk
+  (clojure.walk/postwalk
    (fn [form]
      (cond (number? form)
-           (+ step form)
+           (+ form step)
            :else
            form))
    forms))
 
+(transpose-all-numbers -1
+                       [[0] [1] [2] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]])
+
+
 (defn upper
   [{:keys [part-name transposition dur]}]
-  {:pitch [
+  {:pitch (transpose-all-numbers transposition [
            ;; [0] [0 7] [0 7 14] [0 7 9 14]
            [0] [1] [2] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]
-           ]
+           ;; [-1] [0] [1] [6] [7] [8] [0] [1] [2] [-8] [-7] [-6] [-5]
+            ;; [-1] [0] [1] [6] [7] [8] [0] [1] [2] [-6] [-5] [-4] [-3]
+           ])
    :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
    :partition (partial utils/cyclic-partition [3 3 3 4])
@@ -60,7 +66,11 @@
 
 (def materials
   {:upper
-   [(utils/unfold-events (upper {:part-name :upper :transposition -1 :dur 2/4}))]
+   (map (fn [x]
+          (utils/unfold-events (upper x)))
+        (unfold-parameters
+         {:part-name [:upper] :transposition [-1 0 2 3] :dur [2/4]})
+        )
    :lower (map (fn [offset] (drop offset
                                   (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
                                   (range 8))
