@@ -102,7 +102,7 @@
 
 (defn distinct-by
   "Returns a lazy sequence of the elements of coll, removing any elements that
-    return duplicate values when passed to a function f."
+  return duplicate values when passed to a function f."
   [f coll]
   (let [step (fn step [xs seen]
                (lazy-seq
