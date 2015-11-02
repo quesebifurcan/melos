@@ -4,6 +4,16 @@
             [melos
              [utils :as utils]]))
 
+(defn transpose-all-numbers
+  [step forms]
+  (clojure.walk/prewalk
+   (fn [form] 
+     (cond (number? form)
+           (+ step form)
+           :else
+           form))
+   forms))
+
 (comment
   (defn upper
     [part-name transposition dur]
