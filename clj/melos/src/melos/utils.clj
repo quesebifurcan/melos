@@ -126,7 +126,8 @@
   [m]
   (let [f (:fn m)
         partition-fn (:partition m)
-        m (dissoc m :fn :partition)]
+        drop-n (get m :drop-n 0)
+        m (dissoc m :fn :partition :drop-n)]
   (->> (map (fn [x] x)
             (vals m))
        (map cycle)
@@ -134,6 +135,7 @@
        (map (fn [x] (zipmap (keys m) x)))
        (map f)
        (partition-fn)
+       (drop drop-n)
        (map #(s/validate [ms/Chord] %)))))
 
 (defn valid-melodic-indices?

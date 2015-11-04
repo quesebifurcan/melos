@@ -5,7 +5,7 @@
             [melos
              [utils :as utils]]))
 
-(defn transpose-all-numbers
+(defn transpose-all
   [step forms]
   (clojure.walk/postwalk
    (fn [form]
@@ -15,43 +15,36 @@
            form))
    forms))
 
-(def erratic-intervals-1
-  {:pitches [[0]
-             [1 8]
-             [2 8]
-             [7]
-             [8]
-             [9]
-             [1]
-             [2]
-             [3]
-             [-7]
-             [-6]
-             [-5]
-             [-4]]
-   :segmentations {:default [3 3 3 4]}})
-
 (defn upper
-  [{:keys [part-name transposition dur]}]
-  {:pitch (transpose-all-numbers
-           transposition
-           (:pitches erratic-intervals-1))
-   :part [part-name]
-   :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition
-                       (get-in erratic-intervals-1 [:segmentations
-                                                    :default]))
-   :merge-left? [false]
-   :merge-right? [false]
-   :duration dur})
-
-(defn upper-params
   []
-  (->> {:part-name [:upper]
-        :transposition [-1 0 2 3]
-        :dur [[1/4] [2/4]]}
-       (unfold-parameters)
-       (map (comp utils/unfold-events upper))))
+  (letfn [(blueprint [{:keys [part-name
+                              transposition
+                              dur
+                              drop-n]}]
+            {:pitch (transpose-all
+                     transposition
+                     [[0]
+                      [0 7]
+                      [0 9]
+                      [7 9]
+                      [6 9]
+                      [5 9]
+                      [4]
+                      [3]
+                      [2]])
+             :part [part-name]
+             :fn utils/make-chord-from-pitch-vector-params
+             :partition (partial utils/cyclic-partition [2])
+             :merge-left? [false]
+             :merge-right? [false]
+             :drop-n drop-n
+             :duration dur})]
+    (->> {:part-name [:upper]
+          :transposition [-1 0 2 3]
+          :drop-n [0 1 2]
+          :dur [[1/4] [2/4]]}
+         (unfold-parameters)
+         (map (comp utils/unfold-events blueprint)))))
 
 (defn diatonic-ped
   [pitches part-name transposition]
@@ -81,7 +74,7 @@
    :duration [1/4]})
 
 (def materials
-  {:upper (upper-params)
+  {:upper (upper)
    :lower (map (fn [offset] (drop offset
                                   (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
                (range 4))

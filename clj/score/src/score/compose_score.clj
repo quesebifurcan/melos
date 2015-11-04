@@ -165,7 +165,7 @@
        ;; hardcoded
        (sort-by max-pitch)
 
-       (take 5)
+       ;; (take 5)
 
        )))
 
@@ -195,9 +195,9 @@
         (clojure.edn/read-string
          (slurp
           (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        (clojure.edn/read-string
-         (slurp
-          (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
+        ;; (clojure.edn/read-string
+        ;;  (slurp
+        ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
         ]
        ]
 
@@ -217,7 +217,6 @@
              [measures/measure-3]])
 
     ))
-
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
