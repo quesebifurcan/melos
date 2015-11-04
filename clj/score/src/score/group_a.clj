@@ -5,6 +5,10 @@
             [melos
              [utils :as utils]]))
 
+(defn wrap-all-in-vector
+  [xs]
+  (map #(conj [] %) xs))
+
 (defn transpose-all
   [step forms]
   (clojure.walk/postwalk
@@ -21,17 +25,9 @@
                               transposition
                               dur
                               drop-n]}]
-            {:pitch (transpose-all
-                     transposition
-                     [[0]
-                      [0 7]
-                      [0 9]
-                      [7 9]
-                      [6 9]
-                      [5 9]
-                      [4]
-                      [3]
-                      [2]])
+            {:pitch (->> (range 10)
+                         (transpose-all transposition)
+                         (wrap-all-in-vector))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
              :partition (partial utils/cyclic-partition [2])
@@ -46,41 +42,50 @@
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
 
-(defn diatonic-ped
-  [pitches part-name transposition]
-  {:pitch (->> pitches
-               (utils/transpose transposition)
-               (map (fn [x] [x])))
-               ;; (make-overlaps))
-   :part [part-name]
-   :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition [2])
-   ;; :max-lingering [200]
-   ;; :merge-left? [true]
-   ;; :merge-right? [true]
-   :duration [1/4]})
+(defn lower
+  []
+  (letfn [(blueprint [{:keys [part-name
+                              transposition
+                              drop-n
+                              dur]}]
+            {:pitch (->> (range 10)
+                         (utils/transpose transposition)
+                         (wrap-all-in-vector))
+             :part [part-name]
+             :fn utils/make-chord-from-pitch-vector-params
+             :partition (partial utils/cyclic-partition [2])
+             :drop-n drop-n
+             :duration dur})]
+    (->> {:part-name [:lower]
+          :transposition [-7 -6]
+          :drop-n [0 1 2]
+          :dur [[1/4]]}
+         (unfold-parameters)
+         (map (comp utils/unfold-events blueprint)))))
 
-(defn diatonic-ped-2
-  [part-name transposition]
-  {:pitch (->> (range -4 8)
-               (utils/transpose transposition)
-               (map (fn [x] [x])))
-   :part [part-name]
-   :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition [1])
-   :max-part-count [1]
-   ;; :merge-left? [true]
-   ;; :merge-right? [true]
-   :duration [1/4]})
+(defn ped
+  []
+  (letfn [(blueprint [{:keys [part-name
+                              transposition
+                              drop-n
+                              dur]}]
+            {:pitch (->> (range 10)
+                         (utils/transpose transposition)
+                         (wrap-all-in-vector))
+             :part [part-name]
+             :fn utils/make-chord-from-pitch-vector-params
+             :partition (partial utils/cyclic-partition [1])
+             :drop-n drop-n
+             :duration dur})]
+    (->> {:part-name [:ped]
+          :transposition [-20]
+          :drop-n [0 1 2]
+          :dur [[1/4]]}
+         (unfold-parameters)
+         (map (comp utils/unfold-events blueprint)))))
 
 (def materials
   {:upper (upper)
-   :lower (map (fn [offset] (drop offset
-                                  (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
-               (range 4))
-
-   :ped (map (fn [offset] (drop offset
-                                (utils/unfold-events (diatonic-ped-2 :ped -20))))
-             (range 4))
-
+   :lower (lower)
+   :ped (ped)
    :melodic-indices [(take 20 (cycle [:upper :lower :ped]))]})
