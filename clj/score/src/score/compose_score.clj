@@ -46,12 +46,14 @@
               (first event-seq))
         event-seq-mod (concat head (rest event-seq))]
     (->> event-seq-mod
+         ;; hardcoded
          (rhythm-tree/extend-last 3/4)
          (rhythm-tree/make-r-tree measures)
          (part/compose-part tempo part-names))))
 
 (defn make-chord-seq
   [{:keys [upper lower ped melodic-indices]}]
+  ;; hardcoded
   (let [melody-sources-atom (atom {:lower lower
                                    :upper upper
                                    :ped ped})]
@@ -67,6 +69,7 @@
 (def diss-params
   {:check (fn [events]
             (<= (chord/scaled-dissonance-value (map :pitch events))
+                ;; hardcoded
                 (chord/scaled-dissonance-value [0 2 4 5])))})
 
 (defn initial-state
@@ -87,14 +90,17 @@
   [chord]
   (set (map :part chord)))
 
+;; hardcoded
 (defn part-count-sufficient?
   [minimum chord]
   (let [part-count ((comp count parts-in-chord) chord)]
     (= part-count minimum)))
 
+;; hardcoded
 (def partition-events-fn
   (partial part-count-sufficient? 3))
 
+;; hardcoded
 (defn filter-events-fn
   [events]
   (and (>= (count events) 8)
@@ -137,6 +143,7 @@
           (do (println "\nNumber of generated phrases:" (count x))
               x)))
 
+       ;; hardcoded
        (mapcat (fn [x]
                  (->> x
                       (partition-by partition-events-fn)
@@ -148,13 +155,17 @@
           (do (println "Number of items before uniquify:" (count x))
               x)))
 
+       ;; hardcoded
        (distinct-by pitch-profile)
 
        ((fn [x]
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
+       ;; hardcoded
        (sort-by max-pitch)
+
+       (take 5)
 
        )))
 
@@ -162,7 +173,6 @@
   {
    "testing" group-a/materials
    "testing-b" group-b/materials
-   ;; "testing-2" materials-2
    })
 
 (defn new-session
@@ -181,32 +191,33 @@
   (let
       [data
         [
-         ;; (clojure.edn/read-string
-         ;; (slurp
-         ;;  (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-2" ".edn")))
+        ;; hardcoded
         (clojure.edn/read-string
          (slurp
           (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
-        ;; (clojure.edn/read-string
-        ;;  (slurp
-        ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
-        ;; (clojure.edn/read-string
-        ;;  (slurp
-        ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
+        (clojure.edn/read-string
+         (slurp
+          (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
         ]
        ]
 
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
+                            ;; hardcoded
                             200
+                            ;; hardcoded
                             [:upper :lower :ped])
                    x))
             data
+            ;; How combine materials from different sessions?
+            ;; Interleave?
+            ;; [(shuffle (apply concat data))]
             [[measures/measure-4]
              [measures/measure-3]])
 
     ))
+
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 

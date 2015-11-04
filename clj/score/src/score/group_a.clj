@@ -15,17 +15,43 @@
            form))
    forms))
 
+(def erratic-intervals-1
+  {:pitches [[0]
+             [1 8]
+             [2 8]
+             [7]
+             [8]
+             [9]
+             [1]
+             [2]
+             [3]
+             [-7]
+             [-6]
+             [-5]
+             [-4]]
+   :segmentations {:default [3 3 3 4]}})
+
 (defn upper
   [{:keys [part-name transposition dur]}]
-  {:pitch (transpose-all-numbers transposition [
-           [0] [1 8] [2 8] [7] [8] [9] [1] [2] [3] [-7] [-6] [-5] [-4]
-           ])
+  {:pitch (transpose-all-numbers
+           transposition
+           (:pitches erratic-intervals-1))
    :part [part-name]
    :fn utils/make-chord-from-pitch-vector-params
-   :partition (partial utils/cyclic-partition [3 3 3 4])
+   :partition (partial utils/cyclic-partition
+                       (get-in erratic-intervals-1 [:segmentations
+                                                    :default]))
    :merge-left? [false]
    :merge-right? [false]
-   :duration [dur]})
+   :duration dur})
+
+(defn upper-params
+  []
+  (->> {:part-name [:upper]
+        :transposition [-1 0 2 3]
+        :dur [[1/4] [2/4]]}
+       (unfold-parameters)
+       (map (comp utils/unfold-events upper))))
 
 (defn diatonic-ped
   [pitches part-name transposition]
@@ -55,16 +81,10 @@
    :duration [1/4]})
 
 (def materials
-  {
-   :upper (->> {:part-name [:upper]
-                :transposition [-1 0 2 3]
-                :dur [1/4]}
-               (unfold-parameters)
-               (map (comp utils/unfold-events upper)))
-
+  {:upper (upper-params)
    :lower (map (fn [offset] (drop offset
                                   (utils/unfold-events (diatonic-ped (range 10) :lower -7))))
-                                  (range 4))
+               (range 4))
 
    :ped (map (fn [offset] (drop offset
                                 (utils/unfold-events (diatonic-ped-2 :ped -20))))
