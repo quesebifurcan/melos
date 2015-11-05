@@ -37,7 +37,7 @@
              :duration dur})]
     (->> {:part-name [:upper]
           :transposition [-1 0 2 3]
-          :drop-n [0 1 2]
+          :drop-n [0 1]
           :dur [[1/4] [2/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -58,7 +58,7 @@
              :duration dur})]
     (->> {:part-name [:lower]
           :transposition [-7 -6]
-          :drop-n [0 1 2]
+          :drop-n [0 1]
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))

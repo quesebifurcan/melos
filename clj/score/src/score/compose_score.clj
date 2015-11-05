@@ -66,26 +66,6 @@
        (combinations/unfold-parameters)
        (map make-chord-seq)))
 
-(def diss-params
-  {:check (fn [events]
-            (<= (chord/scaled-dissonance-value (map :pitch events))
-                ;; hardcoded
-                (chord/scaled-dissonance-value [0 2 4 5])))})
-
-(defn initial-state
-  [events]
-  {:events events
-   :diss-fn-params {:max-count 100
-                    :max-lingering 300
-                    ;; TODO: pass on diss-value
-                    :diss-params diss-params}
-   :tempo 200
-   :measures [measures/measure-4]
-   :pre []
-   ;; :post [(partial rhythm-tree/extend-last 7/4)]
-   :post []
-   :part-names [:upper :lower :ped]})
-
 (defn parts-in-chord
   [chord]
   (set (map :part chord)))
@@ -134,8 +114,14 @@
 
 (require '[progressbar.core :refer [progressbar]])
 
-(defn calculate-sequences [chord-seqs]
-  (let [states (map initial-state chord-seqs)]
+(defn calculate-sequences
+  [{:keys [filter-fn
+           distinct-by-fn
+           chord-seqs
+           initial-state-fn
+           sort-by-fn]}]
+  (let [states (map initial-state-fn (make-chord-seqs chord-seqs))]
+
   (->>
        (map compose-event-seq (progressbar (into [] states)))
 
@@ -143,29 +129,19 @@
           (do (println "\nNumber of generated phrases:" (count x))
               x)))
 
-       ;; hardcoded
-       (mapcat (fn [x]
-                 (->> x
-                      (partition-by partition-events-fn)
-                      (filter filter-events-fn)
-                      (take 1)
-                      )))
+       (mapcat filter-fn)
 
        ((fn [x]
           (do (println "Number of items before uniquify:" (count x))
               x)))
 
-       ;; hardcoded
-       (distinct-by pitch-profile)
+       (distinct-by distinct-by-fn)
 
        ((fn [x]
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
-       ;; hardcoded
-       (sort-by max-pitch)
-
-       ;; (take 5)
+       (sort-by sort-by-fn)
 
        )))
 
@@ -175,17 +151,53 @@
    "testing-b" group-b/materials
    })
 
+(def diss-params
+  {:check (fn [events]
+            (<= (chord/scaled-dissonance-value (map :pitch events))
+                ;; hardcoded
+                (chord/scaled-dissonance-value [0 2 4 5])))})
+
+(defn initial-state
+  [events]
+  {:events events
+   :diss-fn-params {:max-count 100
+                    :max-lingering 300
+                    ;; TODO: pass on diss-value
+                    :diss-params diss-params}
+   :tempo 200
+   :measures [measures/measure-4]
+   :pre []
+   :post []
+   :part-names [:upper :lower :ped]})
+
+(def session-config
+  {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing.edn"
+   :params {:filter-fn (fn [x]
+                         (->> x
+                              (partition-by partition-events-fn)
+                              (filter filter-events-fn)
+                              (take 1)))
+            :distinct-by-fn pitch-profile
+            :chord-seqs group-a/materials
+            :initial-state-fn initial-state
+            :sort-by-fn max-pitch}
+   })
+
 (defn new-session
-  [name sources]
+  [{:keys [params persist-to]}]
   (spit
-   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" name ".edn")
-   (prn-str (calculate-sequences (make-chord-seqs sources)))))
+   persist-to
+   (prn-str (calculate-sequences params))))
 
 (defn calc-all-sessions
   []
-  (map (fn [[k v]]
-         (new-session k v))
-       sessions))
+  (new-session session-config))
+
+;; (defn calc-all-sessions
+;;   []
+;;   (map (fn [[k v]]
+;;          (new-session k v))
+;;        sessions))
 
 (defn compose []
   (let
@@ -221,3 +233,5 @@
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
 ;; Superfluous time signatures?
+
+(calc-all-sessions)
