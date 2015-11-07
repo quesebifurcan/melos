@@ -77,8 +77,8 @@
         rtm-tree-dur (get-nested-measure-dur rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
         events (extend-last dur-diff events)]
-    (->> (insert-events rtm-tree events)
-         ((fn [x] {:children (:children x)})))))
+    (-> (insert-events rtm-tree events)
+        (select-keys [:children]))))
 
 ;; Insert events into rhythmic tree.
 

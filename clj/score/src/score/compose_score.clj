@@ -187,7 +187,7 @@
   [{:keys [params persist-to]}]
   (spit
    persist-to
-   (prn-str (calculate-sequences params))))
+   (str (calculate-sequences params))))
 
 (defn calc-all-sessions
   []
@@ -234,4 +234,5 @@
 
 ;; Superfluous time signatures?
 
-(calc-all-sessions)
+;; TODO: better validity checks
+;; TODO: tighter program flow in calculate-sequences -- use (comp f1 f2 f3)
