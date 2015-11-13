@@ -13,6 +13,7 @@
             [score.combinations :as combinations]
             [score.group-a :as group-a]
             [score.group-b :as group-b]
+            [score.group-c :as group-c]
             [score.materials
              [measures :as measures]
              [stepwise-mod :as stepwise-mod]]))
@@ -141,6 +142,7 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
+       (take 40)
        (sort-by sort-by-fn)
 
        )))
@@ -149,13 +151,14 @@
   {
    "testing" group-a/materials
    "testing-b" group-b/materials
+   "testing-c" group-c/materials
    })
 
 (def diss-params
   {:check (fn [events]
             (<= (chord/scaled-dissonance-value (map :pitch events))
                 ;; hardcoded
-                (chord/scaled-dissonance-value [0 2 4 5])))})
+                (chord/scaled-dissonance-value [0 2 4])))})
 
 (defn initial-state
   [events]
@@ -171,16 +174,16 @@
    :part-names [:upper :lower :ped]})
 
 (def session-config
-  {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing.edn"
+  {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing-c.edn"
    :params {:filter-fn (fn [x]
                          (->> x
                               (partition-by partition-events-fn)
                               (filter filter-events-fn)
                               (take 1)))
             :distinct-by-fn pitch-profile
-            :chord-seqs group-a/materials
+            :chord-seqs group-c/materials
             :initial-state-fn initial-state
-            :sort-by-fn max-pitch}
+            :sort-by-fn (fn [x] 1)}
    })
 
 (defn new-session
@@ -206,7 +209,7 @@
         ;; hardcoded
         (clojure.edn/read-string
          (slurp
-          (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing" ".edn")))
+          (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-c" ".edn")))
         ;; (clojure.edn/read-string
         ;;  (slurp
         ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
@@ -225,8 +228,8 @@
             ;; How combine materials from different sessions?
             ;; Interleave?
             ;; [(shuffle (apply concat data))]
-            [[measures/measure-4]
-             [measures/measure-3]])
+            [[measures/measure-2]
+             [measures/measure-2]])
 
     ))
 

@@ -33,6 +33,9 @@
     [[1 4]
      [[[1 8]] [[1 8]]]]]])
 
+(def measure-2
+  (parse-rtm-tree-node measure-2-4))
+
 (def measure-3
   (let [measure
         [[4 4]

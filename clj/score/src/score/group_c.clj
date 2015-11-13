@@ -1,4 +1,4 @@
-(ns score.group-a
+(ns score.group-c
   (:require [clojure.math.combinatorics :as combinatorics]
             [score.combinations :refer [unfold-parameters]]
             [melos.note :refer [make-note]]
@@ -28,19 +28,20 @@
             ;; {:pitch (->> (range 10)
             ;;              (transpose-all transposition)
             ;;              (wrap-all-in-vector))
-            {:pitch (->> [[4] [2] [2 4] [4] [2 4] [2 5]]
+            {:pitch (->> [-3 -2 5 2 3 10 3 2 5 -2]
+                         (map (fn [x] [x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [1])
+             :partition (partial utils/cyclic-partition [3 3 3 3])
              :merge-left? [false]
              :merge-right? [false]
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:upper]
           :transposition [0]
-          :drop-n [0 1 2 3 4]
-          :dur [[1/4] [2/4]]}
+          :drop-n [0 1 2 3 4 5 6 7 8 9]
+          :dur [[1/4 1/4 1/4 1/4 1/4 2/4 1/4 2/4 3/4 1/4 1/4 1/4 1/4 3/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
 
@@ -50,7 +51,7 @@
                               transposition
                               drop-n
                               dur]}]
-            {:pitch (->> (range 10)
+            {:pitch (->> [-5 0 2 7 2 0 -5 0 2 7 12 14 12 7 2 0]
                          (utils/transpose transposition)
                          (wrap-all-in-vector))
              :part [part-name]
@@ -59,8 +60,8 @@
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:lower]
-          :transposition [-7 -6]
-          :drop-n [0]
+          :transposition [0]
+          :drop-n [0 1 2 3 4]
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -71,7 +72,7 @@
                               transposition
                               drop-n
                               dur]}]
-            {:pitch (->> (range 10)
+            {:pitch (->> [3 2 0 -2]
                          (utils/transpose transposition)
                          (wrap-all-in-vector))
              :part [part-name]
@@ -80,8 +81,8 @@
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:ped]
-          :transposition [-20]
-          :drop-n [0 1 2]
+          :transposition [-5 -17]
+          :drop-n [0 1 2 3]
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -91,5 +92,6 @@
    :lower (lower)
    :ped (ped)
    :melodic-indices [(take 20 (cycle [:upper :lower :ped]))
-                     (take 20 (cycle [:upper :lower :upper :lower :upper :lower :ped]))
+                     ;; (take 20 (cycle [:upper :lower :upper :lower :upper :lower :ped]))
                      ]})
+
