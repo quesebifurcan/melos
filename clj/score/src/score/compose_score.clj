@@ -48,7 +48,7 @@
         event-seq-mod (concat head (rest event-seq))]
     (->> event-seq-mod
          ;; hardcoded
-         (rhythm-tree/extend-last 3/4)
+         (rhythm-tree/extend-last 1/4)
          (rhythm-tree/make-r-tree measures)
          (part/compose-part tempo part-names))))
 
@@ -84,7 +84,7 @@
 ;; hardcoded
 (defn filter-events-fn
   [events]
-  (and (>= (count events) 8)
+  (and (>= (count events) 12)
        (every? (partial part-count-sufficient? 3) events)))
 
 (defn distinct-by
@@ -142,7 +142,7 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
-       (take 40)
+       (take 20)
        (sort-by sort-by-fn)
 
        )))
@@ -158,7 +158,7 @@
   {:check (fn [events]
             (<= (chord/scaled-dissonance-value (map :pitch events))
                 ;; hardcoded
-                (chord/scaled-dissonance-value [0 2 4])))})
+                (chord/scaled-dissonance-value [0 2 4 5])))})
 
 (defn initial-state
   [events]
@@ -183,7 +183,7 @@
             :distinct-by-fn pitch-profile
             :chord-seqs group-c/materials
             :initial-state-fn initial-state
-            :sort-by-fn (fn [x] 1)}
+            :sort-by-fn (fn [x] 1) }
    })
 
 (defn new-session
