@@ -48,7 +48,7 @@
         event-seq-mod (concat head (rest event-seq))]
     (->> event-seq-mod
          ;; hardcoded
-         (rhythm-tree/extend-last 1/4)
+         (rhythm-tree/extend-last 4/4)
          (rhythm-tree/make-r-tree measures)
          (part/compose-part tempo part-names))))
 
@@ -158,7 +158,7 @@
   {:check (fn [events]
             (<= (chord/scaled-dissonance-value (map :pitch events))
                 ;; hardcoded
-                (chord/scaled-dissonance-value [0 2 4])))})
+                (chord/scaled-dissonance-value [0 1 2])))})
 
 (defn initial-state
   [events]
