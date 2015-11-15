@@ -21,7 +21,8 @@
 
 (defn upper
   []
-  (letfn [(blueprint [{:keys [part-name
+  (letfn [(blueprint [{:keys [pitches
+                              part-name
                               transposition
                               dur
                               drop-n]}]
@@ -31,25 +32,29 @@
             ;; {:pitch (->> [-3 -2 5 2 3 10 3 2 5 -2]
             ;; {:pitch (->> (range -3 20)
             ;; {:pitch (->> [0 12 14 2 3 15 13 1]
-            {:pitch (->> [[2] [2 4] [2 4 9] [9] [-3 9] [-3] [-3 2] [-3 2 4]]
+            ;; {:pitch (->> [[2] [2 4] [2 4 9] [9] [-3 9] [-3] [-3 2] [-3 2 4]]
+            {:pitch (->> pitches
+                         (wrap-all-in-vector)
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [3 1 1 3])
+             :partition (partial utils/cyclic-partition [3])
              :merge-left? [false]
              :merge-right? [false]
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:upper]
+          :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
-          :drop-n (range 4)
+          :drop-n (range 7)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
 
 (defn lower
   []
-  (letfn [(blueprint [{:keys [part-name
+  (letfn [(blueprint [{:keys [pitches
+                              part-name
                               transposition
                               drop-n
                               dur]}]
@@ -57,9 +62,10 @@
             ;; {:pitch (->> (range -3 7)
             ;; {:pitch (->> [0 7 12 14 2 -5 7 5 4 3 10 3]
             ;; {:pitch (->> (concat (range -3 8) (range 8 -3 -1))
-            {:pitch (->> [[0] [0 -1] [0 -1 -3] [-3 0] [-1]]
+            ;; {:pitch (->> [[0] [0 -1] [0 -1 -3] [-3 0] [-1]]
+            {:pitch (->> pitches
                          (transpose-all transposition)
-                         ;; (wrap-all-in-vector))
+                         (wrap-all-in-vector)
                          )
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -67,20 +73,22 @@
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:lower]
-          :transposition [1]
-          :drop-n (range 5)
+          :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
+          :transposition [-7]
+          :drop-n (range 7)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
 
 (defn ped
   []
-  (letfn [(blueprint [{:keys [part-name
+  (letfn [(blueprint [{:keys [pitches
+                              part-name
                               transposition
                               drop-n
                               dur]}]
             ;; {:pitch (->> [3 2 0 -2]
-            {:pitch (->> (range -3 8)
+            {:pitch (->> pitches
                          (utils/transpose transposition)
                          (wrap-all-in-vector))
              :part [part-name]
@@ -89,8 +97,9 @@
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:ped]
-          :transposition [-16]
-          :drop-n (range 10)
+          :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
+          :transposition [-14]
+          :drop-n (range 7)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -101,6 +110,6 @@
    :ped (ped)
    :melodic-indices [
                      (take 20 (cycle [:upper :lower :ped]))
-                     (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
+                     ;; (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
                      ]})
 
