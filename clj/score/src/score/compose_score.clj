@@ -84,7 +84,7 @@
 ;; hardcoded
 (defn filter-events-fn
   [events]
-  (and (>= (count events) 12)
+  (and (>= (count events) 5)
        (every? (partial part-count-sufficient? 3) events)))
 
 (defn distinct-by
@@ -142,7 +142,7 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
-       (take 20)
+       (take 40)
        (sort-by sort-by-fn)
 
        )))
@@ -158,7 +158,7 @@
   {:check (fn [events]
             (<= (chord/scaled-dissonance-value (map :pitch events))
                 ;; hardcoded
-                (chord/scaled-dissonance-value [0 2 4 5])))})
+                (chord/scaled-dissonance-value [0 2 4 5 6])))})
 
 (defn initial-state
   [events]
