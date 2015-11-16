@@ -35,12 +35,15 @@
             ;; {:pitch (->> [[2] [2 4] [2 4 9] [9] [-3 9] [-3] [-3 2] [-3 2 4]]
             {:pitch (->> [
                           [0] [0 2] [0 2 4] [2 4] [4]
-                          [0] [0 2] [0 2 4] [0 2 4 5] [2 4 5] [4 5] [5]
+                          [-3 4] [-3]
+                          [-3 -2] [-3 -2 0] [-3 -2 0 2]
+                          [-2 0 2] [0 2] [2]
                           ]
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [3 1 1 4 1 1 1])
+             :partition (partial utils/cyclic-partition [3 1 1 1 1 
+                                                         3 1 1 1])
              :merge-left? [false]
              :merge-right? [false]
              :drop-n drop-n
@@ -92,7 +95,7 @@
                               drop-n
                               dur]}]
             ;; {:pitch (->> [3 2 0 -2]
-            {:pitch (->> [[0] [0 -2] [-2] [-2 0]]
+            {:pitch (->> pitches
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -100,9 +103,22 @@
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:ped]
-          :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
+          ;; :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
+          :pitches [
+                    [
+                     [0] [0 -2] 
+                     [-2] [-2 0]
+                     [0] [0 2]
+                     [2] [2 0]
+                     [0] [0 -2] 
+                     [-2] [-2 -3]
+                     [-3] [-2 -3]
+                     [-2] [-2 0]
+                     ]
+                    ;; (transpose-all -1 [[0] [0 -2] [-2] [-2 0]])
+                    ]
           :transposition [-15]
-          :drop-n (range 7)
+          :drop-n (range 10)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))

@@ -75,7 +75,7 @@
 (defn part-count-sufficient?
   [minimum chord]
   (let [part-count ((comp count parts-in-chord) chord)]
-    (= part-count minimum)))
+    (>= part-count minimum)))
 
 ;; hardcoded
 (def partition-events-fn
@@ -142,7 +142,7 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
-       ;; (take 20)
+       (take 20)
        (sort-by sort-by-fn)
 
        )))
