@@ -33,17 +33,12 @@
             ;; {:pitch (->> (range -3 20)
             ;; {:pitch (->> [0 12 14 2 3 15 13 1]
             ;; {:pitch (->> [[2] [2 4] [2 4 9] [9] [-3 9] [-3] [-3 2] [-3 2 4]]
-            {:pitch (->> [
-                          [0] [0 2] [0 2 4] [2 4] [4]
-                          [-3 4] [-3]
-                          [-3 -2] [-3 -2 0] [-3 -2 0 2]
-                          [-2 0 2] [0 2] [2]
-                          ]
+            {:pitch (->> (range 10)
+                         (wrap-all-in-vector)
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [3 1 1 1 1 
-                                                         3 1 1 1])
+             :partition (partial utils/cyclic-partition [2 3 1])
              :merge-left? [false]
              :merge-right? [false]
              :drop-n drop-n
@@ -51,7 +46,7 @@
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
-          :drop-n [0 3]
+          :drop-n (range 6)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -72,7 +67,8 @@
             ;;              (transpose-all transposition)
             ;;              (wrap-all-in-vector)
             ;;              )
-            {:pitch (->> [[0] [0 2] [0 2 4] [2 4] [4]]
+            {:pitch (->> (range 8)
+                         (wrap-all-in-vector)
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -95,7 +91,8 @@
                               drop-n
                               dur]}]
             ;; {:pitch (->> [3 2 0 -2]
-            {:pitch (->> pitches
+            {:pitch (->> (range 6)
+                         (wrap-all-in-vector)
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -110,6 +107,8 @@
                      [-2] [-2 0]
                      [0] [0 2]
                      [2] [2 0]
+                     ]
+                    [
                      [0] [0 -2] 
                      [-2] [-2 -3]
                      [-3] [-2 -3]
@@ -128,8 +127,9 @@
    :lower (lower)
    :ped (ped)
    :melodic-indices [
-                     (take 20 (cycle [:upper :lower :ped]))
-                     (take 20 (cycle [:upper :lower :ped :lower :ped]))
+                     ;; max number of events:
+                     (take 10 (cycle [:upper :lower :ped]))
+                     (take 10 (cycle [:upper :lower :ped :lower :ped]))
                      ;; (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
                      ]})
 
