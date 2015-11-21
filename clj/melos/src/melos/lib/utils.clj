@@ -1,11 +1,11 @@
-(ns melos.utils
-  (:require [clojure.data.json :as json]
-            [clojure.java.io :as io]
-            [clojure.walk :as walk]
-            [melos
-             [note :refer [make-note]]
-             [schemas :as ms]]
-            [schema.core :as s]))
+(ns melos.lib.utils
+(:require [clojure.data.json :as json]
+[clojure.java.io :as io]
+[clojure.walk :as walk]
+[melos.lib
+[note :refer [make-note]]
+[schemas :as ms]]
+[schema.core :as s]))
 
 (defn abs [n] (max n (- n)))
 

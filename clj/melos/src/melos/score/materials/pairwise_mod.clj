@@ -1,7 +1,7 @@
-(ns score.materials.pairwise-mod
-  (:require [melos
-             [chord :as diss-calc]
-             [chord-seq :as chord-seq]]))
+(ns melos.score.materials.pairwise-mod
+(:require [melos.lib
+[chord :as diss-calc]
+[chord-seq :as chord-seq]]))
 
 (defn dissonant-melody-movement-mod
   [pair]

@@ -1,4 +1,4 @@
-(ns score.combinations
+(ns melos.score.combinations
   (:require [clojure.math.combinatorics :as combinatorics]))
 
 (defn unfold-parameters

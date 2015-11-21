@@ -1,12 +1,12 @@
-(ns melos.chord
-  (:require [clojure.algo.generic.functor :as functor]
-            [clojure.math
-             [combinatorics :as combinatorics]
-             [numeric-tower :as math]]
-            [melos
-             [schemas :as ms]
-             [utils :refer [triangular-n]]]
-            [schema.core :as s]))
+(ns melos.lib.chord
+(:require [clojure.algo.generic.functor :as functor]
+[clojure.math
+[combinatorics :as combinatorics]
+[numeric-tower :as math]]
+[melos.lib
+[schemas :as ms]
+[utils :refer [triangular-n]]]
+[schema.core :as s]))
 
 (s/defn get-melodic-event
   :- s/Any

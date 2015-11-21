@@ -1,9 +1,9 @@
-(ns score.group-a
-  (:require [clojure.math.combinatorics :as combinatorics]
-            [score.combinations :refer [unfold-parameters]]
-            [melos.note :refer [make-note]]
-            [melos
-             [utils :as utils]]))
+(ns melos.score.group-a
+(:require [clojure.math.combinatorics :as combinatorics]
+[melos.lib
+[note :refer [make-note]]
+[utils :as utils]]
+[melos.score.combinations :refer [unfold-parameters]]))
 
 (defn wrap-all-in-vector
   [xs]

@@ -1,23 +1,24 @@
-(ns score.compose-score
-  (:require [clojure.edn]
+(ns melos.score.compose-score
+  (:require clojure.edn
             [clojure.math.combinatorics :as combinatorics]
-            [melos
-             [note :as note]
+            [melos.lib
              [chord :as chord]
              [chord-seq :as chord-seq]
-             [rhythm-tree :as rhythm-tree]
-             [part :as part]
-             [schemas :as ms]
+             [note :as note]
              [params :as params]
+             [part :as part]
+             [rhythm-tree :as rhythm-tree]
+             [schemas :as ms]
              [utils :as utils]]
-            [schema.core :as s]
-            [score.combinations :as combinations]
-            [score.group-a :as group-a]
-            [score.group-b :as group-b]
-            [score.group-c :as group-c]
-            [score.materials
+            [melos.score
+             [combinations :as combinations]
+             [group-a :as group-a]
+             [group-b :as group-b]
+             [group-c :as group-c]]
+            [melos.score.materials
              [measures :as measures]
-             [stepwise-mod :as stepwise-mod]]))
+             [stepwise-mod :as stepwise-mod]]
+            [schema.core :as s]))
 
 ;;-----------------------------------------------------------------------------
 ;; SCORE
@@ -231,6 +232,7 @@
              [measures/measure-2]])
 
     ))
+
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 

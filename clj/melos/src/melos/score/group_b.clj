@@ -1,7 +1,6 @@
-(ns score.group-b
-  (:require [clojure.math.combinatorics :as combinatorics]
-            [melos
-             [utils :as utils]]))
+(ns melos.score.group-b
+(:require [clojure.math.combinatorics :as combinatorics]
+[melos.lib.utils :as utils]))
 
 (defn upper
   [part-name transposition dur]

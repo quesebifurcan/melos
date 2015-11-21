@@ -1,8 +1,9 @@
-(ns melos.rhythm-tree
-  (:require [melos.schemas :as ms]
-            [melos.chord :as chord]
-            [melos.chord-seq :as chord-seq]
-            [schema.core :as s]))
+(ns melos.lib.rhythm-tree
+(:require [melos.lib
+[chord :as chord]
+[chord-seq :as chord-seq]
+[schemas :as ms]]
+[schema.core :as s]))
 
 ;; Cycle measures across total duration.
 

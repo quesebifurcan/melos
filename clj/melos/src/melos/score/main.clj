@@ -1,7 +1,7 @@
-(ns score.main
-  (:require [melos.utils :as utils]
-            [schema.core :as s]
-            [score.compose-score :as compose-score-1]))
+(ns melos.score.main
+  (:require [melos.lib.utils :as utils]
+            [melos.score.compose-score :as compose-score-1]
+            [schema.core :as s]))
 
 (s/set-fn-validation! true)
 

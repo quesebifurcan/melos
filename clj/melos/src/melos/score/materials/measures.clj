@@ -1,5 +1,5 @@
-(ns score.materials.measures
-  (:require [melos.utils :refer [ratio->non-reduced-ratio-vector]]))
+(ns melos.score.materials.measures
+(:require [melos.lib.utils :refer [ratio->non-reduced-ratio-vector]]))
 
 (defn ratio-calc
   [f args]

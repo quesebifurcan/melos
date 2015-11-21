@@ -1,13 +1,13 @@
-(ns melos.chord-seq
-  (:require [clojure.math
-             [combinatorics :as combinatorics]
-             [numeric-tower :as math]]
-            [clojure.set :as set]
-            [melos
-             [chord :as chord]
-             [schemas :as ms]
-             [utils :refer [rotate]]]
-            [schema.core :as s]))
+(ns melos.lib.chord-seq
+(:require [clojure.math
+[combinatorics :as combinatorics]
+[numeric-tower :as math]]
+[clojure.set :as set]
+[melos.lib
+[chord :as chord]
+[schemas :as ms]
+[utils :refer [rotate]]]
+[schema.core :as s]))
 
 (s/defn get-melodic-durations
   :- [s/Num]
