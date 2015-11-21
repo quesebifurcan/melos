@@ -1,5 +1,6 @@
 (ns score.compose-score
-  (:require [clojure.math.combinatorics :as combinatorics]
+  (:require [clojure.edn]
+            [clojure.math.combinatorics :as combinatorics]
             [melos
              [note :as note]
              [chord :as chord]
@@ -17,9 +18,6 @@
             [score.materials
              [measures :as measures]
              [stepwise-mod :as stepwise-mod]]))
-
-(use 'clojure.data)
-(require 'clojure.edn)
 
 ;;-----------------------------------------------------------------------------
 ;; SCORE
