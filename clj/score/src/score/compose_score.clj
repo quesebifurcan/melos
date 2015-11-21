@@ -48,7 +48,7 @@
         event-seq-mod (concat head (rest event-seq))]
     (->> event-seq-mod
          ;; hardcoded
-         (rhythm-tree/extend-last 4/4)
+         (rhythm-tree/extend-last 2/4)
          (rhythm-tree/make-r-tree measures)
          (part/compose-part tempo part-names))))
 
@@ -142,6 +142,7 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
+       (drop 100)
        (take 20)
        (sort-by sort-by-fn)
 
