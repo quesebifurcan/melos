@@ -165,10 +165,6 @@
    :post []
    :part-names [:upper :lower :ped]})
 
-(defn pitch-profile
-  [vertical-moments]
-  (map (fn [x] (map :pitch x)) vertical-moments))
-
 (def session-config
   {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing-c.edn"
    :params {:filter-fn (fn [x]
@@ -176,8 +172,7 @@
                               (partition-by partition-events-fn)
                               (filter filter-events-fn)
                               (take 1)))
-            :distinct-by-fn pitch-profile
+            :distinct-by-fn score-utils/pitch-profile
             :chord-seqs materials
             :initial-state-fn initial-state
-            :sort-by-fn (fn [x] 1) }
-   })
+            :sort-by-fn (fn [x] 1) }})

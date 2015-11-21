@@ -8,3 +8,7 @@
   [minimum chord]
   (let [part-count ((comp count parts-in-chord) chord)]
     (>= part-count minimum)))
+
+(defn pitch-profile
+  [vertical-moments]
+  (map (fn [x] (map :pitch x)) vertical-moments))
