@@ -18,7 +18,7 @@
               :count s/Int))
 
 (def Chord
-  (s/both (s/pred (complement nil?)
+  (s/both (s/pred (complement empty?)
                   [Note])))
 
 (def PartCountMap

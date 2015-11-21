@@ -365,7 +365,7 @@
 (defn extend-events
   [diss-fn-params events]
   (-> (handle-dissonance diss-fn-params)
-      (reductions [] events)
+      (reductions events)
       (rest)))
 
 ;; add new event
