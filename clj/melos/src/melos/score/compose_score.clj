@@ -1,6 +1,7 @@
 (ns melos.score.compose-score
   (:require clojure.edn
             [clojure.math.combinatorics :as combinatorics]
+            [progressbar.core :refer [progressbar]]
             [melos.lib
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -66,53 +67,12 @@
        (combinations/unfold-parameters)
        (map make-chord-seq)))
 
-(defn parts-in-chord
-  [chord]
-  (set (map :part chord)))
-
-;; hardcoded
-(defn part-count-sufficient?
-  [minimum chord]
-  (let [part-count ((comp count parts-in-chord) chord)]
-    (>= part-count minimum)))
-
-;; hardcoded
-(def partition-events-fn
-  (partial part-count-sufficient? 3))
-
-;; hardcoded
-(defn filter-events-fn
-  [events]
-  (and (>= (count events) 6)
-       (every? (partial part-count-sufficient? 3) events)))
-
-(defn distinct-by
-  "Returns a lazy sequence of the elements of coll, removing any elements that
-  return duplicate values when passed to a function f."
-  [f coll]
-  (let [step (fn step [xs seen]
-               (lazy-seq
-                ((fn [[x :as xs] seen]
-                   (when-let [s (seq xs)]
-                     (let [fx (f x)]
-                       (if (contains? seen fx)
-                         (recur (rest s) seen)
-                         (cons x (step (rest s) (conj seen fx)))))))
-                 xs seen)))]
-    (step coll #{})))
-
-(defn pitch-profile
-  [vertical-moments]
-  (map (fn [x] (map :pitch x)) vertical-moments))
-
-(defn max-pitch
-  [vertical-moments]
-  (->> vertical-moments
-       (pitch-profile)
-       (flatten)
-       (apply max)))
-
-(require '[progressbar.core :refer [progressbar]])
+;; (defn max-pitch
+;;   [vertical-moments]
+;;   (->> vertical-moments
+;;        (pitch-profile)
+;;        (flatten)
+;;        (apply max)))
 
 (defn calculate-sequences
   [{:keys [filter-fn
@@ -120,7 +80,8 @@
            chord-seqs
            initial-state-fn
            sort-by-fn]}]
-  (let [states (map initial-state-fn (make-chord-seqs chord-seqs))]
+  (let [states (map #(assoc initial-state-fn :events %) 
+                    (make-chord-seqs chord-seqs))]
 
   (->>
        (map compose-event-seq (progressbar (into [] states)))
@@ -135,7 +96,7 @@
           (do (println "Number of items before uniquify:" (count x))
               x)))
 
-       (distinct-by distinct-by-fn)
+       (utils/distinct-by distinct-by-fn)
 
        ((fn [x]
           (do (println "Number of items after uniquify:" (count x))
@@ -143,47 +104,13 @@
 
        (drop 100)
        (take 20)
-       (sort-by sort-by-fn)
-
-       )))
+       (sort-by sort-by-fn))))
 
 (def sessions
   {
    "testing" group-a/materials
    "testing-b" group-b/materials
    "testing-c" group-c/materials
-   })
-
-(def diss-params
-  {:check (fn [events]
-            (<= (chord/scaled-dissonance-value (map :pitch events))
-                ;; hardcoded
-                (chord/scaled-dissonance-value [0 1 2])))})
-
-(defn initial-state
-  [events]
-  {:events events
-   :diss-fn-params {:max-count 100
-                    :max-lingering 300
-                    ;; TODO: pass on diss-value
-                    :diss-params diss-params}
-   :tempo 200
-   :measures [measures/measure-4]
-   :pre []
-   :post []
-   :part-names [:upper :lower :ped]})
-
-(def session-config
-  {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing-c.edn"
-   :params {:filter-fn (fn [x]
-                         (->> x
-                              (partition-by partition-events-fn)
-                              (filter filter-events-fn)
-                              (take 1)))
-            :distinct-by-fn pitch-profile
-            :chord-seqs group-c/materials
-            :initial-state-fn initial-state
-            :sort-by-fn (fn [x] 1) }
    })
 
 (defn new-session
@@ -194,13 +121,7 @@
 
 (defn calc-all-sessions
   []
-  (new-session session-config))
-
-;; (defn calc-all-sessions
-;;   []
-;;   (map (fn [[k v]]
-;;          (new-session k v))
-;;        sessions))
+  (new-session group-c/session-config))
 
 (defn compose []
   (let
@@ -228,11 +149,10 @@
             ;; How combine materials from different sessions?
             ;; Interleave?
             ;; [(shuffle (apply concat data))]
-            [[measures/measure-2]
-             [measures/measure-2]])
+            [[measures/measure-3]
+             [measures/measure-3]])
 
     ))
-
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 

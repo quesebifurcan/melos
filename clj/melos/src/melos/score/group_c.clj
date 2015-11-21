@@ -1,9 +1,14 @@
 (ns melos.score.group-c
-(:require [clojure.math.combinatorics :as combinatorics]
-[melos.lib
-[note :refer [make-note]]
-[utils :as utils]]
-[melos.score.combinations :refer [unfold-parameters]]))
+  (:require [clojure.math.combinatorics :as combinatorics]
+            [melos.lib
+             [note :refer [make-note]]
+             [chord :as chord]
+             [utils :as utils]]
+            [melos.score
+             [combinations :refer [unfold-parameters]]
+             [score-utils :as score-utils]]
+            [melos.score.materials
+             [measures :as measures]]))
 
 (defn wrap-all-in-vector
   [xs]
@@ -135,3 +140,44 @@
                      ;; (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
                      ]})
 
+(def partition-events-fn
+  (partial score-utils/part-count-sufficient? 3))
+
+(defn filter-events-fn
+  [events]
+  (and (>= (count events) 6)
+       (every? (partial score-utils/part-count-sufficient? 3) events)))
+
+(def diss-params
+  {:check (fn [events]
+            (<= (chord/scaled-dissonance-value (map :pitch events))
+                (chord/scaled-dissonance-value [0 1 2])))})
+
+(def initial-state
+  {:diss-fn-params {:max-count 100
+                    :max-lingering 300
+                    ;; TODO: pass on diss-value
+                    :diss-params diss-params}
+   :tempo 200
+   ;; :measures is not used -- it is hardcoded in compose-score/compose
+   :measures [measures/measure-3]
+   :pre []
+   :post []
+   :part-names [:upper :lower :ped]})
+
+(defn pitch-profile
+  [vertical-moments]
+  (map (fn [x] (map :pitch x)) vertical-moments))
+
+(def session-config
+  {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing-c.edn"
+   :params {:filter-fn (fn [x]
+                         (->> x
+                              (partition-by partition-events-fn)
+                              (filter filter-events-fn)
+                              (take 1)))
+            :distinct-by-fn pitch-profile
+            :chord-seqs materials
+            :initial-state-fn initial-state
+            :sort-by-fn (fn [x] 1) }
+   })
