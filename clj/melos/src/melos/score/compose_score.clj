@@ -132,34 +132,18 @@
   []
   (new-session group-c/session-config))
 
-(defn compose []
+(defn compose [sessions]
   (let
-      [data
-        [
-        ;; hardcoded
-        (clojure.edn/read-string
-         (slurp
-          (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-c" ".edn")))
-        ;; (clojure.edn/read-string
-        ;;  (slurp
-        ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
-        ]
-       ]
-    (doall (map (fn [x]
-                  (doall (map (fn [y] (println (count y))) x))) data))
+      [session-paths (map :persist-to sessions)
+       data (map #(clojure.edn/read-string (slurp %)) session-paths)]
 
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
-                            ;; hardcoded
                             200
-                            ;; hardcoded
                             [:upper :lower :ped])
                    x))
             data
-            ;; How combine materials from different sessions?
-            ;; Interleave?
-            ;; [(shuffle (apply concat data))]
             [[measures/measure-3]
              [measures/measure-3]])
 
