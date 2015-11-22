@@ -134,7 +134,7 @@ def main():
     parser.add_argument('title')
     parser.add_argument('author')
     parser.add_argument('score_out')
-    parser.add_argument('midi_out')
+    parser.add_argument('midi_out', nargs='?', default=False)
     args = parser.parse_args()
 
     print colored("Loading {}".format(args.input_file), 'cyan')
@@ -241,8 +241,10 @@ def main():
 
     print colored("Persist score as pdf...", 'cyan')
     persist(lilypond_file).as_pdf(args.score_out)
-    print colored("Persist score as midi...", 'cyan')
-    persist(lilypond_file).as_midi(args.midi_out)
+
+    if args.midi_out:
+        print colored("Persist score as midi...", 'cyan')
+        persist(lilypond_file).as_midi(args.midi_out)
 
 
 if __name__ == '__main__':
