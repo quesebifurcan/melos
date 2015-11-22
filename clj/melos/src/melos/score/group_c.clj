@@ -31,16 +31,8 @@
                               transposition
                               dur
                               drop-n]}]
-            ;; {:pitch (->> (range 10)
-            ;;              (transpose-all transposition)
-            ;;              (wrap-all-in-vector))
-            ;; {:pitch (->> [-3 -2 5 2 3 10 3 2 5 -2]
-            ;; {:pitch (->> (range -3 20)
-            ;; {:pitch (->> [0 12 14 2 3 15 13 1]
-            ;; {:pitch (->> [[2] [2 4] [2 4 9] [9] [-3 9] [-3] [-3 2] [-3 2 4]]
             {:pitch (->> (concat (range 10) [9])
-                         ;; (wrap-all-in-vector)
-                         (map (fn [x] [9 x]))
+                         (map (fn [x] [2 x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -64,17 +56,7 @@
                               transposition
                               drop-n
                               dur]}]
-            ;; {:pitch (->> [-5 0 2 7 2 0 -5 0 2 7 12 14 12 7 2 0]
-            ;; {:pitch (->> (range -3 7)
-            ;; {:pitch (->> [0 7 12 14 2 -5 7 5 4 3 10 3]
-            ;; {:pitch (->> (concat (range -3 8) (range 8 -3 -1))
-            ;; {:pitch (->> [[0] [0 -1] [0 -1 -3] [-3 0] [-1]]
-            ;; {:pitch (->> pitches
-            ;;              (transpose-all transposition)
-            ;;              (wrap-all-in-vector)
-            ;;              )
             {:pitch (->> (range 8)
-                         ;; (wrap-all-in-vector)
                          (map (fn [x] [4 x]))
                          (transpose-all transposition))
              :part [part-name]
@@ -97,7 +79,6 @@
                               transposition
                               drop-n
                               dur]}]
-            ;; {:pitch (->> [3 2 0 -2]
             {:pitch (->> (range 6)
                          (wrap-all-in-vector)
                          (transpose-all transposition))
@@ -107,7 +88,6 @@
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:ped]
-          ;; :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
           :pitches [
                     [
                      [0] [0 -2] 
@@ -121,7 +101,6 @@
                      [-3] [-2 -3]
                      [-2] [-2 0]
                      ]
-                    ;; (transpose-all -1 [[0] [0 -2] [-2] [-2 0]])
                     ]
           :transposition [-15]
           :drop-n (range 10)
@@ -166,7 +145,7 @@
    :part-names [:upper :lower :ped]})
 
 (def session-config
-  {:persist-to "/Users/fred/projects/music/compositions/2015/organ/analysis/testing-c.edn"
+  {:persist-to "testing-c.edn"
    :params {:filter-fn (fn [x]
                          (->> x
                               (partition-by partition-events-fn)
@@ -176,3 +155,5 @@
             :chord-seqs materials
             :initial-state-fn initial-state
             :sort-by-fn (fn [x] 1) }})
+
+(:persist-to session-config)

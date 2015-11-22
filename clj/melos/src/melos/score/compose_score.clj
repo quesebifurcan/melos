@@ -89,7 +89,7 @@
            chord-seqs
            initial-state-fn
            sort-by-fn]}]
-  (let [states (map #(assoc initial-state-fn :events %) 
+  (let [states (map #(assoc initial-state-fn :events %)
                     (make-chord-seqs chord-seqs))]
 
   (->>
@@ -122,21 +122,20 @@
    "testing-c" group-c/materials
    })
 
-(defn new-session
-  [{:keys [params persist-to]}]
-  (spit
-   persist-to
-   (str (calculate-sequences params))))
+(defn write-session
+  [output-dir session]
+  (let [path (apply str output-dir "/" (:persist-to session))
+        data (calculate-sequences (:params session))]
+    (spit path (str data))))
 
 (defn calc-all-sessions
-  []
-  (new-session group-c/session-config))
+  [analysis-dir sessions]
+  (map (partial write-session analysis-dir) sessions))
 
-(defn compose [sessions]
-  (let
-      [session-paths (map :persist-to sessions)
-       data (map #(clojure.edn/read-string (slurp %)) session-paths)]
-
+(defn compose
+  [analysis-dir sessions]
+  (let [session-paths (map (fn [x] (apply str analysis-dir "/" (:persist-to x))) sessions)
+        data (map #(clojure.edn/read-string (slurp %)) session-paths)]
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
@@ -145,9 +144,7 @@
                    x))
             data
             [[measures/measure-3]
-             [measures/measure-3]])
-
-    ))
+             [measures/measure-3]])))
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
