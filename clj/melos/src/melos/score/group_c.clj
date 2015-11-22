@@ -38,9 +38,9 @@
             ;; {:pitch (->> (range -3 20)
             ;; {:pitch (->> [0 12 14 2 3 15 13 1]
             ;; {:pitch (->> [[2] [2 4] [2 4 9] [9] [-3 9] [-3] [-3 2] [-3 2 4]]
-            {:pitch (->> (concat (range 9) [4])
+            {:pitch (->> (concat (range 10) [9])
                          ;; (wrap-all-in-vector)
-                         (map (fn [x] [4 x]))
+                         (map (fn [x] [9 x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params

@@ -41,14 +41,23 @@
        (chord-seq/merge-horizontally)
        ((apply comp post))))
 
+(defn get-last-event-duration
+  [events]
+  (let [lst (last events)]
+    (if (>= (chord/scaled-dissonance-value (map :pitch lst))
+            (chord/scaled-dissonance-value [0 2 4 5]))
+      7/4
+      1/4)))
+
 (defn compose-parts
   [measures tempo part-names event-seq]
   (let [head (stepwise-mod/maybe-split-vertical-moment
               (first event-seq))
-        event-seq-mod (concat head (rest event-seq))]
+        event-seq-mod (concat head (rest event-seq))
+        last-event-dur (get-last-event-duration event-seq-mod)]
     (->> event-seq-mod
          ;; hardcoded
-         (rhythm-tree/extend-last 2/4)
+         (rhythm-tree/extend-last last-event-dur)
          (rhythm-tree/make-r-tree measures)
          (part/compose-part tempo part-names))))
 
@@ -136,6 +145,8 @@
         ;;   (str "/Users/fred/projects/music/compositions/2015/organ/analysis/" "testing-b" ".edn")))
         ]
        ]
+    (doall (map (fn [x]
+                  (doall (map (fn [y] (println (count y))) x))) data))
 
     (mapcat (fn [x y]
               (map (partial compose-parts
