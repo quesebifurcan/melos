@@ -1,4 +1,4 @@
-(ns score.combinations
+(ns melos.score.combinations
   (:require [clojure.math.combinatorics :as combinatorics]))
 
 (defn unfold-parameters
@@ -26,12 +26,12 @@
 (defn nested-map-product
   [form]
   (let [placeholders (atom {})
-        mod-form (clojure.walk/prewalk
+        mod-form (clojure.walk/postwalk
                   (partial substitute-tagged-elts 'unfold placeholders)
                   form)]
     (swap! placeholders unfold-parameters)
     (map (fn [replacement-map]
-           (clojure.walk/prewalk
+           (clojure.walk/postwalk
             (partial replace-if-placeholder replacement-map)
             mod-form))
          @placeholders)))

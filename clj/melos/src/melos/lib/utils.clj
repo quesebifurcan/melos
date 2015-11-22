@@ -1,11 +1,11 @@
-(ns melos.utils
-  (:require [clojure.data.json :as json]
-            [clojure.java.io :as io]
-            [clojure.walk :as walk]
-            [melos
-             [note :refer [make-note]]
-             [schemas :as ms]]
-            [schema.core :as s]))
+(ns melos.lib.utils
+(:require [clojure.data.json :as json]
+[clojure.java.io :as io]
+[clojure.walk :as walk]
+[melos.lib
+[note :refer [make-note]]
+[schemas :as ms]]
+[schema.core :as s]))
 
 (defn abs [n] (max n (- n)))
 
@@ -126,7 +126,8 @@
   [m]
   (let [f (:fn m)
         partition-fn (:partition m)
-        m (dissoc m :fn :partition)]
+        drop-n (get m :drop-n 0)
+        m (dissoc m :fn :partition :drop-n)]
   (->> (map (fn [x] x)
             (vals m))
        (map cycle)
@@ -134,6 +135,7 @@
        (map (fn [x] (zipmap (keys m) x)))
        (map f)
        (partition-fn)
+       (drop drop-n)
        (map #(s/validate [ms/Chord] %)))))
 
 (defn valid-melodic-indices?
@@ -188,3 +190,18 @@
   [rule depth s]
   (if (zero? depth) s
       (mapcat #(lindenmayer rule (dec depth) (rule % [%])) s)))
+
+(defn distinct-by
+  "Returns a lazy sequence of the elements of coll, removing any elements that
+  return duplicate values when passed to a function f."
+  [f coll]
+  (let [step (fn step [xs seen]
+               (lazy-seq
+                ((fn [[x :as xs] seen]
+                   (when-let [s (seq xs)]
+                     (let [fx (f x)]
+                       (if (contains? seen fx)
+                         (recur (rest s) seen)
+                         (cons x (step (rest s) (conj seen fx)))))))
+                 xs seen)))]
+    (step coll #{})))

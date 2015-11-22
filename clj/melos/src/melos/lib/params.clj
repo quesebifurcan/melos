@@ -1,9 +1,9 @@
-(ns melos.params
-  (:require [clojure.walk :as walk]
-            [melos
-             [schemas :as ms]
-             [utils :refer [merge-in rotate]]]
-            [schema.core :as s]))
+(ns melos.lib.params
+(:require [clojure.walk :as walk]
+[melos.lib
+[schemas :as ms]
+[utils :refer [merge-in rotate]]]
+[schema.core :as s]))
 
 ;;-----------------------------------------------------------------------------
 ;; Unfold parameter cycles.

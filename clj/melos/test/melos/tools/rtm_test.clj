@@ -1,6 +1,6 @@
 (ns melos.tools.rtm-test
-  (:require [clojure.test :refer :all]
-            [melos.rhythm-tree :refer :all]))
+(:require [clojure.test :refer :all]
+[melos.lib.rhythm-tree :refer :all]))
 
 (deftest test-all-children-same-pitch?
   (let [node {:children [{:events [{:pitch 2}

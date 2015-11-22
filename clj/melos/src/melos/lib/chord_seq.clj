@@ -1,13 +1,13 @@
-(ns melos.chord-seq
-  (:require [clojure.math
-             [combinatorics :as combinatorics]
-             [numeric-tower :as math]]
-            [clojure.set :as set]
-            [melos
-             [chord :as chord]
-             [schemas :as ms]
-             [utils :refer [rotate]]]
-            [schema.core :as s]))
+(ns melos.lib.chord-seq
+(:require [clojure.math
+[combinatorics :as combinatorics]
+[numeric-tower :as math]]
+[clojure.set :as set]
+[melos.lib
+[chord :as chord]
+[schemas :as ms]
+[utils :refer [rotate]]]
+[schema.core :as s]))
 
 (s/defn get-melodic-durations
   :- [s/Num]
@@ -200,20 +200,20 @@
     (- (count all-part-names)
        (count part-names))))
 
-(defn dissonance-penalty
-  [events]
-  (let [pitches (map :pitch events)]
-    (chord/scaled-dissonance-value pitches)))
+;; (defn dissonance-penalty
+;;   [events]
+;;   (let [pitches (map :pitch events)]
+;;     (chord/scaled-dissonance-value pitches)))
 
 (defn age-penalty
   [events]
   (apply + (map :count events)))
 
-(def diss-params
-  {:check (fn [events]
-            (<= (chord/scaled-dissonance-value (map :pitch events))
-                (chord/scaled-dissonance-value [0 1 3])))
-   :sort_ [part-match-penalty age-penalty]})
+;; (def diss-params
+;;   {:check (fn [events]
+;;             (<= (chord/scaled-dissonance-value (map :pitch events))
+;;                 (chord/scaled-dissonance-value [0 1 3])))
+;;    :sort_ [part-match-penalty age-penalty]})
 
 (defn normalize
   [xs]
@@ -288,57 +288,51 @@
        ;; (filter-distinct)
        )))
 
-(s/defn coll-part-counts-map
-  [chord :- ms/Chord]
-  (let [partitioned-events (->> chord
-                                (sort-by :part)
-                                (partition-by :part))]
-    (zipmap (map (comp :part first) partitioned-events)
-            (map (comp :max-part-count first) partitioned-events))))
+;; (s/defn coll-part-counts-map
+;;   [chord :- ms/Chord]
+;;   (let [partitioned-events (->> chord
+;;                                 (sort-by :part)
+;;                                 (partition-by :part))]
+;;     (zipmap (map (comp :part first) partitioned-events)
+;;             (map (comp :max-part-count first) partitioned-events))))
 
-(defn filter-part-by-count
-  [xs limit]
-  (if (<= (count xs) limit)
-    xs
-    (recur (butlast (sort-by :count xs)) limit)))
+;; (defn filter-part-by-count
+;;   [xs limit]
+;;   (if (<= (count xs) limit)
+;;     xs
+;;     (recur (butlast (sort-by :count xs)) limit)))
 
-(s/defn filter-parts-by-count
-  :- ms/Chord
-  [events :- ms/Chord]
-  (let [part-counts (coll-part-counts-map events)]
-    (mapcat (fn [[part-name limit]]
-              (let [xs (filter #(= (:part %) part-name) events)]
-                ;; (if (<= (count xs) limit)
-                ;;   xs
-                ;;   (filter #(= (:count %) 0) xs))))
-                (filter-part-by-count xs limit)))
-            part-counts)))
+;; (s/defn filter-parts-by-count
+;;   :- ms/Chord
+;;   [events :- ms/Chord]
+;;   (let [part-counts (coll-part-counts-map events)]
+;;     (mapcat (fn [[part-name limit]]
+;;               (let [xs (filter #(= (:part %) part-name) events)]
+;;                 ;; (if (<= (count xs) limit)
+;;                 ;;   xs
+;;                 ;;   (filter #(= (:count %) 0) xs))))
+;;                 (filter-part-by-count xs limit)))
+;;             part-counts)))
 
-(defn filter-part-idiomatic
-  [chord]
-  (let [melodic-event (chord/get-melodic-event chord)]
-    (if (empty? melodic-event)
-      chord
-      (filter #(< (- (max (:pitch melodic-event) (:pitch %))
-                     (min (:pitch melodic-event) (:pitch %)))
-                  12)
-              chord))))
+;; (defn filter-part-idiomatic
+;;   [chord]
+;;   (let [melodic-event (chord/get-melodic-event chord)]
+;;     (if (empty? melodic-event)
+;;       chord
+;;       (filter #(< (- (max (:pitch melodic-event) (:pitch %))
+;;                      (min (:pitch melodic-event) (:pitch %)))
+;;                   12)
+;;               chord))))
 
-(defn filter-idiomatic
-  [chord]
-  (let [groups (->> (sort-by :part chord)
-                    (partition-by :part))]
-    (mapcat filter-part-idiomatic groups)))
+;; (defn filter-idiomatic
+;;   [chord]
+;;   (let [groups (->> (sort-by :part chord)
+;;                     (partition-by :part))]
+;;     (mapcat filter-part-idiomatic groups)))
 
 (defn event-count-ok?
   [{:keys [count max-count]}]
   (<= count max-count))
-
-;; (defn apply-pre-fn
-;;   [chord]
-;;   (let [fns (filter (complement nil?) (map :pre chord))]
-;;     (->> ((apply comp fns) chord)
-;;          (map (fn [x] (assoc x :pre nil))))))
 
 (defn handle-dissonance
   "Return a function which can be used to control dissonance values in
@@ -349,27 +343,14 @@
     (->> events
          (forward-time)
          (join-events event)
-         ;; (apply-pre-fn)
-         ;; (filter-by-count-aggressive max-count)
          (filter event-count-ok?)
-         (filter-parts-by-count)
-         ;; (filter-idiomatic)
-         ;; (filter-by-time-in-chord max-lingering)
          (filter-by-dissonance-value diss-params))))
 
 (defn extend-events
   [diss-fn-params events]
   (-> (handle-dissonance diss-fn-params)
-      (reductions [] events)
+      (reductions events)
       (rest)))
-
-;; add new event
-;; apply hard filters
-
-;; try to accept
-;; try to remove the oldest
-;; if not working, remove the most dissonant and recur
-
 
 ;;-----------------------------------------------------------------------------
 ;; Modify durations.

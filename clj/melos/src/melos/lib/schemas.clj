@@ -1,4 +1,4 @@
-(ns melos.schemas
+(ns melos.lib.schemas
   (:require [schema.core :as s]))
 
 (def PartName (s/enum nil :lower :upper :ped))
@@ -18,7 +18,7 @@
               :count s/Int))
 
 (def Chord
-  (s/both (s/pred (complement nil?)
+  (s/both (s/pred (complement empty?)
                   [Note])))
 
 (def PartCountMap

@@ -1,5 +1,5 @@
-(ns melos.part
-  (:require [melos.rhythm-tree :as rtm]))
+(ns melos.lib.part
+(:require [melos.lib.rhythm-tree :as rtm]))
 
 (defn maybe-insert-rest
   [x]

@@ -1,5 +1,5 @@
-(ns score.materials.measures
-  (:require [melos.utils :refer [ratio->non-reduced-ratio-vector]]))
+(ns melos.score.materials.measures
+(:require [melos.lib.utils :refer [ratio->non-reduced-ratio-vector]]))
 
 (defn ratio-calc
   [f args]
@@ -32,6 +32,9 @@
      [[[1 8]] [[1 8]]]]
     [[1 4]
      [[[1 8]] [[1 8]]]]]])
+
+(def measure-2
+  (parse-rtm-tree-node measure-2-4))
 
 (def measure-3
   (let [measure

@@ -1,9 +1,9 @@
-(ns score.materials.stepwise-mod
-  (:require [melos
-             [chord :refer [scaled-dissonance-value]]
-             [note :refer [make-note]]
-             [schemas :as ms]]
-            [schema.core :as s]))
+(ns melos.score.materials.stepwise-mod
+(:require [melos.lib
+[chord :refer [scaled-dissonance-value]]
+[note :refer [make-note]]
+[schemas :as ms]]
+[schema.core :as s]))
 
 (defn sustain-dissonant-vertical-moment
   [vertical-moment]

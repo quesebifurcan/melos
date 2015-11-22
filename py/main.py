@@ -5,7 +5,14 @@ import json
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
+from termcolor import colored
+
+import edn_format
+
 # TODO: Add additional info to each segment (stylistic indications, tempi etc.)
+
+def edn_key(m, k):
+    return m[edn_format.Keyword(k)]
 
 def is_tuplet(d):
     return not d.get('w-duration') == d.get('duration')
@@ -128,16 +135,20 @@ def make_lilypond_file(score, title='', author=''):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('score_config')
     parser.add_argument('input_file')
-    parser.add_argument('title')
-    parser.add_argument('author')
     parser.add_argument('score_out')
-    parser.add_argument('midi_out')
+    parser.add_argument('midi_out', nargs='?', default=False)
     args = parser.parse_args()
 
+    with open(args.score_config, 'r') as infile:
+        config_data = edn_format.loads(infile.read())
+
+    print colored("Loading {}".format(args.input_file), 'cyan')
     with open(args.input_file, 'r') as infile:
         score_segments = json.load(infile)
 
+    print colored("Creating staves and instruments...", 'cyan')
     upper_staff = Staff()
     lower_staff = Staff()
     ped_staff = Staff()
@@ -165,7 +176,9 @@ def main():
         'ped': ped_staff,
     }
     tempo = None
-    for segment in score_segments:
+    print colored("Parsing score...", 'cyan')
+    for i, segment in enumerate(score_segments):
+        print colored("    parsing segment {}...".format(i), 'green')
         parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
         if tempo == curr_tempo:
             curr_tempo = None
@@ -176,6 +189,7 @@ def main():
             events = part.get('events')
             top = named_staff_dict.get(part_name)
             is_measure_root = True
+            # print '        parsing part "{}"...'.format(part_name)
             for node in events.get('children'):
                 interpret_node(
                     top,
@@ -223,17 +237,21 @@ def main():
 
 
     score = Score([manuals_group, ped_staff])
+    print colored("Apply score overrides...", 'cyan')
     apply_score_overrides(score)
 
     lilypond_file = make_lilypond_file(
         score,
-        args.title,
-        args.author,
+        str(edn_key(config_data, 'title')),
+        str(edn_key(config_data, 'author')),
     )
 
-    # import sys; sys.exit()
+    print colored("Persist score as pdf...", 'cyan')
     persist(lilypond_file).as_pdf(args.score_out)
-    persist(lilypond_file).as_midi(args.midi_out)
+
+    if args.midi_out:
+        print colored("Persist score as midi...", 'cyan')
+        persist(lilypond_file).as_midi(args.midi_out)
 
 
 if __name__ == '__main__':
