@@ -7,7 +7,12 @@ from abjad.tools.scoretools import FixedDurationTuplet
 
 from termcolor import colored
 
+import edn_format
+
 # TODO: Add additional info to each segment (stylistic indications, tempi etc.)
+
+def edn_key(m, k):
+    return m[edn_format.Keyword(k)]
 
 def is_tuplet(d):
     return not d.get('w-duration') == d.get('duration')
@@ -130,12 +135,14 @@ def make_lilypond_file(score, title='', author=''):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('score_config')
     parser.add_argument('input_file')
-    parser.add_argument('title')
-    parser.add_argument('author')
     parser.add_argument('score_out')
     parser.add_argument('midi_out', nargs='?', default=False)
     args = parser.parse_args()
+
+    with open(args.score_config, 'r') as infile:
+        config_data = edn_format.loads(infile.read())
 
     print colored("Loading {}".format(args.input_file), 'cyan')
     with open(args.input_file, 'r') as infile:
@@ -235,8 +242,8 @@ def main():
 
     lilypond_file = make_lilypond_file(
         score,
-        args.title,
-        args.author,
+        str(edn_key(config_data, 'title')),
+        str(edn_key(config_data, 'author')),
     )
 
     print colored("Persist score as pdf...", 'cyan')
