@@ -1,2 +1,5 @@
 recordings/
 output/
+env/
+analysis/
+*.pyc
