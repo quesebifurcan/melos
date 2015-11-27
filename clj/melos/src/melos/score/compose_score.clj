@@ -111,8 +111,8 @@
           (do (println "Number of items after uniquify:" (count x))
               x)))
 
-       (drop 100)
-       (take 20)
+       (drop 70)
+       (take 30)
        (sort-by sort-by-fn))))
 
 (def sessions

@@ -10,6 +10,5 @@
                  [progressbar "0.0.2"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [me.raynes/conch "0.8.0"]]
-  :global-vars {*print-length* 25}
   :plugins [[lein-marginalia "0.8.0"]])
 

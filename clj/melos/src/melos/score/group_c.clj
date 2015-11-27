@@ -31,7 +31,7 @@
                               transposition
                               dur
                               drop-n]}]
-            {:pitch (->> (concat (range 10) [9])
+            {:pitch (->> (concat (range -3 21) [20])
                          (map (fn [x] [2 x]))
                          (transpose-all transposition))
              :part [part-name]
@@ -45,7 +45,7 @@
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
           :drop-n (range 8)
-          :dur [[1/4]]}
+          :dur [[1/4 2/4 3/4 6/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
 
@@ -114,8 +114,8 @@
    :ped (ped)
    :melodic-indices [
                      ;; max number of events:
-                     (take 10 (cycle [:upper :lower :ped]))
-                     (take 10 (cycle [:upper :lower :ped :lower :ped]))
+                     (take 30 (cycle [:upper :lower :ped]))
+                     (take 30 (cycle [:upper :lower :ped :lower :ped]))
                      ;; (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
                      ]})
 
@@ -155,5 +155,3 @@
             :chord-seqs materials
             :initial-state-fn initial-state
             :sort-by-fn (fn [x] 1) }})
-
-(:persist-to session-config)
