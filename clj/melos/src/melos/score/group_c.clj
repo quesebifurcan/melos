@@ -44,7 +44,7 @@
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
-          :drop-n (range 8)
+          :drop-n (range 4)
           :dur [[1/4 2/4 3/4 6/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -90,20 +90,20 @@
     (->> {:part-name [:ped]
           :pitches [
                     [
-                     [0] [0 -2] 
+                     [0] [0 -2]
                      [-2] [-2 0]
                      [0] [0 2]
                      [2] [2 0]
                      ]
                     [
-                     [0] [0 -2] 
+                     [0] [0 -2]
                      [-2] [-2 -3]
                      [-3] [-2 -3]
                      [-2] [-2 0]
                      ]
                     ]
           :transposition [-15]
-          :drop-n (range 10)
+          :drop-n (range 5)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -114,8 +114,8 @@
    :ped (ped)
    :melodic-indices [
                      ;; max number of events:
-                     (take 30 (cycle [:upper :lower :ped]))
-                     (take 30 (cycle [:upper :lower :ped :lower :ped]))
+                     (take 10 (cycle [:upper :lower :ped]))
+                     (take 10 (cycle [:upper :lower :ped :lower :ped]))
                      ;; (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
                      ]})
 

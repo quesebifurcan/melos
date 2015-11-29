@@ -132,17 +132,33 @@
   [analysis-dir sessions]
   (map (partial write-session analysis-dir) sessions))
 
+(defn get-average-dissonance
+  [phrase]
+  (let [pitch-sets (map #(map :pitch %) phrase)
+        durations (map chord/get-melodic-duration phrase)
+        dissonances (map (fn [ps dur]
+                           (* (chord/scaled-dissonance-value ps)
+                              dur))
+                         pitch-sets
+                         durations)]
+    (/ (apply + dissonances) (count pitch-sets))))
+
 (defn compose
   [analysis-dir sessions]
   (let [session-paths (map (fn [x] (apply str analysis-dir "/" (:persist-to x))) sessions)
-        data (map #(clojure.edn/read-string (slurp %)) session-paths)]
+        data (map #(clojure.edn/read-string (slurp %)) session-paths)
+        phrases (sort-by get-average-dissonance (apply concat data))
+        ]
+
+    (println (map get-average-dissonance phrases))
+
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
                             200
                             [:upper :lower :ped])
                    x))
-            data
+            [phrases]
             [[measures/measure-3]
              [measures/measure-3]])))
 
