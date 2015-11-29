@@ -10,10 +10,6 @@
             [melos.score.materials
              [measures :as measures]]))
 
-(defn wrap-all-in-vector
-  [xs]
-  (map #(conj [] %) xs))
-
 (defn transpose-all
   [step forms]
   (clojure.walk/postwalk
@@ -31,7 +27,7 @@
                               transposition
                               dur
                               drop-n]}]
-            {:pitch (->> (concat (range 10) [9])
+            {:pitch (->> (concat (range -3 21) [20])
                          (map (fn [x] [2 x]))
                          (transpose-all transposition))
              :part [part-name]
@@ -44,8 +40,8 @@
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
-          :drop-n (range 8)
-          :dur [[1/4]]}
+          :drop-n (range 4)
+          :dur [[1/4 2/4 3/4 6/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
 
@@ -80,7 +76,7 @@
                               drop-n
                               dur]}]
             {:pitch (->> (range 6)
-                         (wrap-all-in-vector)
+                         (map (fn [x] [x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -90,20 +86,20 @@
     (->> {:part-name [:ped]
           :pitches [
                     [
-                     [0] [0 -2] 
+                     [0] [0 -2]
                      [-2] [-2 0]
                      [0] [0 2]
                      [2] [2 0]
                      ]
                     [
-                     [0] [0 -2] 
+                     [0] [0 -2]
                      [-2] [-2 -3]
                      [-3] [-2 -3]
                      [-2] [-2 0]
                      ]
                     ]
           :transposition [-15]
-          :drop-n (range 10)
+          :drop-n (range 5)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -144,16 +140,31 @@
    :post []
    :part-names [:upper :lower :ped]})
 
+(defn post-process
+  [events]
+  (letfn [(filterfn [x]
+            (->> x
+                 (partition-by partition-events-fn)
+                 (filter filter-events-fn)
+                 (take 1)))]
+  (->> events
+       (mapcat filterfn)
+       (utils/distinct-by score-utils/pitch-profile)
+       (drop 70)
+       (take 30)
+       (sort-by (fn [x] 1))
+       (partition 5)
+       (assoc {} :segments))))
+
 (def session-config
   {:persist-to "testing-c.edn"
-   :params {:filter-fn (fn [x]
+   :params {
+            :filter-fn (fn [x]
                          (->> x
                               (partition-by partition-events-fn)
                               (filter filter-events-fn)
                               (take 1)))
-            :distinct-by-fn score-utils/pitch-profile
             :chord-seqs materials
             :initial-state-fn initial-state
-            :sort-by-fn (fn [x] 1) }})
-
-(:persist-to session-config)
+            :post-process post-process
+            }})

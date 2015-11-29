@@ -18,8 +18,12 @@
               :count s/Int))
 
 (def Chord
-  (s/both (s/pred (complement empty?)
-                  [Note])))
+  (s/both (s/pred (complement empty?))
+          [Note]))
+
+(def Phrase
+  (s/both (s/pred (complement empty?))
+          [Chord]))
 
 (def PartCountMap
   {PartName s/Int})

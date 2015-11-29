@@ -1,7 +1,7 @@
 (ns melos.score.compose-score
   (:require clojure.edn
             [clojure.math.combinatorics :as combinatorics]
-            [progressbar.core :refer [progressbar]]
+            [clojure.set :as set]
             [melos.lib
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -12,23 +12,15 @@
              [schemas :as ms]
              [utils :as utils]]
             [melos.score
-             [combinations :as combinations]
-             [group-a :as group-a]
-             [group-b :as group-b]
-             [group-c :as group-c]]
+             [combinations :as combinations]]
             [melos.score.materials
              [measures :as measures]
              [stepwise-mod :as stepwise-mod]]
+            [progressbar.core :refer [progressbar]]
             [schema.core :as s]))
 
 ;;-----------------------------------------------------------------------------
 ;; SCORE
-
-(defn make-overlaps [pitches]
-  (->> pitches
-       (partition 2 1)
-       (mapcat (fn [[x y]]
-                 [[x] [x y]]))))
 
 (defn compose-event-seq
   [{:keys [events
@@ -76,51 +68,15 @@
        (combinations/unfold-parameters)
        (map make-chord-seq)))
 
-;; (defn max-pitch
-;;   [vertical-moments]
-;;   (->> vertical-moments
-;;        (pitch-profile)
-;;        (flatten)
-;;        (apply max)))
-
 (defn calculate-sequences
-  [{:keys [filter-fn
-           distinct-by-fn
-           chord-seqs
+  [{:keys [chord-seqs
            initial-state-fn
-           sort-by-fn]}]
+           post-process]}]
   (let [states (map #(assoc initial-state-fn :events %)
                     (make-chord-seqs chord-seqs))]
 
-  (->>
-       (map compose-event-seq (progressbar (into [] states)))
-
-       ((fn [x]
-          (do (println "\nNumber of generated phrases:" (count x))
-              x)))
-
-       (mapcat filter-fn)
-
-       ((fn [x]
-          (do (println "Number of items before uniquify:" (count x))
-              x)))
-
-       (utils/distinct-by distinct-by-fn)
-
-       ((fn [x]
-          (do (println "Number of items after uniquify:" (count x))
-              x)))
-
-       (drop 100)
-       (take 20)
-       (sort-by sort-by-fn))))
-
-(def sessions
-  {
-   "testing" group-a/materials
-   "testing-b" group-b/materials
-   "testing-c" group-c/materials
-   })
+  (->> (map compose-event-seq (progressbar (into [] states)))
+       (post-process))))
 
 (defn write-session
   [output-dir session]
@@ -132,23 +88,38 @@
   [analysis-dir sessions]
   (map (partial write-session analysis-dir) sessions))
 
+(defn get-average-dissonance
+  [phrase]
+  (let [pitch-sets (map #(map :pitch %) phrase)
+        durations (map chord/get-melodic-duration phrase)
+        dissonances (map (fn [ps dur]
+                           (* (chord/scaled-dissonance-value ps)
+                              dur))
+                         pitch-sets
+                         durations)]
+    (/ (apply + dissonances) (count pitch-sets))))
+
+(defn read-in-data
+  [analysis-dir session]
+  (let [path (apply str analysis-dir "/" (:persist-to session))]
+    (clojure.edn/read-string (slurp path))))
+
 (defn compose
   [analysis-dir sessions]
-  (let [session-paths (map (fn [x] (apply str analysis-dir "/" (:persist-to x))) sessions)
-        data (map #(clojure.edn/read-string (slurp %)) session-paths)]
+  (let [segments (map (comp :segments (partial read-in-data analysis-dir)) sessions)
+        indexed-segments (zipmap (range) segments)]
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
                             200
                             [:upper :lower :ped])
                    x))
-            data
-            [[measures/measure-3]
-             [measures/measure-3]])))
+            (combinations/weave-seqs indexed-segments)
+            (repeat [measures/measure-3]))))
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
 ;; Superfluous time signatures?
 
-;; TODO: better validity checks
+;; TODO: better validity checks -- check when data is passed between modules.
 ;; TODO: tighter program flow in calculate-sequences -- use (comp f1 f2 f3)

@@ -4,7 +4,7 @@
             clojure.edn
             [schema.core :as s]))
 
-(s/set-fn-validation! true)
+(s/set-fn-validation! false)
 
 (defn -main
   [output-path analysis-dir config-file-path]
