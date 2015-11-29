@@ -68,7 +68,7 @@
   (if (empty? kw-seq)
     nil
     (let [curr-key (first kw-seq)]
-      (cons (first (curr-key m))
+      (cons (first (get m curr-key))
             (take-by-keyword-seq (update m curr-key (partial drop 1))
                                  (rest kw-seq))))))
 
@@ -80,4 +80,3 @@
 
 ;; (let [a {:a (range 7) :b (range 70 72) :c (range 1111 1122)}]
 ;;   (weave-seqs a))
-

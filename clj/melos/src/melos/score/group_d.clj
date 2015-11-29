@@ -1,4 +1,4 @@
-(ns melos.score.group-c
+(ns melos.score.group-d
   (:require [clojure.math.combinatorics :as combinatorics]
             [melos.lib
              [note :refer [make-note]]
@@ -43,7 +43,7 @@
              :drop-n drop-n})]
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
-          :transposition [0]
+          :transposition [10]
           :drop-n (range 4)
           :dur [[1/4 2/4 3/4 6/4]]}
          (unfold-parameters)
@@ -66,7 +66,7 @@
              :duration dur})]
     (->> {:part-name [:lower]
           :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
-          :transposition [-5]
+          :transposition [5]
           :drop-n (range 3)
           :dur [[1/4]]}
          (unfold-parameters)
@@ -102,7 +102,7 @@
                      [-2] [-2 0]
                      ]
                     ]
-          :transposition [-15]
+          :transposition [-5]
           :drop-n (range 5)
           :dur [[1/4]]}
          (unfold-parameters)
@@ -145,7 +145,7 @@
    :part-names [:upper :lower :ped]})
 
 (def session-config
-  {:persist-to "testing-c.edn"
+  {:persist-to "testing-d.edn"
    :params {:filter-fn (fn [x]
                          (->> x
                               (partition-by partition-events-fn)
@@ -153,7 +153,8 @@
                               (take 1)))
             :distinct-by-fn score-utils/pitch-profile
             :chord-seqs materials
-            :partition-count 5
+            :partition-count 2
             ;; :segmentation-fn (fn [x]
             :initial-state-fn initial-state
             :sort-by-fn (fn [x] 1) }})
+

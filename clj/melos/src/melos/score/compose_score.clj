@@ -1,7 +1,7 @@
 (ns melos.score.compose-score
   (:require clojure.edn
             [clojure.math.combinatorics :as combinatorics]
-            [progressbar.core :refer [progressbar]]
+            [clojure.set :as set]
             [melos.lib
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -19,6 +19,7 @@
             [melos.score.materials
              [measures :as measures]
              [stepwise-mod :as stepwise-mod]]
+            [progressbar.core :refer [progressbar]]
             [schema.core :as s]))
 
 ;;-----------------------------------------------------------------------------
@@ -88,6 +89,7 @@
            distinct-by-fn
            chord-seqs
            initial-state-fn
+           partition-count
            sort-by-fn]}]
   (let [states (map #(assoc initial-state-fn :events %)
                     (make-chord-seqs chord-seqs))]
@@ -113,7 +115,12 @@
 
        (drop 70)
        (take 30)
-       (sort-by sort-by-fn))))
+       (sort-by sort-by-fn)
+
+       (partition partition-count)
+
+       (assoc {} :segments))))
+
 
 (def sessions
   {
@@ -143,24 +150,26 @@
                          durations)]
     (/ (apply + dissonances) (count pitch-sets))))
 
+(defn read-in-data
+  [analysis-dir session]
+  (let [path (apply str analysis-dir "/" (:persist-to session))]
+    (clojure.edn/read-string (slurp path))))
+
 (defn compose
   [analysis-dir sessions]
-  (let [session-paths (map (fn [x] (apply str analysis-dir "/" (:persist-to x))) sessions)
-        data (map #(clojure.edn/read-string (slurp %)) session-paths)
-        phrases (sort-by get-average-dissonance (apply concat data))
-        ]
 
-    (println (map get-average-dissonance phrases))
-
+  (let [segments (map (comp :segments (partial read-in-data analysis-dir)) sessions)
+        indexed-segments (zipmap (range) segments)]
+    
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
                             200
                             [:upper :lower :ped])
                    x))
-            [phrases]
-            [[measures/measure-3]
-             [measures/measure-3]])))
+            (combinations/weave-seqs indexed-segments)
+            (repeat [measures/measure-3]))))
+
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
