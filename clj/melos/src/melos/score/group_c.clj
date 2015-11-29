@@ -10,10 +10,6 @@
             [melos.score.materials
              [measures :as measures]]))
 
-(defn wrap-all-in-vector
-  [xs]
-  (map #(conj [] %) xs))
-
 (defn transpose-all
   [step forms]
   (clojure.walk/postwalk
@@ -80,7 +76,7 @@
                               drop-n
                               dur]}]
             {:pitch (->> (range 6)
-                         (wrap-all-in-vector)
+                         (map (fn [x] [x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -144,16 +140,31 @@
    :post []
    :part-names [:upper :lower :ped]})
 
+(defn post-process
+  [events]
+  (letfn [(filterfn [x]
+            (->> x
+                 (partition-by partition-events-fn)
+                 (filter filter-events-fn)
+                 (take 1)))]
+  (->> events
+       (mapcat filterfn)
+       (utils/distinct-by score-utils/pitch-profile)
+       (drop 70)
+       (take 30)
+       (sort-by (fn [x] 1))
+       (partition 5)
+       (assoc {} :segments))))
+
 (def session-config
   {:persist-to "testing-c.edn"
-   :params {:filter-fn (fn [x]
+   :params {
+            :filter-fn (fn [x]
                          (->> x
                               (partition-by partition-events-fn)
                               (filter filter-events-fn)
                               (take 1)))
-            :distinct-by-fn score-utils/pitch-profile
             :chord-seqs materials
-            :partition-count 5
-            ;; :segmentation-fn (fn [x]
             :initial-state-fn initial-state
-            :sort-by-fn (fn [x] 1) }})
+            :post-process post-process
+            }})

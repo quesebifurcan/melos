@@ -12,10 +12,7 @@
              [schemas :as ms]
              [utils :as utils]]
             [melos.score
-             [combinations :as combinations]
-             [group-a :as group-a]
-             [group-b :as group-b]
-             [group-c :as group-c]]
+             [combinations :as combinations]]
             [melos.score.materials
              [measures :as measures]
              [stepwise-mod :as stepwise-mod]]
@@ -24,12 +21,6 @@
 
 ;;-----------------------------------------------------------------------------
 ;; SCORE
-
-(defn make-overlaps [pitches]
-  (->> pitches
-       (partition 2 1)
-       (mapcat (fn [[x y]]
-                 [[x] [x y]]))))
 
 (defn compose-event-seq
   [{:keys [events
@@ -77,57 +68,15 @@
        (combinations/unfold-parameters)
        (map make-chord-seq)))
 
-;; (defn max-pitch
-;;   [vertical-moments]
-;;   (->> vertical-moments
-;;        (pitch-profile)
-;;        (flatten)
-;;        (apply max)))
-
 (defn calculate-sequences
-  [{:keys [filter-fn
-           distinct-by-fn
-           chord-seqs
+  [{:keys [chord-seqs
            initial-state-fn
-           partition-count
-           sort-by-fn]}]
+           post-process]}]
   (let [states (map #(assoc initial-state-fn :events %)
                     (make-chord-seqs chord-seqs))]
 
-  (->>
-       (map compose-event-seq (progressbar (into [] states)))
-
-       ((fn [x]
-          (do (println "\nNumber of generated phrases:" (count x))
-              x)))
-
-       (mapcat filter-fn)
-
-       ((fn [x]
-          (do (println "Number of items before uniquify:" (count x))
-              x)))
-
-       (utils/distinct-by distinct-by-fn)
-
-       ((fn [x]
-          (do (println "Number of items after uniquify:" (count x))
-              x)))
-
-       (drop 70)
-       (take 30)
-       (sort-by sort-by-fn)
-
-       (partition partition-count)
-
-       (assoc {} :segments))))
-
-
-(def sessions
-  {
-   "testing" group-a/materials
-   "testing-b" group-b/materials
-   "testing-c" group-c/materials
-   })
+  (->> (map compose-event-seq (progressbar (into [] states)))
+       (post-process))))
 
 (defn write-session
   [output-dir session]
@@ -157,10 +106,8 @@
 
 (defn compose
   [analysis-dir sessions]
-
   (let [segments (map (comp :segments (partial read-in-data analysis-dir)) sessions)
         indexed-segments (zipmap (range) segments)]
-    
     (mapcat (fn [x y]
               (map (partial compose-parts
                             y
@@ -170,10 +117,9 @@
             (combinations/weave-seqs indexed-segments)
             (repeat [measures/measure-3]))))
 
-
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
 ;; Superfluous time signatures?
 
-;; TODO: better validity checks
+;; TODO: better validity checks -- check when data is passed between modules.
 ;; TODO: tighter program flow in calculate-sequences -- use (comp f1 f2 f3)
