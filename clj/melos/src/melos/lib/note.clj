@@ -7,6 +7,7 @@
    :group (gensym "G__")
    :merge-left? false
    :merge-right? false
+   :dissonance-contributor? true
    :part nil,
    :count 0,
    :is-rest? false

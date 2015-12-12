@@ -27,13 +27,15 @@
                               transposition
                               dur
                               drop-n]}]
-            {:pitch (->> (concat (range -3 21) [20])
-                         (map (fn [x] [2 x]))
+            {:pitch (->> 
+                         [[0] [0 1] [0 2]]
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [2 3 1])
+             :partition (partial utils/cyclic-partition [3])
              :merge-left? [false]
+             ;; :dissonance-contributor? [false true false false true true]
+             :dissonance-contributor? [false false true]
              :duration (concat (repeat 8 1/4) [3/4] [3/4])
              :merge-right? [false]
              :drop-n drop-n})]
@@ -53,17 +55,17 @@
                               drop-n
                               dur]}]
             {:pitch (->> (range 8)
-                         (map (fn [x] [4 x]))
+                         (map (fn [x] [x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [3 1 1])
+             :partition (partial utils/cyclic-partition [1 1 1])
              :drop-n drop-n
              :duration dur})]
     (->> {:part-name [:lower]
           :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
-          :transposition [-5]
-          :drop-n (range 3)
+          :transposition [-5 -4 -3 -2]
+          :drop-n (range 7)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -120,13 +122,14 @@
 
 (defn filter-events-fn
   [events]
-  (and (>= (count events) 6)
+  (and (>= (count events) 3)
        (every? (partial score-utils/part-count-sufficient? 3) events)))
 
 (def diss-params
   {:check (fn [events]
-            (<= (chord/scaled-dissonance-value (map :pitch events))
-                (chord/scaled-dissonance-value [0 1 2])))})
+            (let [asdf (chord/dissonance-contributors events)]
+            (<= (chord/scaled-dissonance-value (map :pitch asdf))
+                (chord/scaled-dissonance-value [0 2 4 5]))))})
 
 (def initial-state
   {:diss-fn-params {:max-count 100
