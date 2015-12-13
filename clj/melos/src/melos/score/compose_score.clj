@@ -115,7 +115,7 @@
                             [:upper :lower :ped])
                    x))
             (combinations/weave-seqs indexed-segments)
-            (repeat [measures/measure-3]))))
+            (repeat [measures/measure-4]))))
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 

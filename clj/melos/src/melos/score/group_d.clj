@@ -1,4 +1,4 @@
-(ns melos.score.group-c
+(ns melos.score.group-d
   (:require [clojure.math.combinatorics :as combinatorics]
             [melos.lib
              [note :refer [make-note]]
@@ -31,11 +31,12 @@
                      ;; (range 13)
                      ;; (map (fn [x] [x]))
                      ;; [[0] [0 1] [0 2] [0 2 3] [0 2 4] [2 4] [4] [4 5] [4 6] [4 6 7] [4 6 8] [6 8] [8]]
-                     [[-3] [-3 -1] [-3 -1 0] [-1 0] [-1 0 2] [0 2] [2] [2 3] [2 3 5] [2 5]]
+                     [2]
+                     (map (fn [x] [x]))
                      (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [1])
+             :partition (partial utils/cyclic-partition [3 2 1 1 2 2 1 1])
              :merge-left? [false]
              ;; :dissonance-contributor? [false true false false true true]
              ;; :dissonance-contributor? [false false true]
@@ -45,7 +46,7 @@
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
-          :drop-n (range 8)
+          :drop-n [0 4]
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -60,9 +61,8 @@
                               dur]}]
             {:pitch (->>
                      ;; (range 13)
-                     ;; [4 2 -3 4 2 -3 7 9 7 4 2 5 5 5 5 5 5 5 5]
-                     [[-3] [-3 -1] [-3 -1 0] [-1 0] [-1 0 2] [0 2] [2] [2 3] [2 3 5] [2 5]]
-                     ;; (map (fn [x] [x]))
+                     [4 2 5 5 5 5 5 5 5 5]
+                     (map (fn [x] [x]))
                          ;; [[-6] [-6 -4] [-6 -4 -2] [-2]]
                      (transpose-all transposition))
              :part [part-name]
@@ -72,7 +72,7 @@
              :duration dur})]
     (->> {:part-name [:lower]
           :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
-          :transposition (range -6 -3)
+          :transposition [0]
           :drop-n (range 8)
           :dur [[1/4]]}
          (unfold-parameters)
@@ -85,8 +85,8 @@
                               transposition
                               drop-n
                               dur]}]
-            {:pitch (->> 
-                     [[0] [0 2] [2] [2 3] [3]]
+            {:pitch (->> [0 2 3 2 2]
+                         (map (fn [x] [x]))
                          (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
@@ -108,8 +108,8 @@
                      [-2] [-2 0]
                      ]
                     ]
-          :transposition (range -18 -15)
-          :drop-n (range 5)
+          :transposition [-15]
+          :drop-n (range 2)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -130,7 +130,7 @@
 
 (defn filter-events-fn
   [events]
-  (and (>= (count events) 6)
+  (and (>= (count events) 8)
        (every? (partial score-utils/part-count-sufficient? 3) events)))
 
 (def diss-params
@@ -185,12 +185,11 @@
        (utils/distinct-by score-utils/pitch-profile)
        (sort-by (fn [x] (:count x)))
        (reverse)
-       (take 30)
        (partition 1)
        (assoc {} :segments))))
 
 (def session-config
-  {:persist-to "testing-c.edn"
+  {:persist-to "testing-d.edn"
    :params {
             :filter-fn (fn [x]
                          (->> x
