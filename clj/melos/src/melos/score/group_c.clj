@@ -28,14 +28,14 @@
                               dur
                               drop-n]}]
             {:pitch (->>
-                     ;; (range 13)
-                     ;; (map (fn [x] [x]))
+                     (range 13)
+                     (map (fn [x] [x]))
                      ;; [[0] [0 1] [0 2] [0 2 3] [0 2 4] [2 4] [4] [4 5] [4 6] [4 6 7] [4 6 8] [6 8] [8]]
-                     [[-3] [-3 -1] [-3 -1 0] [-1 0] [-1 0 2] [0 2] [2] [2 3] [2 3 5] [2 5]]
+                     ;; [[-3] [-3 -1] [-3 -1 0] [-1 0] [-1 0 2] [0 2] [2] [2 3] [2 3 5] [2 5]]
                      (transpose-all transposition))
              :part [part-name]
              :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [1])
+             :partition (partial utils/cyclic-partition [1 2 1 2 3])
              :merge-left? [false]
              ;; :dissonance-contributor? [false true false false true true]
              ;; :dissonance-contributor? [false false true]
@@ -45,7 +45,7 @@
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
           :transposition [0]
-          :drop-n (range 8)
+          :drop-n (range 5)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -61,8 +61,9 @@
             {:pitch (->>
                      ;; (range 13)
                      ;; [4 2 -3 4 2 -3 7 9 7 4 2 5 5 5 5 5 5 5 5]
-                     [[-3] [-3 -1] [-3 -1 0] [-1 0] [-1 0 2] [0 2] [2] [2 3] [2 3 5] [2 5]]
-                     ;; (map (fn [x] [x]))
+                     ;; [[-3] [-3 -1] [-3 -1 0] [-1 0] [-1 0 2] [0 2] [2] [2 3] [2 3 5] [2 5]]
+                     (range 7)
+                     (map (fn [x] [x]))
                          ;; [[-6] [-6 -4] [-6 -4 -2] [-2]]
                      (transpose-all transposition))
              :part [part-name]
@@ -72,8 +73,8 @@
              :duration dur})]
     (->> {:part-name [:lower]
           :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
-          :transposition (range -6 -3)
-          :drop-n (range 8)
+          :transposition [-4]
+          :drop-n [0 1 2 3 4]
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -85,7 +86,7 @@
                               transposition
                               drop-n
                               dur]}]
-            {:pitch (->> 
+            {:pitch (->>
                      [[0] [0 2] [2] [2 3] [3]]
                          (transpose-all transposition))
              :part [part-name]
@@ -108,8 +109,8 @@
                      [-2] [-2 0]
                      ]
                     ]
-          :transposition (range -18 -15)
-          :drop-n (range 5)
+          :transposition [-20]
+          :drop-n (range 2)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
@@ -120,9 +121,11 @@
    :ped (ped)
    :melodic-indices [
                      ;; max number of events:
-                     (take 20 (cycle [:upper :lower :ped]))
+                     (take 9 (cycle [:upper :lower :ped]))
+                     (take 6 (cycle [:upper :lower :ped]))
+                     (take 13 (cycle [:upper :lower :ped]))
                      ;; (take 30 (cycle [:upper :lower :ped :lower :ped]))
-                     (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
+                     ;; (take 20 (cycle [:upper :lower :ped :lower :ped :lower :ped :lower]))
                      ]})
 
 (def partition-events-fn
@@ -137,7 +140,7 @@
   {:check (fn [events]
             (let [asdf (chord/dissonance-contributors events)]
             (<= (chord/scaled-dissonance-value (map :pitch events))
-                (chord/scaled-dissonance-value [0 2 4 5]))))})
+                (chord/scaled-dissonance-value [0 1 2]))))})
 
 (def initial-state
   {:diss-fn-params {:max-count 100
@@ -177,27 +180,28 @@
   [events]
   (letfn [(filterfn [x]
             (->> x
-                 (partition-by partition-events-fn)
-                 (filter filter-events-fn)
-                 (take 1)))]
+                 ;; (partition-by partition-events-fn)
+                 ;; (take 8)
+                 ;; (conj [])
+                 ;; (filter filter-events-fn)
+                 ;; (take 1)
+                 (take 8)
+                 ;; (conj [])
+                 ;; (filter filter-events-fn)
+                 ))]
   (->> events
-       (mapcat filterfn)
+       ;; (map filterfn)
+       ;; (take 8)
        (utils/distinct-by score-utils/pitch-profile)
-       (sort-by (fn [x] (:count x)))
-       (reverse)
-       (take 30)
+       ;; (sort-by (fn [x] (:count x)))
+       ;; (reverse)
+       ;; (take 30)
        (partition 1)
        (assoc {} :segments))))
 
 (def session-config
   {:persist-to "testing-c.edn"
-   :params {
-            :filter-fn (fn [x]
-                         (->> x
-                              (partition-by partition-events-fn)
-                              (filter filter-events-fn)
-                              (take 1)))
-            :chord-seqs materials
+   :params {:chord-seqs materials
             :initial-state-fn initial-state
             :post-process post-process
             }})

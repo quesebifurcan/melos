@@ -350,7 +350,8 @@
   [diss-fn-params events]
   (-> (handle-dissonance diss-fn-params)
       (reductions events)
-      (rest)))
+      ))
+      ;; (rest)))
 
 ;;-----------------------------------------------------------------------------
 ;; Modify durations.
