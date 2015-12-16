@@ -136,6 +136,18 @@
                          durations)]
     (/ (apply + dissonances) (count pitch-sets))))
 
+;; (defn get-average-pitch
+;;   [phrase]
+;;   (let [pitches (mapcat #(map :pitch %) phrase)]
+;;     (/ (apply + pitches) (count pitches))))
+
+(defn get-max-dissonance
+  [phrase]
+  (let [pitch-sets (map #(map :pitch %) phrase)
+        durations (map chord/get-melodic-duration phrase)
+        dissonances (map chord/scaled-dissonance-value pitch-sets)]
+    (apply max dissonances)))
+
 (defn post-process
   [events]
   (->> events
@@ -150,3 +162,4 @@
    :params {:chord-seqs materials
             :initial-state-fn initial-state
             :post-process post-process}})
+
