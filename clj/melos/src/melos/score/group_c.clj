@@ -41,12 +41,11 @@
              :drop-n drop-n})]
     (->> {:part-name [:upper]
           :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
-          :transposition [0]
+          :transposition [0 12]
           :drop-n (range 5)
           :dur [[1/4]]}
          (unfold-parameters)
          (map (comp utils/unfold-events blueprint)))))
-
 
 (defn lower
   []
@@ -66,7 +65,7 @@
              :duration dur})]
     (->> {:part-name [:lower]
           :pitches [[0 2 4 5 7 9 10 3 1 6 5]]
-          :transposition [-4]
+          :transposition [-4 8]
           :drop-n [0 1 2 3 4]
           :dur [[1/4]]}
          (unfold-parameters)
