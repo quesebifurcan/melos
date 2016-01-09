@@ -13,6 +13,7 @@
               :merge-right? s/Bool
               :group s/Any
               :is-rest? s/Bool
+              :dissonance-contributor? s/Bool
               :part PartName
               :max-count s/Int
               :count s/Int))

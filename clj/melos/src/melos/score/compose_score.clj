@@ -37,7 +37,7 @@
   [events]
   (let [lst (last events)]
     (if (>= (chord/scaled-dissonance-value (map :pitch lst))
-            (chord/scaled-dissonance-value [0 2 4 5]))
+            (chord/scaled-dissonance-value [0 1 2]))
       7/4
       1/4)))
 
@@ -46,8 +46,8 @@
   (let [head (stepwise-mod/maybe-split-vertical-moment
               (first event-seq))
         event-seq-mod (concat head (rest event-seq))
-        last-event-dur (get-last-event-duration event-seq-mod)]
-    (->> event-seq-mod
+        last-event-dur (get-last-event-duration event-seq)]
+    (->> event-seq
          ;; hardcoded
          (rhythm-tree/extend-last last-event-dur)
          (rhythm-tree/make-r-tree measures)
@@ -75,8 +75,8 @@
   (let [states (map #(assoc initial-state-fn :events %)
                     (make-chord-seqs chord-seqs))]
 
-  (->> (map compose-event-seq (progressbar (into [] states)))
-       (post-process))))
+    (->> (map compose-event-seq (progressbar (into [] states)))
+         (post-process))))
 
 (defn write-session
   [output-dir session]
@@ -115,7 +115,7 @@
                             [:upper :lower :ped])
                    x))
             (combinations/weave-seqs indexed-segments)
-            (repeat [measures/measure-3]))))
+            (repeat [measures/measure-4]))))
 
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
