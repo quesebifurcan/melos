@@ -1,11 +1,14 @@
 (ns melos.score.group-c
   (:require [clojure.math.combinatorics :as combinatorics]
+            [schema.core :as s]
             [melos.lib
              [note :refer [make-note]]
+             [schemas :as ms]
              [chord :as chord]
+             [chord-seq :as chord-seq]
              [utils :as utils]]
             [melos.score
-             [combinations :refer [unfold-parameters]]
+             [combinations :refer [weave-seqs unfold-parameters]]
              [score-utils :as score-utils]]
             [melos.score.materials
              [measures :as measures]]))
@@ -22,30 +25,20 @@
 
 (defn upper
   []
-  (letfn [(blueprint [{:keys [pitches
-                              part-name
-                              transposition
-                              dur
-                              drop-n]}]
-            {:pitch (->>
-                     (range 13)
-                     (map (fn [x] [x]))
-                     (transpose-all transposition))
-             :part [part-name]
-             :fn utils/make-chord-from-pitch-vector-params
-             :partition (partial utils/cyclic-partition [1 2 1 2 3])
-             :merge-left? [false]
-             ;; :dissonance-contributor? [false false true]
-             :duration dur
-             :merge-right? [false]
-             :drop-n drop-n})]
-    (->> {:part-name [:upper]
-          :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
-          :transposition [0 12]
-          :drop-n (range 5)
-          :dur [[1/4]]}
-         (unfold-parameters)
-         (map (comp utils/unfold-events blueprint)))))
+  (let [params {:pitch (->>
+                        [[0] [0 2] [0 2 5] [2 5] [5]])
+
+                }]
+    params))
+
+    ;; (->> {:part-name [:upper]
+    ;;       :pitches [[0 2 4 5 7 -3 -2 3 1 6 5]]
+    ;;       :transposition [0 12]
+    ;;       :drop-n (range 5)
+    ;;       :dur [[1/4]]}
+    ;;      (unfold-parameters)
+    ;;      (map (comp utils/unfold-events blueprint)))))
+
 
 (defn lower
   []
@@ -162,4 +155,26 @@
    :params {:chord-seqs materials
             :initial-state-fn initial-state
             :post-process post-process}})
+
+;; (defn lower []
+;;   (->> {:pitch [[0] [0 2] [0 2 5] [2 5] [5]]
+;;         :part [:lower]
+;;         :dur [1/4]
+;;         }
+;;        unfold-parameters
+;;        (map make-note)
+;;        (cycle)
+;;        (utils/cyclic-partition [1])
+;;        (take 10)))
+
+;; (defn ped []
+;;   (->> {:pitch (map (fn [x] [x]) (range -10 -3))
+;;         :part [:ped]
+;;         :dur [1/4]
+;;         }
+;;        unfold-parameters
+;;        (map make-note)
+;;        (cycle)
+;;        (utils/cyclic-partition [1])
+;;        (take 10)))
 

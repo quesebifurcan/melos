@@ -12,6 +12,7 @@
              [schemas :as ms]
              [utils :as utils]]
             [melos.score
+             [group-c :as group-c]
              [combinations :as combinations]]
             [melos.score.materials
              [measures :as measures]
@@ -117,9 +118,46 @@
             (combinations/weave-seqs indexed-segments)
             (repeat [measures/measure-4]))))
 
+(def diss-params
+  {:check (fn [events]
+            (<= (chord/scaled-dissonance-value (map :pitch events))
+                (chord/scaled-dissonance-value [0 1 2])))})
+
+(s/defn upper
+  []
+  ;; (->> {:pitch [[0] [0 2] [0 2 5] [2 5] [5]]
+  (->> {:pitch [0 2 4 5 6]
+        :part [:upper]
+        :dur [1/4]
+        }
+       unfold-parameters
+       (map (fn [x] [(make-note x )]))
+       (cycle)
+       (utils/cyclic-partition [3 2 1])
+       (take 10)))
+
+(defn new-compose
+  []
+  (->> 
+   123
+   ))
+   ;; (chord-seq/collect-events-in-segment
+   ;;      [:upper]
+   ;;      (atom {:upper (group-c/upper)
+   ;;             :lower (group-c/lower)
+   ;;             :ped (group-c/ped)}))
+   ;;     (chord-seq/extend-events {:max-count 100
+   ;;                               :max-lingering 300
+   ;;                               ;; TODO: pass on diss-value
+   ;;                               :diss-params diss-params})
+   ;;     ;; (chord-seq/merge-horizontally)
+   ;;     ))
+
+
 ;; Phrases, start- and end-points: the end of a phrase is usually connected to the start of the next one -- intervals between phrases matter.
 
 ;; Superfluous time signatures?
 
 ;; TODO: better validity checks -- check when data is passed between modules.
 ;; TODO: tighter program flow in calculate-sequences -- use (comp f1 f2 f3)
+

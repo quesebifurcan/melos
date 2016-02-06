@@ -37,8 +37,14 @@
 
 (defn collect-events-in-segment
   [melodic-indices events-seqs]
-  (mapcat (fn [x] (get-and-rotate events-seqs x))
-          melodic-indices))
+  (map (fn [x] (get-and-rotate events-seqs x))
+       melodic-indices))
+
+;; (chord-seq/collect-events-in-segment
+;;  [:a :a]
+;;  (atom
+;;   {:a [[1 2 3] [4 5 6]]}))
+;; => (1 2 3 4 5 6)
 
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
@@ -278,8 +284,9 @@
 
 (s/defn join-events
   :- ms/Chord
-  [new-event :- ms/Chord
-   events :- ms/Chord]
+  ;; [new-event :- ms/Chord
+  ;;  events :- ms/Chord]
+  [new-event events]
   (let [curr-parts (set (map :part new-event))
         events (filter (fn [event]
                          (not (contains? curr-parts (:part event))))
@@ -351,6 +358,26 @@
   (-> (handle-dissonance diss-fn-params)
       (reductions events)
       ))
+
+(defn extend-phrases
+  [diss-fn-params coll phrases]
+  (if (empty? phrases)
+    coll
+    (let [next_ (map #(join-events % (last coll))
+                     (first phrases))
+          next_2 (map-indexed (fn [i x]
+                               (map (fn [y]
+                                      (update y :count (partial + i))))
+                               x)
+                             next_)]
+      ;; TODO: if phrase is not valid, segment.
+      (println next_)
+      (extend-phrases diss-fn-params
+                      ;; (concat coll next_2)
+                      (concat coll next_2)
+                      (rest phrases)))))
+
+
       ;; (rest)))
 
 ;;-----------------------------------------------------------------------------

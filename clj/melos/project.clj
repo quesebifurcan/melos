@@ -11,4 +11,3 @@
                  [org.clojure/tools.namespace "0.2.11"]
                  [me.raynes/conch "0.8.0"]]
   :plugins [[lein-marginalia "0.8.0"]])
-
