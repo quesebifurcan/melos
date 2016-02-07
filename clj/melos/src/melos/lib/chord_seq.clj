@@ -371,28 +371,21 @@
 
 (defn extend-phrases
   [diss-fn-params coll phrases]
-  ;; [{:keys [max-count diss-params max-lingering] :as m}]
   (if (empty? phrases)
     coll
     (let [next_ (map #(join-events % (last coll))
                      (forward-time_ (first phrases)))]
-      ;; TODO: if phrase is not valid, segment.
       (if (consonant? (last next_)
-                      [0 2 4 5])
+                      (:diss-params diss-fn-params))
         (extend-phrases diss-fn-params
                         (concat coll next_)
                         (rest phrases))
         (extend-phrases diss-fn-params
-                        ;; (concat coll [(map #(assoc % :duration 4/4)
-                        ;;                   (first phrases))])
                         (concat (butlast coll)
-                                [(map #(assoc % :duration 4/4)
+                                [(map #(assoc % :phrase-end true)
                                       (last coll))]
                                 (forward-time_ (first phrases)))
-
-
                         (rest phrases))))))
-
 
       ;; (rest)))
 

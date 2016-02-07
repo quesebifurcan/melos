@@ -61,7 +61,6 @@
 (def initial-state
   {:diss-fn-params {:max-count 100
                     :max-lingering 300
-                    ;; TODO: pass on diss-value
                     :diss-params diss-params}
    :tempo 200
    :measures [measures/measure-3]
@@ -75,24 +74,32 @@
       melodic-indices (->> [:upper :lower :ped]
                            (cycle)
                            (take 70))]
-  (->> (chord-seq/collect-events-in-segment
-        melodic-indices
-        melody-sources)
-       ;; Work with phrases, not with chords?
-       ;; Extend phrases returns list of phrases
-       ;; which can be filtered and sorted.
-       ;; TODO: Multiple segments?
-       (s/validate [ms/Phrase])
-       (chord-seq/extend-phrases {:max-count 100
-                                 :max-lingering 300
-                                 :diss-params diss-params}
-                                 [])
-
-       (chord-seq/merge-horizontally)
-       (rhythm-tree/make-r-tree [measures/measure-4])
-       (part/compose-part 200 [:upper :lower :ped])
-       ((fn [x] [x]))
-       (utils/export-to-json "/Users/fred/projects/music/compositions/2015/organ/output/score.json")
-       ))
+  (->>
+   ;; Collect phrases
+   (chord-seq/collect-events-in-segment
+    melodic-indices
+    melody-sources)
+   (s/validate [ms/Phrase])
+   ;; Extend phrases
+   (chord-seq/extend-phrases {:max-count 100
+                              :max-lingering 300
+                              :diss-params [0 2 4 5]}
+                             [])
+   ;; Filter phrases
+   (partition-by (comp :phrase-end first))
+   (filter #(>= (count %) 5))
+   (s/validate [ms/Phrase])
+   ;; Compose part
+   (map (fn [phrase]
+          (->> phrase
+               (chord-seq/merge-horizontally)
+               (rhythm-tree/extend-last 4/4)
+               (rhythm-tree/make-r-tree [measures/measure-4])
+               (part/compose-part 200 [:upper :lower :ped]))))
+   (utils/export-to-json "/Users/fred/projects/music/compositions/2015/organ/output/score.json")
+   ))
 
 ;; TODO: unfold-parameters correctly.
+
+;; (let [a [1 2 3 4 :end 5 6 7 8 :end 9]]
+;;   (partition-by #(= :end %) a))
