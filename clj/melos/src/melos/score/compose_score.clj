@@ -123,18 +123,18 @@
             (<= (chord/scaled-dissonance-value (map :pitch events))
                 (chord/scaled-dissonance-value [0 1 2])))})
 
-(s/defn upper
-  []
-  ;; (->> {:pitch [[0] [0 2] [0 2 5] [2 5] [5]]
-  (->> {:pitch [0 2 4 5 6]
-        :part [:upper]
-        :dur [1/4]
-        }
-       unfold-parameters
-       (map (fn [x] [(make-note x )]))
-       (cycle)
-       (utils/cyclic-partition [3 2 1])
-       (take 10)))
+;; (s/defn upper
+;;   []
+;;   ;; (->> {:pitch [[0] [0 2] [0 2 5] [2 5] [5]]
+;;   (->> {:pitch [0 2 4 5 6]
+;;         :part [:upper]
+;;         :dur [1/4]
+;;         }
+;;        unfold-parameters
+;;        (map (fn [x] [(make-note x )]))
+;;        (cycle)
+;;        (utils/cyclic-partition [3 2 1])
+;;        (take 10)))
 
 (defn new-compose
   []

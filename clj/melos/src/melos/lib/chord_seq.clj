@@ -287,11 +287,13 @@
   ;; [new-event :- ms/Chord
   ;;  events :- ms/Chord]
   [new-event events]
-  (let [curr-parts (set (map :part new-event))
+  (let [duration (:duration (first new-event))
+        curr-parts (set (map :part new-event))
         events (filter (fn [event]
                          (not (contains? curr-parts (:part event))))
                        events)]
-  (->> (concat events new-event)
+  (->> (concat (map #(assoc % :duration duration) events)
+               new-event)
        ;; (filter-distinct)
        )))
 
@@ -359,23 +361,37 @@
       (reductions events)
       ))
 
+(defn forward-time_
+  [phrase]
+  (map-indexed (fn [i x]
+                 (map (fn [y]
+                        (update y :count (partial + i))))
+                 x)
+              phrase))
+
 (defn extend-phrases
   [diss-fn-params coll phrases]
+  ;; [{:keys [max-count diss-params max-lingering] :as m}]
   (if (empty? phrases)
     coll
     (let [next_ (map #(join-events % (last coll))
-                     (first phrases))
-          next_2 (map-indexed (fn [i x]
-                               (map (fn [y]
-                                      (update y :count (partial + i))))
-                               x)
-                             next_)]
+                     (forward-time_ (first phrases)))]
       ;; TODO: if phrase is not valid, segment.
-      (println next_)
-      (extend-phrases diss-fn-params
-                      ;; (concat coll next_2)
-                      (concat coll next_2)
-                      (rest phrases)))))
+      (if (consonant? (last next_)
+                      [0 2 4 5])
+        (extend-phrases diss-fn-params
+                        (concat coll next_)
+                        (rest phrases))
+        (extend-phrases diss-fn-params
+                        ;; (concat coll [(map #(assoc % :duration 4/4)
+                        ;;                   (first phrases))])
+                        (concat (butlast coll)
+                                [(map #(assoc % :duration 4/4)
+                                      (last coll))]
+                                (forward-time_ (first phrases)))
+
+
+                        (rest phrases))))))
 
 
       ;; (rest)))
