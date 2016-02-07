@@ -374,17 +374,22 @@
   (if (empty? phrases)
     coll
     (let [next_ (map #(join-events % (last coll))
-                     (forward-time_ (first phrases)))]
-      (if (consonant? (last next_)
-                      (:diss-params diss-fn-params))
+                     (first phrases))]
+      (if (or (consonant? (last next_)
+                          (:diss-params diss-fn-params))
+              ;; (not (consonant? (last (first phrases))
+              ;;                  (:diss-params diss-fn-params))))
+              )
         (extend-phrases diss-fn-params
                         (concat coll next_)
                         (rest phrases))
         (extend-phrases diss-fn-params
-                        (concat (butlast coll)
-                                [(map #(assoc % :phrase-end true)
-                                      (last coll))]
-                                (forward-time_ (first phrases)))
+                        (if (empty? coll)
+                          (first phrases)
+                          (concat (butlast coll)
+                                  [(map #(assoc % :phrase-end true)
+                                        (last coll))]
+                                  (first phrases)))
                         (rest phrases))))))
 
       ;; (rest)))

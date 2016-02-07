@@ -23,7 +23,36 @@
             [progressbar.core :refer [progressbar]]
             [schema.core :as s]))
 
-(s/set-fn-validation! true)
+(defn partition-groups
+  [f curr coll l]
+  (if (empty? l)
+    (if (empty? curr)
+      coll
+      (concat coll [curr]))
+    (let [nxt (first l)]
+      (if (f nxt)
+        (partition-groups f
+                          []
+                          (concat coll
+                                  [(concat curr
+                                           [nxt])])
+                          (rest l))
+        (partition-groups f
+                          (concat curr [nxt])
+                          coll
+                          (rest l))))))
+
+(defn transpose-all
+  [step forms]
+  (clojure.walk/postwalk
+   (fn [form]
+     (cond (number? form)
+           (+ form step)
+           :else
+           form))
+   forms))
+
+(s/set-fn-validation! false)
 
 (defn unfold-parameters
   [m]
@@ -33,13 +62,30 @@
 
 (s/defn upper
   ;; :- [ms/Phrase]
-  [part segmentation]
-  (->> {:pitch (map (fn [x] [x]) (range 11))
+  [part segmentation transposition]
+  (->> {:pitch (->> (map (fn [x] [x]) (range 11))
+                    (transpose-all transposition))
         :is-rest? (concat (repeat 10 false)
                           [true])
         :part [part]
         :duration (concat (repeat 9 1/4)
-                          [3/4 2/4])}
+                          [3/4 1/4])}
+       unfold-parameters
+       (map utils/make-chord-from-pitch-vector-params)
+       (map #(s/validate ms/Chord %))
+       cycle
+       (utils/cyclic-partition segmentation)
+       (map #(s/validate ms/Phrase %))
+       ))
+
+(s/defn chords
+  ;; :- [ms/Phrase]
+  [part segmentation transposition]
+  (->> {:pitch (->> [[0] [0 2] [0 2 5] [2 5] [5]]
+                    (transpose-all transposition))
+        :part [part]
+        :duration (concat (repeat 9 1/4)
+                          [1/4 1/4])}
        unfold-parameters
        (map utils/make-chord-from-pitch-vector-params)
        (map #(s/validate ms/Chord %))
@@ -50,56 +96,47 @@
 
 (defn -main
   [output-path analysis-dir config-file-path]
-  (utils/export-to-json output-path
-                        (compose-score/new-compose)))
+  (let [melody-sources (atom {:upper (chords :upper [3 1 1] 0)
+                              :lower (upper :lower [2] -3)
+                              :ped (upper :ped [1] -13)})
+        melodic-indices (->> [:upper :lower :ped]
+                             (cycle)
+                             (take 100))]
+    (->> (chord-seq/collect-events-in-segment
+          melodic-indices
+          melody-sources)
+         (s/validate [ms/Phrase])
+         ;; Extend phrases
+         (chord-seq/extend-phrases {:max-count 100
+                                    :max-lingering 300
+                                    :diss-params [0 1 2]}
+                                   [])
+         ;; Filter phrases
+         (partition-groups (comp :phrase-end first)
+                           []
+                           [])
+         ;; (filter #(>= (count %) 1))
+         ;; (rest)
+         (s/validate [ms/Phrase])
+         ;; Compose part
+         (map (fn [phrase]
+                (->> phrase
+                     (chord-seq/merge-horizontally)
+                     ;; (rhythm-tree/extend-last 4/4)
+                     (rhythm-tree/make-r-tree [measures/measure-4])
+                     (part/compose-part 200 [:upper :lower :ped]))))
+         (utils/export-to-json "/Users/fred/projects/music/compositions/2015/organ/output/score.json")
+         )))
 
-(def diss-params
-  {:check (fn [events]
-            (<= (chord/scaled-dissonance-value (map :pitch events))
-                (chord/scaled-dissonance-value [0 2 4 5])))})
+(->> (-main 1 2 3)
+     (map count))
 
-(def initial-state
-  {:diss-fn-params {:max-count 100
-                    :max-lingering 300
-                    :diss-params diss-params}
-   :tempo 200
-   :measures [measures/measure-3]
-   :pre []
-   :post []
-   :part-names [:upper :lower :ped]})
-
-(let [melody-sources (atom {:upper (upper :upper [3])
-                            :lower (upper :lower [2])
-                            :ped (upper :ped [1])})
-      melodic-indices (->> [:upper :lower :ped]
-                           (cycle)
-                           (take 70))]
-  (->>
-   ;; Collect phrases
-   (chord-seq/collect-events-in-segment
-    melodic-indices
-    melody-sources)
-   (s/validate [ms/Phrase])
-   ;; Extend phrases
-   (chord-seq/extend-phrases {:max-count 100
-                              :max-lingering 300
-                              :diss-params [0 2 4 5]}
-                             [])
-   ;; Filter phrases
-   (partition-by (comp :phrase-end first))
-   (filter #(>= (count %) 5))
-   (s/validate [ms/Phrase])
-   ;; Compose part
-   (map (fn [phrase]
-          (->> phrase
-               (chord-seq/merge-horizontally)
-               (rhythm-tree/extend-last 4/4)
-               (rhythm-tree/make-r-tree [measures/measure-4])
-               (part/compose-part 200 [:upper :lower :ped]))))
-   (utils/export-to-json "/Users/fred/projects/music/compositions/2015/organ/output/score.json")
-   ))
-
-;; TODO: unfold-parameters correctly.
-
-;; (let [a [1 2 3 4 :end 5 6 7 8 :end 9]]
-;;   (partition-by #(= :end %) a))
+(partition-groups :asdf
+                  []
+                  []
+                  [
+                   {:asdf true} {:asdf false} {:asdf :false}
+                   {:asdf true} {:asdf false} {:asdf :false}
+                   {:asdf true} {:asdf false} {:asdf :false}
+                   {:asdf true} {:asdf false} {:asdf :false}
+                   ])
