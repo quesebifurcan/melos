@@ -1,11 +1,12 @@
 (ns melos.lib.utils
-(:require [clojure.data.json :as json]
-[clojure.java.io :as io]
-[clojure.walk :as walk]
-[melos.lib
-[note :refer [make-note]]
-[schemas :as ms]]
-[schema.core :as s]))
+  (:require [clojure.data.json :as json]
+            [clojure.java.io :as io]
+            [clojure.walk :as walk]
+            [clojure.algo.generic.functor :as functor]
+            [melos.lib
+             [note :refer [make-note]]
+             [schemas :as ms]]
+            [schema.core :as s]))
 
 (defn abs [n] (max n (- n)))
 
@@ -205,3 +206,38 @@
                          (cons x (step (rest s) (conj seen fx)))))))
                  xs seen)))]
     (step coll #{})))
+
+(defn partition-groups
+  [f curr coll l]
+  (if (empty? l)
+    (if (empty? curr)
+      coll
+      (concat coll [curr]))
+    (let [nxt (first l)]
+      (if (f nxt)
+        (partition-groups f
+                          []
+                          (concat coll
+                                  [(concat curr
+                                           [nxt])])
+                          (rest l))
+        (partition-groups f
+                          (concat curr [nxt])
+                          coll
+                          (rest l))))))
+
+(defn transpose-all
+  [step forms]
+  (clojure.walk/postwalk
+   (fn [form]
+     (cond (number? form)
+           (+ form step)
+           :else
+           form))
+   forms))
+
+(defn unfold-parameters
+  [m]
+  (->> m
+       (iterate (partial functor/fmap rotate))
+       (map (partial functor/fmap first))))

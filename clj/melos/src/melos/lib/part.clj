@@ -38,4 +38,9 @@
                   {:part-name part-name
                    :events (split-out-part rtm-tree part-name)})
                 part-names)
-               (rtm/merge-all-tied))})
+               ;; Comment this line to get a "pulsed" version of
+               ;; the music; no notes will be merged.
+               ;; TODO: each gesture specifies how it should make
+               ;; use of this.
+               (rtm/merge-all-tied)
+               )})
