@@ -60,14 +60,15 @@
        (iterate (partial functor/fmap utils/rotate))
        (map (partial functor/fmap first))))
 
-(s/defn upper
-  ;; :- [ms/Phrase]
+(s/defn chromatic
   [part segmentation transposition]
-  (->> {:pitch (->> (map (fn [x] [x]) (range 11))
+  (->> {:pitch (->> (map (fn [x] [x])  [0 2 4 5 7 9])
                     (transpose-all transposition))
         :is-rest? (concat (repeat 10 false)
                           [true])
         :part [part]
+        :merge-left? [true]
+        :merge-right? [true]
         :duration (concat (repeat 9 1/4)
                           [3/4 1/4])}
        unfold-parameters
@@ -94,14 +95,22 @@
        (map #(s/validate ms/Phrase %))
        ))
 
+(s/defn coll-part-counts-map
+  [chord :- ms/Chord]
+  (let [partitioned-events (->> chord
+                                (sort-by :part)
+                                (partition-by :part))]
+    (zipmap (map (comp :part first) partitioned-events)
+            (map (comp :max-part-count first) partitioned-events))))
+
 (defn -main
   [output-path analysis-dir config-file-path]
-  (let [melody-sources (atom {:upper (chords :upper [3 1 1] 0)
-                              :lower (upper :lower [2] -3)
-                              :ped (upper :ped [1] -13)})
-        melodic-indices (->> [:upper :lower :ped]
+  (let [melody-sources (atom {:upper (chromatic :upper [3 1 1] 0)
+                              :lower (chromatic :lower [2] -3)
+                              :ped (chromatic :ped [1] -13)})
+        melodic-indices (->> [:upper :lower :ped :upper :lower]
                              (cycle)
-                             (take 100))]
+                             (take 10))]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
           melody-sources)
@@ -115,7 +124,7 @@
          (partition-groups (comp :phrase-end first)
                            []
                            [])
-         ;; (filter #(>= (count %) 1))
+         ;; (filter #(>= (count %) 5))
          ;; (rest)
          (s/validate [ms/Phrase])
          ;; Compose part
@@ -128,15 +137,25 @@
          (utils/export-to-json "/Users/fred/projects/music/compositions/2015/organ/output/score.json")
          )))
 
-(->> (-main 1 2 3)
-     (map count))
+;; (reductions (fn [x y]
+;;           (let [prev (set (map (juxt :part :pitch) x))]
+;;             (map (fn [z]
+;;                    (if (contains? prev ((juxt :part :pitch) z))
+;;                      (update z :count inc)
+;;                      z))
+;;                  y)))
+;;             [
 
-(partition-groups :asdf
-                  []
-                  []
-                  [
-                   {:asdf true} {:asdf false} {:asdf :false}
-                   {:asdf true} {:asdf false} {:asdf :false}
-                   {:asdf true} {:asdf false} {:asdf :false}
-                   {:asdf true} {:asdf false} {:asdf :false}
-                   ])
+;; (defn update-counts
+;;   [phrase prev coll]
+;;   (if (empty? phrase)
+;;     coll
+;;     (let [new (first phrase)
+;;           new-counts (map (fn [x]
+;;                             (if (contains? prev ((juxt :part :pitch) x))
+;;                               (update x :count (fn []
+;;                                                  (+ 1 (prev ((juxt :part :pitch) x)))))
+;;                               x))
+;;                           new)]
+;;       (update-counts (rest phrase)
+;;                      (map (juxt :part :pitch) new-counts)

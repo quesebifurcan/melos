@@ -1,13 +1,14 @@
 (ns melos.lib.chord-seq
-(:require [clojure.math
-[combinatorics :as combinatorics]
-[numeric-tower :as math]]
-[clojure.set :as set]
-[melos.lib
-[chord :as chord]
-[schemas :as ms]
-[utils :refer [rotate]]]
-[schema.core :as s]))
+  (:require [clojure.math
+             [combinatorics :as combinatorics]
+             [numeric-tower :as math]]
+            [clojure.set :as set]
+            [melos.lib
+             [note :as note]
+             [chord :as chord]
+             [schemas :as ms]
+             [utils :refer [rotate distinct-by]]]
+            [schema.core :as s]))
 
 (s/defn get-melodic-durations
   :- [s/Num]
@@ -49,26 +50,51 @@
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
 
-(s/defn can-merge?
-  :- s/Bool
-  [curr :- ms/Chord
-   next :- ms/Chord]
-  (let [old-curr (filter #(> (:count %) 0) next)
+(defn can-merge?
+  ;; :- s/Bool
+  ;; [curr :- ms/Chord
+  ;;  next :- ms/Chord]
+  [curr next]
+  (let [
+        curr (distinct-by #((juxt :pitch :part) %) curr)
+        next (distinct-by #((juxt :pitch :part) %) next)
+        old-curr (filter #(> (:count %) 0) next)
         news (filter #(= (:count %) 0) next)
         old-parts (set (map :part old-curr))
-        new-parts (set (map :part news))]
-    (and (= (count curr) (count old-curr))
-         ;; Make sure that two sequential events in one part are not merged.
-         (empty? (clojure.set/intersection old-parts new-parts))
-         (every? #(:merge-left? %) news)
-         (every? #(:merge-right? %) old-curr))))
+        new-parts (set (map :part news))
+        
+        curr-blocking (->> curr
+                                    (filter #(contains? new-parts (:part %)))
+                                    (filter #(= (:count %) 0)))
+        ]
+    ;; (println (map :count curr))
+    ;; (println (map :count next))
+    ;; (println (map #(select-keys % [:pitch :count]) curr))
+    ;; (println old-curr)
+    ;; (println news)
+    ;; (println old-parts)
+    ;; (println new-parts)
+
+    (let [result
+          (and 
+           ;; (= (count curr) (count old-curr))
+           (empty? curr-blocking)
+               ;; Make sure that two sequential events in one part are not merged.
+               (empty? (clojure.set/intersection old-parts new-parts))
+               (every? #(:merge-left? %) news)
+               (every? #(:merge-right? %) old-curr))]
+          (println result)
+          result)))
 
 (s/defn merge-elts
   :- ms/Chord
   [a :- ms/Chord
    b :- ms/Chord]
-  (let [melodic-notes (filter #(= (:count %) 0) b)]
-    (concat a melodic-notes)))
+  (let [melodic-notes (filter #(= (:count %) 0) b)
+        new-parts (set (map :part melodic-notes))
+        new-a (filter #(not (contains? new-parts (:part %))) a)
+        result (concat new-a melodic-notes)]
+   result)) 
 
 (s/defn merge-horizontally
   :- [ms/Chord]
@@ -287,12 +313,17 @@
   ;; [new-event :- ms/Chord
   ;;  events :- ms/Chord]
   [new-event events]
-  (let [duration (:duration (first new-event))
+  (let [
+        duration (:duration (first new-event))
         curr-parts (set (map :part new-event))
         events (filter (fn [event]
                          (not (contains? curr-parts (:part event))))
                        events)]
-  (->> (concat (map #(assoc % :duration duration) events)
+    (println "---------")
+    (println (map #(select-keys % [:pitch :count :part]) new-event))
+    (println (map #(select-keys % [:pitch :count :part]) events))
+  (->> (concat (map #(assoc % :duration duration)
+                    events)
                new-event)
        ;; (filter-distinct)
        )))
@@ -373,26 +404,31 @@
   [diss-fn-params coll phrases]
   (if (empty? phrases)
     coll
-    (let [next_ (map #(join-events % (last coll))
-                     (first phrases))]
-      (if (or (consonant? (last next_)
+    (let [first-phrase (first phrases)
+          last_ (map #(update % :count inc) (last coll))
+          next_ (map #(join-events % last_)
+                     first-phrase)]
+      (if (or (consonant? (filter (complement :is-rest?)
+                                  (last next_))
                           (:diss-params diss-fn-params))
               ;; (not (consonant? (last (first phrases))
               ;;                  (:diss-params diss-fn-params))))
               )
         (extend-phrases diss-fn-params
-                        (concat coll next_)
+                        (concat coll
+                                next_)
                         (rest phrases))
         (extend-phrases diss-fn-params
                         (if (empty? coll)
-                          (first phrases)
+                          next_
                           (concat (butlast coll)
-                                  [(map #(assoc % :phrase-end true)
+                                  [(map (fn [x]
+                                          (-> x
+                                              (assoc :phrase-end true)
+                                              (update :count inc)))
                                         (last coll))]
-                                  (first phrases)))
+                                  next_))
                         (rest phrases))))))
-
-      ;; (rest)))
 
 ;;-----------------------------------------------------------------------------
 ;; Modify durations.
@@ -421,4 +457,4 @@
   :- [ms/Chord]
   [chords :- [ms/Chord]
    mod-fns :- [s/Any]]
-  (pairwise-mod chords mod-fns []))
+  (pairwise-mod 972398423 chords mod-fns []))
