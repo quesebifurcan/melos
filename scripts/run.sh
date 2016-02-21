@@ -1,13 +1,5 @@
 set -e
 
-if [ -z "$1" ]
-then
-    echo "No config file specified; exiting."
-    exit
-else
-    SCORE_CONFIG=$1
-fi
-
 red=$(tput setaf 1)
 normal=$(tput sgr0)
 
@@ -32,9 +24,9 @@ cd $REPO_DIR
 
 echo "${red}\nABJAD...${normal}"
 source $PY_VIRTUALENV && \
-    ipython py/main.py \
-            "Test" \
-            "Anonymous" \
-            $JSON_OUTPUT \
-            $PDF_OUTPUT \
-            $MIDI_OUTPUT
+    python py/main.py \
+           --title "Test" \
+           --author "Anonymous" \
+           --score-out $PDF_OUTPUT \
+           --midi-out $MIDI_OUTPUT \
+           --input-files $JSON_OUTPUT $JSON_OUTPUT $JSON_OUTPUT $JSON_OUTPUT

@@ -135,16 +135,18 @@ def make_lilypond_file(score, title='', author=''):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('title')
-    parser.add_argument('author')
-    parser.add_argument('input_file')
-    parser.add_argument('score_out')
-    parser.add_argument('midi_out', nargs='?', default=False)
+    parser.add_argument('--title')
+    parser.add_argument('--author')
+    parser.add_argument('--score-out', dest='score_out')
+    parser.add_argument('--midi-out', nargs='?', dest='midi_out', default=False)
+    parser.add_argument('--input-files', nargs='+', dest='input_files')
     args = parser.parse_args()
 
-    print colored("Loading {}".format(args.input_file), 'cyan')
-    with open(args.input_file, 'r') as infile:
-        score_segments = json.load(infile)
+    print colored("Loading {}".format(args.input_files, 'cyan'))
+    score_segments = []
+    for input_file in args.input_files:
+        with open(input_file, 'r') as infile:
+            score_segments += json.load(infile)
 
     print colored("Creating staves and instruments...", 'cyan')
     upper_staff = Staff()
