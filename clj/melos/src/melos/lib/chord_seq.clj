@@ -323,16 +323,10 @@
       (reductions events)
       ))
 
-(defn forward-time_
-  [phrase]
-  (map-indexed (fn [i x]
-                 (map (fn [y]
-                        (update y :count (partial + i))))
-                 x)
-              phrase))
-
 (defn extend-phrases
-  [diss-fn-params coll phrases]
+  ([diss-fn-params]
+   (extend-phrases diss-fn-params [] []))
+  ([diss-fn-params coll phrases]
   (if (empty? phrases)
     coll
     (let [first-phrase (first phrases)
@@ -361,7 +355,7 @@
                                               ))
                                         (last coll))]
                                   first-phrase ))
-                        (rest phrases))))))
+                       (rest phrases)))))))
 
 ;;-----------------------------------------------------------------------------
 ;; Modify durations.
@@ -395,11 +389,10 @@
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
 
-(defn can-merge?
-  ;; :- s/Bool
-  ;; [curr :- ms/Chord
-  ;;  next :- ms/Chord]
-  [curr next]
+(s/defn can-merge?
+  :- s/Bool
+  [curr :- ms/Chord
+   next :- ms/Chord]
   (let [
         curr (distinct-by #((juxt :pitch :part) %) curr)
         next (distinct-by #((juxt :pitch :part) %) next)
@@ -407,15 +400,11 @@
         news (filter #(= (:count %) 0) next)
         old-parts (set (map :part old-curr))
         new-parts (set (map :part news))
-
-        curr-blocking (->> curr
-                                    (filter #(contains? new-parts (:part %)))
-                                    (filter #(= (:count %) 0)))
+        curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
+                           (filter #(= (:count %) 0)))
         ]
     (let [result
-          (and
-           ;; (= (count curr) (count old-curr))
-           (empty? curr-blocking)
+          (and (empty? curr-blocking)
                ;; Make sure that two sequential events in one part are not merged.
                (empty? (clojure.set/intersection old-parts new-parts))
                (every? #(:merge-left? %) news)

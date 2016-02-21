@@ -1,6 +1,0 @@
-{:title "Test"
- :author "Anonymous"
- :sessions [melos.score.group-c/session-config]
- :composition-fn melos.score.compose-score/compose
- :rerender-sessions? true
- :compose-score? true}
