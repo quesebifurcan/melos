@@ -8,6 +8,7 @@
    :merge-left? false
    :merge-right? false
    :dissonance-contributor? true
+   :phrase-end false
    :part nil,
    :count 0,
    :is-rest? false

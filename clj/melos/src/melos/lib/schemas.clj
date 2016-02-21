@@ -15,6 +15,7 @@
               :is-rest? s/Bool
               :dissonance-contributor? s/Bool
               :part PartName
+              :phrase-end s/Bool
               :max-count s/Int
               :count s/Int))
 

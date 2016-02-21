@@ -135,14 +135,12 @@ def make_lilypond_file(score, title='', author=''):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('score_config')
+    parser.add_argument('title')
+    parser.add_argument('author')
     parser.add_argument('input_file')
     parser.add_argument('score_out')
     parser.add_argument('midi_out', nargs='?', default=False)
     args = parser.parse_args()
-
-    with open(args.score_config, 'r') as infile:
-        config_data = edn_format.loads(infile.read())
 
     print colored("Loading {}".format(args.input_file), 'cyan')
     with open(args.input_file, 'r') as infile:
@@ -242,8 +240,8 @@ def main():
 
     lilypond_file = make_lilypond_file(
         score,
-        str(edn_key(config_data, 'title')),
-        str(edn_key(config_data, 'author')),
+        args.title,
+        args.author,
     )
 
     print colored("Persist score as pdf...", 'cyan')

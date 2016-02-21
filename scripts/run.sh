@@ -26,14 +26,15 @@ cd $CLOJURE_DIR
 echo "${red}\nReloading namespaces...${normal}"
 
 grench eval "(require '[clojure.tools.namespace.repl :refer [refresh]]) (refresh)"
-grench eval "(time (melos.score.main/-main \"$JSON_OUTPUT\" \"$ANALYSIS_DIR\"  \"$1\"))"
+grench eval "(time (melos.score.main/-main \"$JSON_OUTPUT\"))"
 
 cd $REPO_DIR
 
 echo "${red}\nABJAD...${normal}"
 source $PY_VIRTUALENV && \
     ipython py/main.py \
-            $SCORE_CONFIG \
+            "Test" \
+            "Anonymous" \
             $JSON_OUTPUT \
             $PDF_OUTPUT \
             $MIDI_OUTPUT

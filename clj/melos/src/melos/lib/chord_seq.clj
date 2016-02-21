@@ -1,13 +1,14 @@
 (ns melos.lib.chord-seq
-(:require [clojure.math
-[combinatorics :as combinatorics]
-[numeric-tower :as math]]
-[clojure.set :as set]
-[melos.lib
-[chord :as chord]
-[schemas :as ms]
-[utils :refer [rotate]]]
-[schema.core :as s]))
+  (:require [clojure.math
+             [combinatorics :as combinatorics]
+             [numeric-tower :as math]]
+            [clojure.set :as set]
+            [melos.lib
+             [note :as note]
+             [chord :as chord]
+             [schemas :as ms]
+             [utils :refer [rotate distinct-by]]]
+            [schema.core :as s]))
 
 (s/defn get-melodic-durations
   :- [s/Num]
@@ -37,49 +38,14 @@
 
 (defn collect-events-in-segment
   [melodic-indices events-seqs]
-  (mapcat (fn [x] (get-and-rotate events-seqs x))
-          melodic-indices))
+  (map (fn [x] (get-and-rotate events-seqs x))
+       melodic-indices))
 
-;;-----------------------------------------------------------------------------
-;; Merge events horizontally.
-
-(s/defn can-merge?
-  :- s/Bool
-  [curr :- ms/Chord
-   next :- ms/Chord]
-  (let [old-curr (filter #(> (:count %) 0) next)
-        news (filter #(= (:count %) 0) next)
-        old-parts (set (map :part old-curr))
-        new-parts (set (map :part news))]
-    (and (= (count curr) (count old-curr))
-         ;; Make sure that two sequential events in one part are not merged.
-         (empty? (clojure.set/intersection old-parts new-parts))
-         (every? #(:merge-left? %) news)
-         (every? #(:merge-right? %) old-curr))))
-
-(s/defn merge-elts
-  :- ms/Chord
-  [a :- ms/Chord
-   b :- ms/Chord]
-  (let [melodic-notes (filter #(= (:count %) 0) b)]
-    (concat a melodic-notes)))
-
-(s/defn merge-horizontally
-  :- [ms/Chord]
-  ([events :- [ms/Chord]]
-   (if (seq events)
-     (merge-horizontally (first events)
-                         (rest events))))
-  ([head :- ms/Chord
-    events :- [ms/Chord]]
-   (cond (empty? events)
-         (list head)
-         (can-merge? head (first events))
-         (merge-horizontally (merge-elts head
-                                         (first events))
-                             (rest events))
-         :else
-         (cons head (merge-horizontally events)))))
+;; (chord-seq/collect-events-in-segment
+;;  [:a :a]
+;;  (atom
+;;   {:a [[1 2 3] [4 5 6]]}))
+;; => (1 2 3 4 5 6)
 
 ;;-----------------------------------------------------------------------------
 ;; Extend events.
@@ -278,13 +244,18 @@
 
 (s/defn join-events
   :- ms/Chord
-  [new-event :- ms/Chord
-   events :- ms/Chord]
-  (let [curr-parts (set (map :part new-event))
+  ;; [new-event :- ms/Chord
+  ;;  events :- ms/Chord]
+  [new-event events]
+  (let [
+        duration (:duration (first new-event))
+        curr-parts (set (map :part new-event))
         events (filter (fn [event]
                          (not (contains? curr-parts (:part event))))
                        events)]
-  (->> (concat events new-event)
+  (->> (concat (map #(assoc % :duration duration)
+                    events)
+               new-event)
        ;; (filter-distinct)
        )))
 
@@ -351,7 +322,40 @@
   (-> (handle-dissonance diss-fn-params)
       (reductions events)
       ))
-      ;; (rest)))
+
+(defn extend-phrases
+  ([diss-fn-params]
+   (extend-phrases diss-fn-params [] []))
+  ([diss-fn-params coll phrases]
+  (if (empty? phrases)
+    coll
+    (let [first-phrase (first phrases)
+          last_ (map #(update % :count inc) (last coll))
+          ;; last_ (map (fn [x] x) (last coll))
+          next_ (map #(join-events % last_)
+                     first-phrase)]
+      (if (or (consonant? (filter (complement :is-rest?)
+                                  (last next_))
+                          (:diss-params diss-fn-params))
+              ;; (not (consonant? (last (first phrases))
+              ;;                  (:diss-params diss-fn-params))))
+              )
+        (extend-phrases diss-fn-params
+                        (concat coll
+                                next_)
+                        (rest phrases))
+        (extend-phrases diss-fn-params
+                        (if (empty? coll)
+                          next_
+                          (concat (butlast coll)
+                                  [(map (fn [x]
+                                          (-> x
+                                              (assoc :phrase-end true)
+                                              ;; (update :count inc)))
+                                              ))
+                                        (last coll))]
+                                  first-phrase ))
+                       (rest phrases)))))))
 
 ;;-----------------------------------------------------------------------------
 ;; Modify durations.
@@ -381,3 +385,59 @@
   [chords :- [ms/Chord]
    mod-fns :- [s/Any]]
   (pairwise-mod chords mod-fns []))
+
+;;-----------------------------------------------------------------------------
+;; Merge events horizontally.
+
+(s/defn can-merge?
+  :- s/Bool
+  [curr :- ms/Chord
+   next :- ms/Chord]
+  (let [
+        curr (distinct-by #((juxt :pitch :part) %) curr)
+        next (distinct-by #((juxt :pitch :part) %) next)
+        old-curr (filter #(> (:count %) 0) next)
+        news (filter #(= (:count %) 0) next)
+        old-parts (set (map :part old-curr))
+        new-parts (set (map :part news))
+        curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
+                           (filter #(= (:count %) 0)))
+        ]
+    (let [result
+          (and (empty? curr-blocking)
+               ;; Make sure that two sequential events in one part are not merged.
+               (empty? (clojure.set/intersection old-parts new-parts))
+               (every? #(:merge-left? %) news)
+               (every? #(:merge-right? %) old-curr))]
+          result)))
+
+(s/defn merge-elts
+  :- ms/Chord
+  [a :- ms/Chord
+   b :- ms/Chord]
+  (let [melodic-notes (filter #(= (:count %) 0) b)
+        new-parts (set (map :part melodic-notes))
+        new-a (filter #(not (contains? new-parts (:part %))) a)
+        result (concat new-a melodic-notes)]
+   result))
+
+(s/defn merge-horizontally
+  :- [ms/Chord]
+  ([events :- [ms/Chord]]
+   (if (seq events)
+     (merge-horizontally (first events)
+                         (rest events))))
+  ([head :- ms/Chord
+    events :- [ms/Chord]]
+   (cond (empty? events)
+         (list head)
+         ;; TODO: add harmonic filter to merge.
+         (and (can-merge? head (first events))
+              (consonant? (merge-elts head
+                                      (first events))
+                          [0 2 4 5]))
+         (merge-horizontally (merge-elts head
+                                         (first events))
+                             (rest events))
+         :else
+         (cons head (merge-horizontally events)))))
