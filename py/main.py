@@ -2,12 +2,14 @@ import argparse
 import itertools
 import json
 
+import midi
+
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
 from termcolor import colored
 
-import edn_format
+# import edn_format
 
 # TODO: Add additional info to each segment (stylistic indications, tempi etc.)
 
@@ -133,6 +135,102 @@ def make_lilypond_file(score, title='', author=''):
 
     return lilypond_file
 
+def get_current_onset(elt):
+    agent = inspect_(elt)
+    return agent.get_timespan().start_offset
+
+def split_chords(staff):
+    """
+    Split a sequence of chords into individual notes with
+    onsets and offsets.
+    """
+    coll = []
+    pitches = []
+    onset = 0
+
+    for chord in iterate(staff).by_class((Rest, Chord, Measure)):
+        if isinstance(chord, Measure):
+            agent = inspect_(chord)
+            tempo = agent.get_indicators(Tempo)
+            onset = get_current_onset(chord)
+            if tempo:
+                coll.append({'tempo': midi.SetTempoEvent(bpm=tempo[0].units_per_minute, tick=onset)})
+
+        if isinstance(chord, Rest):
+            # Empty the leftovers from last vertical moment
+            for op in pitches:
+                op['offset'] = onset
+                coll.append(op)
+            pitches = []
+            onset = get_current_onset(chord)
+
+        if isinstance(chord, Chord):
+            chord_pitches = chord.written_pitches
+            old_pitches = map(lambda x: x['pitch'], pitches)
+            onset = get_current_onset(chord)
+            for np in chord_pitches:
+                if not np in old_pitches:
+                    pitches.append(
+                        {'pitch': np, 'onset': onset, 'offset': None}
+                    )
+            new_pitches = []
+            for op in pitches:
+                if not op['pitch'] in chord_pitches:
+                    op['offset'] = onset
+                    coll.append(op)
+                else:
+                    new_pitches.append(op)
+            pitches = new_pitches
+
+    for x in pitches:
+        x['offset'] = onset
+        coll.append(x)
+
+    return coll
+
+def voices_to_midi(
+        staves,
+        filename):
+
+    resolution=480
+    pattern = midi.Pattern(resolution=resolution, format=0)
+    track = midi.Track()
+    pattern.append(track)
+
+    notes = []
+    for staff in staves:
+        notes += split_chords(staff)
+
+    coll = []
+    import itertools
+    vels = itertools.cycle([20, 50, 20, 50, 20])
+    coll.append(midi.SetTempoEvent(bpm=100, tick=0))
+    for note, vel in zip(notes, vels):
+        if 'tempo' in note:
+            tempo = note['tempo']
+            tempo.tick = int(tempo.tick * 480) * 4
+            coll.append(tempo)
+
+        else:
+            onset = int(note['onset'] * 480) * 4
+            offset = int(note['offset'] * 480) * 4
+            pitch = note['pitch'].numbered_pitch.pitch_number
+            on = midi.NoteOnEvent(tick=onset, velocity=vel, pitch=pitch+60)
+            off = midi.NoteOffEvent(tick=offset, pitch=pitch+60)
+            coll.append(on)
+            coll.append(off)
+    coll = sorted(coll, key=lambda x: x.tick)
+
+    curr = 0
+    for note in coll:
+        tick = note.tick - curr
+        curr = note.tick
+        note.tick = tick
+        track.append(note)
+
+    track.append(midi.EndOfTrackEvent(tick=1))
+    midi.write_midifile(filename, pattern, )
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--title')
@@ -142,13 +240,11 @@ def main():
     parser.add_argument('--input-files', nargs='+', dest='input_files')
     args = parser.parse_args()
 
-    print colored("Loading {}".format(args.input_files, 'cyan'))
     score_segments = []
     for input_file in args.input_files:
         with open(input_file, 'r') as infile:
             score_segments += json.load(infile)
 
-    print colored("Creating staves and instruments...", 'cyan')
     upper_staff = Staff()
     lower_staff = Staff()
     ped_staff = Staff()
@@ -176,9 +272,7 @@ def main():
         'ped': ped_staff,
     }
     tempo = None
-    print colored("Parsing score...", 'cyan')
     for i, segment in enumerate(score_segments):
-        print colored("    parsing segment {}...".format(i), 'green')
         parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
         if tempo == curr_tempo:
             curr_tempo = None
@@ -235,7 +329,6 @@ def main():
                 elif has_only_lower_tied(curr, next_):
                     adjust_tie(curr, 'down')
 
-
     score = Score([manuals_group, ped_staff])
     print colored("Apply score overrides...", 'cyan')
     apply_score_overrides(score)
@@ -249,9 +342,12 @@ def main():
     print colored("Persist score as pdf...", 'cyan')
     persist(lilypond_file).as_pdf(args.score_out)
 
-    if args.midi_out:
-        print colored("Persist score as midi...", 'cyan')
-        persist(lilypond_file).as_midi(args.midi_out)
+    # staff1 = Staff("<c'>\pp ~ <c' g'>\mf ~ <g'>2\pp ~ <g' a'>4\mf r2 <d' f'>1")
+    # staff2 = Staff("<c'''>8\mf ~ <c''' g,>2\pp ~ <g,>2.\pp ~ <g, a''>8 <d, f''>1")
+
+    voices_to_midi([upper_staff], '/Users/fred/Desktop/organ-test Project/upper.mid')
+    voices_to_midi([lower_staff], '/Users/fred/Desktop/organ-test Project/lower.mid')
+    voices_to_midi([ped_staff], '/Users/fred/Desktop/organ-test Project/ped.mid')
 
 
 if __name__ == '__main__':

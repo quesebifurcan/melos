@@ -19,8 +19,8 @@
 (s/set-fn-validation! false)
 
 (defn chromatic
-  [part segmentation transposition]
-  (->> {:pitch (->> (map (fn [x] [x]) (range 11))
+  [part segmentation transposition step-count]
+  (->> {:pitch (->> (map (fn [x] [x]) (range step-count))
                     (utils/transpose-all transposition))
         :part [part]
         :merge-left? [true]
@@ -35,15 +35,15 @@
 
 (defn -main
   [output-path]
-  (let [melody-sources (atom {:upper (chromatic :upper [3] 5)
-                              :lower (chromatic :lower [2] -7)
-                              :ped (chromatic :ped [1] -12)})
+  (let [melody-sources (atom {:upper (chromatic :upper [3 2] -5 11)
+                              :lower (chromatic :lower [2] -9 10)
+                              :ped (chromatic :ped [1] -25 7)})
         diss-fn-params {:max-count 100
                         :max-lingering 300
                         :diss-params [0 1 2]}
         melodic-indices (->> [:upper :lower :ped]
                              (cycle)
-                             (take 50))]
+                             (take 20))]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
           melody-sources)
@@ -53,12 +53,15 @@
          ;; Filter phrases
          (utils/partition-groups (comp :phrase-end first) [] [])
          (s/validate [ms/Phrase])
+         ((fn [x]
+            (do (println (count x))
+                x)))
          ;; Compose part
          (map (fn [tempo phrase]
                 (->> phrase
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last 4/4)
-                     (rhythm-tree/make-r-tree [measures/measure-4])
+                     (rhythm-tree/make-r-tree [measures/measure-3 measures/measure-4])
                      (part/compose-part tempo [:upper :lower :ped])))
-              (cycle [200 130 90]))
+              (cycle [180]))
          (utils/export-to-json output-path))))

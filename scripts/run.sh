@@ -24,9 +24,9 @@ cd $REPO_DIR
 
 echo "${red}\nABJAD...${normal}"
 source $PY_VIRTUALENV && \
-    python py/main.py \
+    ipython py/main.py -- \
            --title "Test" \
            --author "Anonymous" \
            --score-out $PDF_OUTPUT \
            --midi-out $MIDI_OUTPUT \
-           --input-files $JSON_OUTPUT $JSON_OUTPUT $JSON_OUTPUT $JSON_OUTPUT
+           --input-files $JSON_OUTPUT 
