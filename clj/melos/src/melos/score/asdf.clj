@@ -1,4 +1,4 @@
-(ns melos.score.main
+(ns melos.score.asdf
   (:require clojure.edn
             [clojure.math.combinatorics :as combinatorics]
             [clojure.set :as set]
@@ -20,12 +20,12 @@
 
 (defn chromatic
   [part segmentation transposition step-count]
-  (->> {:pitch (->> [[0] [2] [3] [4] [8] [9]]
+  (->> {:pitch (->> [[2] [4] [2] [4] [2] [2] [9]]
                     (utils/transpose-all transposition))
         :part [part]
         :merge-left? [true]
         :merge-right? [true]
-        :notation [{:registration "\\caps \\large REGISTRATION: \\large \\caps \\bold A"}]
+        :notation [{:registration "\\caps \\large REGISTRATION: \\large \\caps \\bold B"}]
         :duration [1/4]}
        utils/unfold-parameters
        (map utils/make-chord-from-pitch-vector-params)
@@ -63,7 +63,6 @@
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last 4/4)
                      (rhythm-tree/make-r-tree [measures/measure-4])
-                     (part/compose-part tempo [:upper :lower :ped])
-                     ))
-              (cycle [120]))
+                     (part/compose-part tempo [:upper :lower :ped])))
+              (cycle [180]))
          (utils/export-to-json output-path))))

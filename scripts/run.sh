@@ -19,6 +19,7 @@ echo "${red}\nReloading namespaces...${normal}"
 
 grench eval "(require '[clojure.tools.namespace.repl :refer [refresh]]) (refresh)"
 grench eval "(time (melos.score.main/-main \"$JSON_OUTPUT\"))"
+grench eval "(time (melos.score.asdf/-main \"$REPO_DIR/output/part_2.json\"))"
 
 cd $REPO_DIR
 
@@ -29,4 +30,4 @@ source $PY_VIRTUALENV && \
            --author "Anonymous" \
            --score-out $PDF_OUTPUT \
            --midi-out $MIDI_OUTPUT \
-           --input-files $JSON_OUTPUT 
+           --input-files $JSON_OUTPUT $REPO_DIR/output/part_2.json

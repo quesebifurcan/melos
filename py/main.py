@@ -55,14 +55,24 @@ def apply_accidentals(staff):
                 prev_duplicates = curr_dpcn_duplicates
                 prev_chord = event
 
+REGISTRATION = None
+
 def make_note(node):
+    global REGISTRATION
     num, denom = node.get('duration')
     events = node.get('events')
     pitches = set([event.get('pitch') for event in events])
     if "rest" in pitches:
-        return Rest(Duration(num, denom))
+        rest = Rest(Duration(num, denom))
+        return rest
     else:
-        return Chord(pitches, Duration(num, denom))
+        chord = Chord(pitches, Duration(num, denom))
+        notation = events[0].get('notation')
+        if notation and notation.get('registration') and not REGISTRATION == notation.get('registration'):
+            registration = notation.get('registration')
+            attach(Markup(str(registration), direction='^'), chord)
+            REGISTRATION = registration
+        return chord
 
 def make_tuplet(d):
     num, denom = d.get('duration')
@@ -70,7 +80,8 @@ def make_tuplet(d):
 
 def interpret_node(parent, node, is_measure_root=False, tempo=None):
     if is_leaf(node):
-        parent.append(make_note(node))
+        note = make_note(node)
+        parent.append(note)
     else:
         if is_measure_root:
             measure = Measure(tuple(node.get('duration')))
@@ -139,6 +150,8 @@ def get_current_onset(elt):
     agent = inspect_(elt)
     return agent.get_timespan().start_offset
 
+# def increment_current(pitches, pitch, offset):
+
 def split_chords(staff):
     """
     Split a sequence of chords into individual notes with
@@ -147,6 +160,7 @@ def split_chords(staff):
     coll = []
     pitches = []
     onset = 0
+    last_dur = None
 
     for chord in iterate(staff).by_class((Rest, Chord, Measure)):
         if isinstance(chord, Measure):
@@ -157,14 +171,20 @@ def split_chords(staff):
                 coll.append({'tempo': midi.SetTempoEvent(bpm=tempo[0].units_per_minute, tick=onset)})
 
         if isinstance(chord, Rest):
+            last_dur = chord.written_duration
             # Empty the leftovers from last vertical moment
             for op in pitches:
                 op['offset'] = onset
                 coll.append(op)
-            pitches = []
+            # If any pitches are "pending", add them to coll.
             onset = get_current_onset(chord)
+            for x in pitches:
+                x['offset'] = onset
+                coll.append(x)
+            pitches = []
 
         if isinstance(chord, Chord):
+            last_dur = chord.written_duration
             chord_pitches = chord.written_pitches
             old_pitches = map(lambda x: x['pitch'], pitches)
             onset = get_current_onset(chord)
@@ -173,6 +193,7 @@ def split_chords(staff):
                     pitches.append(
                         {'pitch': np, 'onset': onset, 'offset': None}
                     )
+
             new_pitches = []
             for op in pitches:
                 if not op['pitch'] in chord_pitches:
@@ -183,14 +204,12 @@ def split_chords(staff):
             pitches = new_pitches
 
     for x in pitches:
-        x['offset'] = onset
+        x['offset'] = onset + last_dur
         coll.append(x)
 
     return coll
 
-def voices_to_midi(
-        staves,
-        filename):
+def voices_to_midi(staves, filename):
 
     resolution=480
     pattern = midi.Pattern(resolution=resolution, format=0)
@@ -231,6 +250,25 @@ def voices_to_midi(
     track.append(midi.EndOfTrackEvent(tick=1))
     midi.write_midifile(filename, pattern, )
 
+def adjust_tie(chord, direction):
+    override(chord).tie.details__horizontal_distance_penalty_factor = 100
+    override(chord).tie.details__vertical_distance_penalty_factor = 100
+    # override(chord).tie.minimum_length = 4
+    # override(chord).tie.details__same_dir_as_stem_penalty = 30
+    override(chord).tie.direction = direction
+
+def has_only_upper_tied(curr, next_):
+    curr_pitches, next_pitches = curr.written_pitches, next_.written_pitches
+    common = set(curr_pitches).intersection(set(next_pitches))
+    highest_next = max(x.numbered_pitch for x in next_pitches)
+    return len(common) == 1 and list(common)[0].numbered_pitch == highest_next.numbered_pitch
+
+def has_only_lower_tied(curr, next_):
+    curr_pitches, next_pitches = curr.written_pitches, next_.written_pitches
+    common = set(curr_pitches).intersection(set(next_pitches))
+    highest_next = max(x.numbered_pitch for x in next_pitches)
+    return len(common) == 1 and list(common)[0].numbered_pitch != highest_next.numbered_pitch
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--title')
@@ -240,115 +278,221 @@ def main():
     parser.add_argument('--input-files', nargs='+', dest='input_files')
     args = parser.parse_args()
 
-    score_segments = []
-    for input_file in args.input_files:
-        with open(input_file, 'r') as infile:
-            score_segments += json.load(infile)
+    def print_score(args):
+        score_segments = []
+        for input_file in args.input_files:
+            with open(input_file, 'r') as infile:
+                score_segments += json.load(infile)
 
-    upper_staff = Staff()
-    lower_staff = Staff()
-    ped_staff = Staff()
+        upper_staff = Staff(name='upper')
+        lower_staff = Staff()
+        ped_staff = Staff()
 
-    attach(Clef('treble'), upper_staff)
-    attach(Clef('treble'), lower_staff)
-    attach(Clef('bass'), ped_staff)
+        attach(Clef('treble'), upper_staff)
+        attach(Clef('treble'), lower_staff)
+        attach(Clef('bass'), ped_staff)
 
-    manuals_instrument = instrumenttools.Harp(
-        instrument_name=r'Manuals',
-        short_instrument_name='Man.',
-    )
-    pedals_instrument = instrumenttools.Instrument(
-        instrument_name=r'Pedals',
-        short_instrument_name='Ped.',
-    )
-    manuals_group = scoretools.StaffGroup([upper_staff, lower_staff])
-    manuals_group.context_name = 'PianoStaff'
-    attach(manuals_instrument, manuals_group)
-    attach(pedals_instrument, ped_staff)
+        manuals_instrument = instrumenttools.Harp(
+            instrument_name=r'Manuals',
+            short_instrument_name='Man.',
+        )
+        pedals_instrument = instrumenttools.Instrument(
+            instrument_name=r'Pedals',
+            short_instrument_name='Ped.',
+        )
+        manuals_group = scoretools.StaffGroup([upper_staff, lower_staff])
+        manuals_group.context_name = 'PianoStaff'
+        attach(manuals_instrument, manuals_group)
+        attach(pedals_instrument, ped_staff)
 
-    named_staff_dict = {
-        'upper': upper_staff,
-        'lower': lower_staff,
-        'ped': ped_staff,
-    }
-    tempo = None
-    for i, segment in enumerate(score_segments):
-        parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
-        if tempo == curr_tempo:
-            curr_tempo = None
-        else:
-            tempo = curr_tempo
-        for part in parts:
-            part_name = part.get('part-name')
-            events = part.get('events')
-            top = named_staff_dict.get(part_name)
-            is_measure_root = True
-            # print '        parsing part "{}"...'.format(part_name)
-            for node in events.get('children'):
-                interpret_node(
-                    top,
-                    node,
-                    is_measure_root=is_measure_root,
-                    tempo=curr_tempo,
+        named_staff_dict = {
+            'upper': upper_staff,
+            'lower': lower_staff,
+            'ped': ped_staff,
+        }
+        tempo = None
+        global REGISTRATION
+        for i, segment in enumerate(score_segments):
+            parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
+            if tempo == curr_tempo:
+                curr_tempo = None
+            else:
+                tempo = curr_tempo
+            for part in parts:
+                part_name = part.get('part-name')
+                events = part.get('events')
+                top = named_staff_dict.get(part_name)
+                # attach(Markup('Bright', direction=Up), top[0])
+                is_measure_root = True
+                # print '        parsing part "{}"...'.format(part_name)
+                notes_pre = list(iterate(top).by_class((Chord, Rest)))
+                for node in events.get('children'):
+                    interpret_node(
+                        top,
+                        node,
+                        is_measure_root=is_measure_root,
+                        tempo=curr_tempo,
                     )
-                # Only set the time-signature of the upper-most staff.
-                is_measure_root = False
+                    # Only set the time-signature of the upper-most staff.
+                    is_measure_root = False
+                notes_post = list(iterate(top).by_class((Chord, Rest)))
+                notes_new = []
+                for note in notes_post:
+                    if not note in notes_pre:
+                        notes_new.append(note)
+                # notes_new = list(set(notes_post) - set(notes_pre))
+                attach(Tie(), notes_new)
+                # print len(notes), len(notes_new)
 
-    def adjust_tie(chord, direction):
-        override(chord).tie.details__horizontal_distance_penalty_factor = 100
-        override(chord).tie.details__vertical_distance_penalty_factor = 100
-        # override(chord).tie.minimum_length = 4
-        # override(chord).tie.details__same_dir_as_stem_penalty = 30
-        override(chord).tie.direction = direction
+        # Attach ties.
+        for staff in (upper_staff, lower_staff, ped_staff):
+            override(staff).time_signature.style = 'numeric'
+            apply_accidentals(staff)
+            # attach(Tie(), staff[:])
+            leaves = list(iterate(staff).by_class((Chord, Rest)))
+            for curr, next_ in zip(leaves[:], leaves[1:]):
+                override(curr).tie.details__height_limit = 0.85
+                override(curr).tie.minimum_length = 3
+                if (isinstance(curr, Chord) and
+                    isinstance(next_, Chord) and
+                    len(next_.written_pitches) > 1):
+                    if has_only_upper_tied(curr, next_):
+                        adjust_tie(curr, 'up')
+                    elif has_only_lower_tied(curr, next_):
+                        adjust_tie(curr, 'down')
 
-    def has_only_upper_tied(curr, next_):
-        curr_pitches, next_pitches = curr.written_pitches, next_.written_pitches
-        common = set(curr_pitches).intersection(set(next_pitches))
-        highest_next = max(x.numbered_pitch for x in next_pitches)
-        return len(common) == 1 and list(common)[0].numbered_pitch == highest_next.numbered_pitch
+        score = Score([manuals_group, ped_staff])
+        print colored("Apply score overrides...", 'cyan')
+        apply_score_overrides(score)
 
-    def has_only_lower_tied(curr, next_):
-        curr_pitches, next_pitches = curr.written_pitches, next_.written_pitches
-        common = set(curr_pitches).intersection(set(next_pitches))
-        highest_next = max(x.numbered_pitch for x in next_pitches)
-        return len(common) == 1 and list(common)[0].numbered_pitch != highest_next.numbered_pitch
+        lilypond_file = make_lilypond_file(
+            score,
+            args.title,
+            args.author,
+        )
 
-    # Attach ties.
-    for staff in (upper_staff, lower_staff, ped_staff):
-        attach(Tie(), staff[:])
-        apply_accidentals(staff)
-        leaves = list(iterate(staff).by_class((Chord, Rest)))
-        for curr, next_ in zip(leaves[:], leaves[1:]):
-            override(curr).tie.details__height_limit = 0.85
-            override(curr).tie.minimum_length = 3
-            if (isinstance(curr, Chord) and
-                isinstance(next_, Chord) and
-                len(next_.written_pitches) > 1):
-                if has_only_upper_tied(curr, next_):
-                    adjust_tie(curr, 'up')
-                elif has_only_lower_tied(curr, next_):
-                    adjust_tie(curr, 'down')
+        print colored("Persist score as pdf...", 'cyan')
+        persist(lilypond_file).as_pdf(args.score_out)
 
-    score = Score([manuals_group, ped_staff])
-    print colored("Apply score overrides...", 'cyan')
-    apply_score_overrides(score)
+        # TODO: for every section/part, use separate midi file.
+        # TODO: separate score creation from midi export.
+        voices_to_midi([upper_staff], '/Users/fred/Desktop/organ-test Project/upper.mid')
+        voices_to_midi([lower_staff], '/Users/fred/Desktop/organ-test Project/lower.mid')
+        voices_to_midi([ped_staff], '/Users/fred/Desktop/organ-test Project/ped.mid')
 
-    lilypond_file = make_lilypond_file(
-        score,
-        args.title,
-        args.author,
-    )
+    def export_midi(args):
+        all_score_segments = []
 
-    print colored("Persist score as pdf...", 'cyan')
-    persist(lilypond_file).as_pdf(args.score_out)
+        for input_file in args.input_files:
+            with open(input_file, 'r') as infile:
+                all_score_segments.append(json.load(infile))
 
-    # staff1 = Staff("<c'>\pp ~ <c' g'>\mf ~ <g'>2\pp ~ <g' a'>4\mf r2 <d' f'>1")
-    # staff2 = Staff("<c'''>8\mf ~ <c''' g,>2\pp ~ <g,>2.\pp ~ <g, a''>8 <d, f''>1")
+        for score_index, score_segments in enumerate(all_score_segments):
+            for i, segment in enumerate(score_segments):
+                upper_staff = Staff(name='upper')
+                lower_staff = Staff()
+                ped_staff = Staff()
 
-    voices_to_midi([upper_staff], '/Users/fred/Desktop/organ-test Project/upper.mid')
-    voices_to_midi([lower_staff], '/Users/fred/Desktop/organ-test Project/lower.mid')
-    voices_to_midi([ped_staff], '/Users/fred/Desktop/organ-test Project/ped.mid')
+                attach(Clef('treble'), upper_staff)
+                attach(Clef('treble'), lower_staff)
+                attach(Clef('bass'), ped_staff)
+
+                manuals_instrument = instrumenttools.Harp(
+                    instrument_name=r'Manuals',
+                    short_instrument_name='Man.',
+                )
+                pedals_instrument = instrumenttools.Instrument(
+                    instrument_name=r'Pedals',
+                    short_instrument_name='Ped.',
+                )
+                manuals_group = scoretools.StaffGroup([upper_staff, lower_staff])
+                manuals_group.context_name = 'PianoStaff'
+                attach(manuals_instrument, manuals_group)
+                attach(pedals_instrument, ped_staff)
+
+                named_staff_dict = {
+                    'upper': upper_staff,
+                    'lower': lower_staff,
+                    'ped': ped_staff,
+                }
+                tempo = None
+
+                parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
+                if tempo == curr_tempo:
+                    curr_tempo = None
+                else:
+                    tempo = curr_tempo
+                for part in parts:
+                    part_name = part.get('part-name')
+                    events = part.get('events')
+                    top = named_staff_dict.get(part_name)
+                    is_measure_root = True
+                    # print '        parsing part "{}"...'.format(part_name)
+                    for node in events.get('children'):
+                        interpret_node(
+                            top,
+                            node,
+                            is_measure_root=is_measure_root,
+                            tempo=curr_tempo,
+                        )
+                        # Only set the time-signature of the upper-most staff.
+                        is_measure_root = False
+
+                # Attach ties.
+                for staff in (upper_staff, lower_staff, ped_staff):
+                    override(staff).time_signature.style = 'numeric'
+                    attach(Tie(), staff[:])
+                    apply_accidentals(staff)
+                    leaves = list(iterate(staff).by_class((Chord, Rest)))
+                    for curr, next_ in zip(leaves[:], leaves[1:]):
+                        override(curr).tie.details__height_limit = 0.85
+                        override(curr).tie.minimum_length = 3
+                        if (isinstance(curr, Chord) and
+                            isinstance(next_, Chord) and
+                            len(next_.written_pitches) > 1):
+                            if has_only_upper_tied(curr, next_):
+                                adjust_tie(curr, 'up')
+                            elif has_only_lower_tied(curr, next_):
+                                adjust_tie(curr, 'down')
+
+                score = Score([manuals_group, ped_staff])
+                print colored("Apply score overrides...", 'cyan')
+                apply_score_overrides(score)
+
+                lilypond_file = make_lilypond_file(
+                    score,
+                    args.title,
+                    args.author,
+                )
+
+                print colored("Persist score as pdf...", 'cyan')
+                # persist(lilypond_file).as_pdf(args.score_out)
+
+                # TODO: for every section/part, use separate midi file.
+                # TODO: separate score creation from midi export.
+                idx = str(score_index) + '.' + str(i)
+                voices_to_midi(
+                    [upper_staff],
+                    '/Users/fred/Desktop/organ-test Project/upper' + idx + '.mid'
+                )
+                voices_to_midi(
+                    [lower_staff],
+                    '/Users/fred/Desktop/organ-test Project/lower' + idx + '.mid'
+                )
+                voices_to_midi(
+                    [ped_staff],
+                    '/Users/fred/Desktop/organ-test Project/ped' + idx + '.mid'
+                )
+
+    print_score(args)
+    # export_midi(args)
 
 
 if __name__ == '__main__':
     main()
+
+# dropping last tied note.
+# staff = Staff("<c'> <d'> <e'> <f'> r4 <f'>1")
+
+# print voices_to_midi([staff], '/Users/fred/Desktop/temp-midi.mid')
+# print staff

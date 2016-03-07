@@ -10,6 +10,7 @@
    :dissonance-contributor? true
    :phrase-end false
    :part nil,
+   :notation nil
    :count 0,
    :is-rest? false
    :max-count 100})
