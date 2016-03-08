@@ -180,7 +180,8 @@ def split_chords(staff):
             tempo = agent.get_indicators(Tempo)
             onset = get_current_onset(chord)
             if tempo:
-                coll.append({'tempo': midi.SetTempoEvent(bpm=tempo[0].units_per_minute, tick=onset)})
+                # coll.append({'tempo': midi.SetTempoEvent(bpm=tempo[0].units_per_minute, tick=onset)})
+                coll.append({'tempo': tempo[0].units_per_minute})
 
         if isinstance(chord, Rest):
             last_dur = chord.written_duration
@@ -221,7 +222,7 @@ def split_chords(staff):
 
     return coll
 
-def voices_to_midi(staves, filename):
+def voices_to_midi(staves, tempo, filename):
 
     resolution=480
     pattern = midi.Pattern(resolution=resolution, format=0)
@@ -235,13 +236,10 @@ def voices_to_midi(staves, filename):
     coll = []
     import itertools
     vels = itertools.cycle([20, 50, 20, 50, 20])
-    coll.append(midi.SetTempoEvent(bpm=100, tick=0))
+    coll.append(midi.SetTempoEvent(bpm=int(tempo), tick=1))
     for note, vel in zip(notes, vels):
         if 'tempo' in note:
-            tempo = note['tempo']
-            tempo.tick = int(tempo.tick * 480) * 4
-            coll.append(tempo)
-
+            pass
         else:
             onset = int(note['onset'] * 480) * 4
             offset = int(note['offset'] * 480) * 4
@@ -383,12 +381,6 @@ def main():
         print colored("Persist score as pdf...", 'cyan')
         persist(lilypond_file).as_pdf(args.score_out)
 
-        # TODO: for every section/part, use separate midi file.
-        # TODO: separate score creation from midi export.
-        voices_to_midi([upper_staff], '/Users/fred/Desktop/organ-test Project/upper.mid')
-        voices_to_midi([lower_staff], '/Users/fred/Desktop/organ-test Project/lower.mid')
-        voices_to_midi([ped_staff], '/Users/fred/Desktop/organ-test Project/ped.mid')
-
     def export_midi(args):
         all_score_segments = []
 
@@ -398,8 +390,15 @@ def main():
 
         registration = None
         qlist_score = []
+        print colored("Exporting midi files:", 'cyan')
         for score_index, score_segments in enumerate(all_score_segments):
             for i, segment in enumerate(score_segments):
+                print colored(
+                    "    Exporting midi files for section: '{}', segment: '{}'...".format(
+                        score_index, i
+                    ),
+                    'green'
+                ),
                 upper_staff = Staff(name='upper')
                 lower_staff = Staff()
                 ped_staff = Staff()
@@ -438,7 +437,6 @@ def main():
                     events = part.get('events')
                     top = named_staff_dict.get(part_name)
                     is_measure_root = True
-                    # print '        parsing part "{}"...'.format(part_name)
                     for node in events.get('children'):
                         interpret_node(
                             top,
@@ -470,7 +468,6 @@ def main():
                                 adjust_tie(curr, 'down')
 
                 score = Score([manuals_group, ped_staff])
-                print colored("Apply score overrides...", 'cyan')
                 apply_score_overrides(score)
 
                 lilypond_file = make_lilypond_file(
@@ -479,7 +476,6 @@ def main():
                     args.author,
                 )
 
-                print colored("Persist score as pdf...", 'cyan')
                 # persist(lilypond_file).as_pdf(args.score_out)
 
                 # TODO: for every section/part, use separate midi file.
@@ -497,6 +493,8 @@ def main():
                     notes = list(iterate(staff).by_class(Chord))
                     return len(notes) > 0
 
+                # TODO: get tempo from score file.
+                tempo = 250
                 if has_activity(upper_staff):
                     qlist_score.append([
                         'upper',
@@ -505,6 +503,7 @@ def main():
                     ])
                     voices_to_midi(
                         [upper_staff],
+                        tempo,
                         '/Users/fred/Desktop/organ-test Project/upper' + idx + '.mid'
                     )
                 if has_activity(lower_staff):
@@ -515,6 +514,7 @@ def main():
                     ])
                     voices_to_midi(
                         [lower_staff],
+                        tempo,
                         '/Users/fred/Desktop/organ-test Project/lower' + idx + '.mid'
                     )
                 if has_activity(ped_staff):
@@ -525,14 +525,17 @@ def main():
                     ])
                     voices_to_midi(
                         [ped_staff],
+                        tempo,
                         '/Users/fred/Desktop/organ-test Project/ped' + idx + '.mid'
                     )
                 qlist_score.append(['0'])
+                print colored('done', 'green')
+
         score_contents = ';\n'.join(map(lambda x: ' '.join(x), qlist_score))
         with open('/Users/fred/Desktop/organ-test Project/score.txt', 'w') as outfile:
             outfile.write(score_contents)
 
-    print_score(args)
+    # print_score(args)
     export_midi(args)
 
 

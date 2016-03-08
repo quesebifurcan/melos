@@ -20,11 +20,11 @@
 
 (defn chromatic
   [part segmentation transposition step-count]
-  (->> {:pitch (->> [[0] [3] [0] [3] [5]]
+  (->> {:pitch (->> [[0] [2] [0] [2] [0] [2] [3] [0] [2] [3] [5] [3] [5] [3] [5]]
                     (utils/transpose-all transposition))
         :part [part]
-        :merge-left? [true]
-        :merge-right? [true]
+        ;; :merge-left? [true]
+        ;; :merge-right? [true]
         :notation [{:registration "A"}]
         :duration [1/4]}
        utils/unfold-parameters
@@ -36,15 +36,15 @@
 
 (defn -main
   [output-path]
-  (let [melody-sources (atom {:upper (chromatic :upper [2] -5 11)
-                              :lower (chromatic :lower [2 1 1] -9 10)
-                              :ped (chromatic :ped [1] -13 7)})
+  (let [melody-sources (atom {:upper (chromatic :upper [2] 0 11)
+                              :lower (chromatic :lower [2 1 1] -7 10)
+                              :ped (chromatic :ped [1] -12 7)})
         diss-fn-params {:max-count 100
                         :max-lingering 300
                         :diss-params [0 2 4 5]}
         melodic-indices (->> [:upper :lower :ped]
                              (cycle)
-                             (take 20))]
+                             (take 200))]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
           melody-sources)
@@ -65,5 +65,5 @@
                      (rhythm-tree/make-r-tree [measures/measure-4])
                      (part/compose-part tempo [:upper :lower :ped])
                      ))
-              (cycle [120]))
+              (cycle [200]))
          (utils/export-to-json output-path))))
