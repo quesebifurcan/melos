@@ -25,7 +25,7 @@
         :part [part]
         :merge-left? [true]
         :merge-right? [true]
-        :notation [{:registration "\\caps \\large REGISTRATION: \\large \\caps \\bold B"}]
+        :notation [{:registration "B"}]
         :duration [1/4]}
        utils/unfold-parameters
        (map utils/make-chord-from-pitch-vector-params)

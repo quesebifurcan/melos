@@ -56,6 +56,15 @@ def apply_accidentals(staff):
                 prev_chord = event
 
 REGISTRATION = None
+MIDI_CONFIG = {
+    'A': {'upper': 0, 'lower': 0, 'ped': 0},
+    'B': {'upper': 1, 'lower': 1, 'ped': 1},
+}
+
+REGISTRATIONS_DICT = {
+    "A": "\\caps \\large REGISTRATION: \\large \\caps \\bold A",
+    "B": "\\caps \\large REGISTRATION: \\large \\caps \\bold B",
+}
 
 def make_note(node):
     global REGISTRATION
@@ -70,8 +79,11 @@ def make_note(node):
         notation = events[0].get('notation')
         if notation and notation.get('registration') and not REGISTRATION == notation.get('registration'):
             registration = notation.get('registration')
-            attach(Markup(str(registration), direction='^'), chord)
+            annotation = indicatortools.Annotation('registration', registration)
             REGISTRATION = registration
+            registration_markup = REGISTRATIONS_DICT.get(registration)
+            attach(Markup(str(registration_markup), direction='^'), chord)
+            attach(annotation, chord)
         return chord
 
 def make_tuplet(d):
@@ -311,7 +323,6 @@ def main():
             'ped': ped_staff,
         }
         tempo = None
-        global REGISTRATION
         for i, segment in enumerate(score_segments):
             parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
             if tempo == curr_tempo:
@@ -335,20 +346,18 @@ def main():
                     )
                     # Only set the time-signature of the upper-most staff.
                     is_measure_root = False
+                # Connect new elements with ties
                 notes_post = list(iterate(top).by_class((Chord, Rest)))
                 notes_new = []
                 for note in notes_post:
                     if not note in notes_pre:
                         notes_new.append(note)
-                # notes_new = list(set(notes_post) - set(notes_pre))
                 attach(Tie(), notes_new)
-                # print len(notes), len(notes_new)
 
         # Attach ties.
         for staff in (upper_staff, lower_staff, ped_staff):
             override(staff).time_signature.style = 'numeric'
             apply_accidentals(staff)
-            # attach(Tie(), staff[:])
             leaves = list(iterate(staff).by_class((Chord, Rest)))
             for curr, next_ in zip(leaves[:], leaves[1:]):
                 override(curr).tie.details__height_limit = 0.85
@@ -387,6 +396,8 @@ def main():
             with open(input_file, 'r') as infile:
                 all_score_segments.append(json.load(infile))
 
+        registration = None
+        qlist_score = []
         for score_index, score_segments in enumerate(all_score_segments):
             for i, segment in enumerate(score_segments):
                 upper_staff = Staff(name='upper')
@@ -447,6 +458,9 @@ def main():
                     for curr, next_ in zip(leaves[:], leaves[1:]):
                         override(curr).tie.details__height_limit = 0.85
                         override(curr).tie.minimum_length = 3
+                        annotation = inspect_(curr).get_indicators(indicatortools.Annotation)
+                        if annotation:
+                            registration = annotation
                         if (isinstance(curr, Chord) and
                             isinstance(next_, Chord) and
                             len(next_.written_pitches) > 1):
@@ -470,7 +484,27 @@ def main():
 
                 # TODO: for every section/part, use separate midi file.
                 # TODO: separate score creation from midi export.
+                # TODO: do not register file in score if file is empty
                 idx = str(score_index) + '.' + str(i)
+
+                midi_config = MIDI_CONFIG.get(registration[0].value)
+
+                qlist_score.append([
+                    'upper',
+                    str(midi_config['upper']),
+                    'upper' + idx + 'mid'
+                ])
+                qlist_score.append([
+                    'lower',
+                    str(midi_config['lower']),
+                    'lower' + idx + 'mid'
+                ])
+                qlist_score.append([
+                    'ped',
+                    str(midi_config['ped']),
+                    'ped' + idx + 'mid'
+                ])
+                qlist_score.append(['0'])
                 voices_to_midi(
                     [upper_staff],
                     '/Users/fred/Desktop/organ-test Project/upper' + idx + '.mid'
@@ -483,9 +517,11 @@ def main():
                     [ped_staff],
                     '/Users/fred/Desktop/organ-test Project/ped' + idx + '.mid'
                 )
+        for x in qlist_score:
+            print x
 
-    print_score(args)
-    # export_midi(args)
+    # print_score(args)
+    export_midi(args)
 
 
 if __name__ == '__main__':
