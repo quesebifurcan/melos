@@ -489,38 +489,50 @@ def main():
 
                 midi_config = MIDI_CONFIG.get(registration[0].value)
 
-                qlist_score.append([
-                    'upper',
-                    str(midi_config['upper']),
-                    'upper' + idx + 'mid'
-                ])
-                qlist_score.append([
-                    'lower',
-                    str(midi_config['lower']),
-                    'lower' + idx + 'mid'
-                ])
-                qlist_score.append([
-                    'ped',
-                    str(midi_config['ped']),
-                    'ped' + idx + 'mid'
-                ])
-                qlist_score.append(['0'])
-                voices_to_midi(
-                    [upper_staff],
-                    '/Users/fred/Desktop/organ-test Project/upper' + idx + '.mid'
-                )
-                voices_to_midi(
-                    [lower_staff],
-                    '/Users/fred/Desktop/organ-test Project/lower' + idx + '.mid'
-                )
-                voices_to_midi(
-                    [ped_staff],
-                    '/Users/fred/Desktop/organ-test Project/ped' + idx + '.mid'
-                )
-        for x in qlist_score:
-            print x
+                # upper 0 upper0.0.mid;
+                # lower 0 lower0.0.mid;
+                # ped 0 ped0.0.mid;
 
-    # print_score(args)
+                def has_activity(staff):
+                    notes = list(iterate(staff).by_class(Chord))
+                    return len(notes) > 0
+
+                if has_activity(upper_staff):
+                    qlist_score.append([
+                        'upper',
+                        str(midi_config['upper']),
+                        'upper' + idx + '.mid'
+                    ])
+                    voices_to_midi(
+                        [upper_staff],
+                        '/Users/fred/Desktop/organ-test Project/upper' + idx + '.mid'
+                    )
+                if has_activity(lower_staff):
+                    qlist_score.append([
+                        'lower',
+                        str(midi_config['lower']),
+                        'lower' + idx + '.mid'
+                    ])
+                    voices_to_midi(
+                        [lower_staff],
+                        '/Users/fred/Desktop/organ-test Project/lower' + idx + '.mid'
+                    )
+                if has_activity(ped_staff):
+                    qlist_score.append([
+                        'ped',
+                        str(midi_config['ped']),
+                        'ped' + idx + '.mid'
+                    ])
+                    voices_to_midi(
+                        [ped_staff],
+                        '/Users/fred/Desktop/organ-test Project/ped' + idx + '.mid'
+                    )
+                qlist_score.append(['0'])
+        score_contents = ';\n'.join(map(lambda x: ' '.join(x), qlist_score))
+        with open('/Users/fred/Desktop/organ-test Project/score.txt', 'w') as outfile:
+            outfile.write(score_contents)
+
+    print_score(args)
     export_midi(args)
 
 
