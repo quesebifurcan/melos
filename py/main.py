@@ -478,23 +478,15 @@ def main():
 
                 # persist(lilypond_file).as_pdf(args.score_out)
 
-                # TODO: for every section/part, use separate midi file.
-                # TODO: separate score creation from midi export.
-                # TODO: do not register file in score if file is empty
                 idx = str(score_index) + '.' + str(i)
 
                 midi_config = MIDI_CONFIG.get(registration[0].value)
-
-                # upper 0 upper0.0.mid;
-                # lower 0 lower0.0.mid;
-                # ped 0 ped0.0.mid;
 
                 def has_activity(staff):
                     notes = list(iterate(staff).by_class(Chord))
                     return len(notes) > 0
 
-                # TODO: get tempo from score file.
-                tempo = 250
+                # "tempo" is set above
                 if has_activity(upper_staff):
                     qlist_score.append([
                         'upper',
@@ -535,7 +527,7 @@ def main():
         with open('/Users/fred/Desktop/organ-test Project/score.txt', 'w') as outfile:
             outfile.write(score_contents)
 
-    # print_score(args)
+    print_score(args)
     export_midi(args)
 
 

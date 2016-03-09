@@ -20,7 +20,7 @@
 
 (defn chromatic
   [part segmentation transposition step-count]
-  (->> {:pitch (->> [[0] [2] [0] [2] [0] [2] [3] [0] [2] [3] [5] [3] [5] [3] [5]]
+  (->> {:pitch (->> [[0] [12] [0] [12] [0] [2] [3] [0] [2] [3] [5] [3] [5] [3] [5]]
                     (utils/transpose-all transposition))
         :part [part]
         ;; :merge-left? [true]
@@ -65,5 +65,5 @@
                      (rhythm-tree/make-r-tree [measures/measure-4])
                      (part/compose-part tempo [:upper :lower :ped])
                      ))
-              (cycle [200]))
+              (cycle [400]))
          (utils/export-to-json output-path))))
