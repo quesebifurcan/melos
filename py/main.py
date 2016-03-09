@@ -141,6 +141,7 @@ def make_lilypond_file(score, title='', author=''):
     lilypond_file.header_block.tagline = False
     # PAPER BLOCK
     lilypond_file.paper_block.ragged_bottom = True
+    lilypond_file.paper_block.left_margin = 12
     spacing_vector = layouttools.make_spacing_vector(0, 0, 8, 0)
     lilypond_file.paper_block.system_system_spacing = spacing_vector
     spacing_vector = layouttools.make_spacing_vector(0, 0, 20, 0)
@@ -528,7 +529,7 @@ def main():
             outfile.write(score_contents)
 
     print_score(args)
-    export_midi(args)
+    # export_midi(args)
 
 
 if __name__ == '__main__':
