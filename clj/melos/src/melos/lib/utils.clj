@@ -24,14 +24,6 @@
     [& args]
     (reduce merge-in* nil args)))
 
-(s/defn ratio->non-reduced-ratio-vector
-  ;; "Since it is not possible to encode ratios as json, we need to
-  ;; convert all ratios to a non-reduced vector of numbers."
-  :- [s/Int]
-  [r]
-  (let [r (clojure.lang.Numbers/toRatio (rationalize r))]
-    ((juxt numerator denominator) r)))
-
 (defn- triangular*
   ([] (triangular* 0 1))
   ([sum n]
@@ -206,6 +198,40 @@
                          (cons x (step (rest s) (conj seen fx)))))))
                  xs seen)))]
     (step coll #{})))
+
+;; Rhythm Trees
+
+(defn ratio-to-non-reduced-ratio-vector
+  ;; "Since it is not possible to encode ratios as json, we need to
+  ;; convert all ratios to a non-reduced vector of numbers."
+  [r]
+  (let [r (clojure.lang.Numbers/toRatio (rationalize r))]
+    ((juxt numerator denominator) r)))
+
+(defn ratio-calc
+  [f args]
+  (apply f (map (fn [[num denom]] (/ num denom)) args)))
+
+(def rv+ (partial ratio-calc +))
+(def rv- (partial ratio-calc -))
+
+(defn get-child-durations
+  [children]
+  (->> (map first children)
+       (rv+)
+       (ratio-to-non-reduced-ratio-vector)))
+
+(defn parse-rtm-tree-node
+  [[dur children]]
+  (if ((complement nil?) children)
+    (let [w-dur (get-child-durations children)]
+      {:duration dur
+       :w-duration w-dur
+       :children (map parse-rtm-tree-node children)})
+    {:duration dur
+     :w-duration dur
+     :children nil
+     :event nil}))
 
 (defn partition-groups
   [f curr coll l]

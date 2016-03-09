@@ -386,10 +386,11 @@ def main():
         all_score_segments = []
 
         for input_file in args.input_files:
+            print input_file
             with open(input_file, 'r') as infile:
                 all_score_segments.append(json.load(infile))
 
-        registration = None
+        midi_registration = None
         qlist_score = []
         print colored("Exporting midi files:", 'cyan')
         for score_index, score_segments in enumerate(all_score_segments):
@@ -459,7 +460,8 @@ def main():
                         override(curr).tie.minimum_length = 3
                         annotation = inspect_(curr).get_indicators(indicatortools.Annotation)
                         if annotation:
-                            registration = annotation
+                            midi_registration = annotation
+                            print annotation
                         if (isinstance(curr, Chord) and
                             isinstance(next_, Chord) and
                             len(next_.written_pitches) > 1):
@@ -481,7 +483,7 @@ def main():
 
                 idx = str(score_index) + '.' + str(i)
 
-                midi_config = MIDI_CONFIG.get(registration[0].value)
+                midi_config = MIDI_CONFIG.get(midi_registration[0].value)
 
                 def has_activity(staff):
                     notes = list(iterate(staff).by_class(Chord))
@@ -529,7 +531,9 @@ def main():
             outfile.write(score_contents)
 
     print_score(args)
-    # export_midi(args)
+    global REGISTRATION
+    REGISTRATION = None
+    export_midi(args)
 
 
 if __name__ == '__main__':

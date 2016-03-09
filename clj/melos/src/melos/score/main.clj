@@ -44,7 +44,57 @@
                         :diss-params [0 2 4 5]}
         melodic-indices (->> [:upper :lower :ped]
                              (cycle)
-                             (take 200))]
+                             (take 20))]
+    (->> (chord-seq/collect-events-in-segment
+          melodic-indices
+          melody-sources)
+         (s/validate [ms/Phrase])
+         ;; Extend phrases
+         (chord-seq/extend-phrases diss-fn-params [])
+         ;; Filter phrases
+         (utils/partition-groups (comp :phrase-end first) [] [])
+         (s/validate [ms/Phrase])
+         ((fn [x]
+            (do (println (count x))
+                x)))
+         ;; Compose part
+         (map (fn [tempo phrase]
+                (->> phrase
+                     chord-seq/merge-horizontally
+                     (rhythm-tree/extend-last 4/4)
+                     (rhythm-tree/make-r-tree [measures/measure-5])
+                     (part/compose-part tempo [:upper :lower :ped])
+                     ))
+              (cycle [100]))
+         (utils/export-to-json output-path))))
+
+(defn chromatic-2
+  [part segmentation transposition step-count]
+  (->> {:pitch (->> [[2] [10] [2] [10] [2] [10] [9]]
+                    (utils/transpose-all transposition))
+        :part [part]
+        :merge-left? [true]
+        :merge-right? [true]
+        :notation [{:registration "B"}]
+        :duration [1/4]}
+       utils/unfold-parameters
+       (map utils/make-chord-from-pitch-vector-params)
+       (map #(s/validate ms/Chord %))
+       cycle
+       (utils/cyclic-partition segmentation)
+       (map #(s/validate ms/Phrase %))))
+
+(defn main-2
+  [output-path]
+  (let [melody-sources (atom {:upper (chromatic-2 :upper [2] -5 11)
+                              :lower (chromatic-2 :lower [2 1 1] -9 10)
+                              :ped (chromatic-2 :ped [1] -13 7)})
+        diss-fn-params {:max-count 100
+                        :max-lingering 300
+                        :diss-params [0 2 4 5]}
+        melodic-indices (->> [:upper :lower :ped]
+                             (cycle)
+                             (take 20))]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
           melody-sources)
@@ -63,7 +113,6 @@
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last 4/4)
                      (rhythm-tree/make-r-tree [measures/measure-4])
-                     (part/compose-part tempo [:upper :lower :ped])
-                     ))
-              (cycle [400]))
+                     (part/compose-part tempo [:upper :lower :ped])))
+              (cycle [180]))
          (utils/export-to-json output-path))))

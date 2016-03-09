@@ -19,7 +19,7 @@ echo "${red}\nReloading namespaces...${normal}"
 
 grench eval "(require '[clojure.tools.namespace.repl :refer [refresh]]) (refresh)"
 grench eval "(time (melos.score.main/-main \"$JSON_OUTPUT\"))"
-grench eval "(time (melos.score.asdf/-main \"$REPO_DIR/output/part_2.json\"))"
+grench eval "(time (melos.score.main/main-2 \"$REPO_DIR/output/part_2.json\"))"
 
 cd $REPO_DIR
 
