@@ -10,13 +10,16 @@
              [part :as part]
              [rhythm-tree :as rhythm-tree]
              [schemas :as ms]
-             [utils :as utils]]
-            [melos.score.materials
-             [measures :as measures]]))
+             [measure :as measure-util]
+             [utils :as utils]]))
 
 ;; There is a lot of schema validation in the lib namespaces.
 ;; Setting this to false significantly improves performance.
 (s/set-fn-validation! false)
+
+(def measure
+  (measure-util/parse-rtm-tree-node
+   (measure-util/stretch-tree [3 4] 1 [[1] [0] [0] [0]])))
 
 (defn chromatic
   [part segmentation transposition step-count]
@@ -62,7 +65,7 @@
                 (->> phrase
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last 4/4)
-                     (rhythm-tree/make-r-tree [measures/measure-5])
+                     (rhythm-tree/make-r-tree [measure])
                      (part/compose-part tempo [:upper :lower :ped])
                      ))
               (cycle [100]))
@@ -112,7 +115,7 @@
                 (->> phrase
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last 4/4)
-                     (rhythm-tree/make-r-tree [measures/measure-4])
+                     (rhythm-tree/make-r-tree [measure])
                      (part/compose-part tempo [:upper :lower :ped])))
               (cycle [180]))
          (utils/export-to-json output-path))))

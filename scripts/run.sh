@@ -30,4 +30,4 @@ source $PY_VIRTUALENV && \
            --author "Anonymous" \
            --score-out $PDF_OUTPUT \
            --midi-out $MIDI_OUTPUT \
-           --input-files $JSON_OUTPUT $REPO_DIR/output/part_2.json
+           --input-files $JSON_OUTPUT
