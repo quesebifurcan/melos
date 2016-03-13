@@ -114,7 +114,6 @@
          (partition 2 1)
          (map (fn [[x y]] (- y x))))))
 
-;; TODO: move to scores/
 (defn unfold-events
   [m]
   (let [f (:fn m)

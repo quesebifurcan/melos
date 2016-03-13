@@ -538,9 +538,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# dropping last tied note.
-# staff = Staff("<c'> <d'> <e'> <f'> r4 <f'>1")
-
-# print voices_to_midi([staff], '/Users/fred/Desktop/temp-midi.mid')
-# print staff

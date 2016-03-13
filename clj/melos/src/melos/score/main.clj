@@ -17,17 +17,21 @@
 ;; Setting this to false significantly improves performance.
 (s/set-fn-validation! false)
 
+;; (def measure
+;;   (measure-util/parse-rtm-tree-node
+;;    (measure-util/stretch-tree [4 4] 1 [[1 0] [0 1] [0] [0]])))
+
 (def measure
   (measure-util/parse-rtm-tree-node
-   (measure-util/stretch-tree [3 4] 1 [[1] [0] [0] [0]])))
+   (measure-util/stretch-tree [4 4] 0 [[0] [0] [0] [0]])))
 
 (defn chromatic
   [part segmentation transposition step-count]
-  (->> {:pitch (->> [[0] [12] [0] [12] [0] [2] [3] [0] [2] [3] [5] [3] [5] [3] [5]]
+  (->> {:pitch (->> [[0] [0 12] [12] [10 12] [10] [10 3] [10 3] [3] [0] [2] [3] [5] [3] [5] [3] [5]]
                     (utils/transpose-all transposition))
         :part [part]
-        ;; :merge-left? [true]
-        ;; :merge-right? [true]
+        :merge-left? [true]
+        :merge-right? [true]
         :notation [{:registration "A"}]
         :duration [1/4]}
        utils/unfold-parameters
@@ -44,10 +48,10 @@
                               :ped (chromatic :ped [1] -12 7)})
         diss-fn-params {:max-count 100
                         :max-lingering 300
-                        :diss-params [0 2 4 5]}
+                        :diss-params [0 1 2]}
         melodic-indices (->> [:upper :lower :ped]
                              (cycle)
-                             (take 20))]
+                             (take 200))]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
           melody-sources)
@@ -119,3 +123,4 @@
                      (part/compose-part tempo [:upper :lower :ped])))
               (cycle [180]))
          (utils/export-to-json output-path))))
+
