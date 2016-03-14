@@ -25,21 +25,31 @@
   (measure-util/parse-rtm-tree-node
    (measure-util/stretch-tree [4 4] 0 [[0] [0] [0] [0]])))
 
+(defn segment-melody
+  [xs]
+  (->> xs
+       (partition-by #(= % :end))
+       (take-nth 2)))
+
 (defn chromatic
   [part segmentation transposition step-count]
-  (->> {:pitch (->> [[0] [0 12] [12] [10 12] [10] [10 3] [10 3] [3] [0] [2] [3] [5] [3] [5] [3] [5]]
-                    (utils/transpose-all transposition))
+  (let [pitches [0 [0 12] :end [10 12] 12 10 :end [3 10] :end]
+        real-pitches (filter #(not (= :end %)) pitches)
+        segmentation (->> pitches segment-melody (map count))]
+    (->> {:pitch (->> real-pitches
+                      (map (fn [x] (if (number? x) [x] x)))
+                      (utils/transpose-all transposition))
         :part [part]
-        :merge-left? [true]
-        :merge-right? [true]
+        ;; :merge-left? [true]
+        ;; :merge-right? [true]
         :notation [{:registration "A"}]
-        :duration [1/4]}
+        :duration (map (fn [x] (if (= x [3 10]) 3/4 1/4)) real-pitches)}
        utils/unfold-parameters
        (map utils/make-chord-from-pitch-vector-params)
        (map #(s/validate ms/Chord %))
        cycle
        (utils/cyclic-partition segmentation)
-       (map #(s/validate ms/Phrase %))))
+       (map #(s/validate ms/Phrase %)))))
 
 (defn -main
   [output-path]
@@ -123,4 +133,3 @@
                      (part/compose-part tempo [:upper :lower :ped])))
               (cycle [180]))
          (utils/export-to-json output-path))))
-
