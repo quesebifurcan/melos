@@ -17,9 +17,12 @@ cd $CLOJURE_DIR
 
 echo "${red}\nReloading namespaces...${normal}"
 
+SECTION_1=$REPO_DIR/output/section_1.json
+SECTION_2=$REPO_DIR/output/section_2.json
+
 grench eval "(require '[clojure.tools.namespace.repl :refer [refresh]]) (refresh)"
-grench eval "(time (melos.score.main/-main \"$JSON_OUTPUT\"))"
-grench eval "(time (melos.score.main/main-2 \"$REPO_DIR/output/part_2.json\"))"
+grench eval "(time (melos.score.main/open \"$SECTION_1\"))"
+grench eval "(time (melos.score.main/closed \"$SECTION_2\"))"
 
 cd $REPO_DIR
 
@@ -30,4 +33,8 @@ source $PY_VIRTUALENV && \
            --author "Anonymous" \
            --score-out $PDF_OUTPUT \
            --midi-out $MIDI_OUTPUT \
-           --input-files $JSON_OUTPUT
+           --input-files \
+           $SECTION_1 \
+           $SECTION_2
+
+open $PDF_OUTPUT
