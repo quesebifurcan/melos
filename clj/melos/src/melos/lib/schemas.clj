@@ -14,7 +14,8 @@
               :group s/Any
               :is-rest? s/Bool
               :dissonance-contributor? s/Bool
-              :part PartName
+              :part s/Keyword
+              :notation s/Any
               :phrase-end s/Bool
               :max-count s/Int
               :count s/Int))

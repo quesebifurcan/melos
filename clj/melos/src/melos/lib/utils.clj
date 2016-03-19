@@ -24,14 +24,6 @@
     [& args]
     (reduce merge-in* nil args)))
 
-(s/defn ratio->non-reduced-ratio-vector
-  ;; "Since it is not possible to encode ratios as json, we need to
-  ;; convert all ratios to a non-reduced vector of numbers."
-  :- [s/Int]
-  [r]
-  (let [r (clojure.lang.Numbers/toRatio (rationalize r))]
-    ((juxt numerator denominator) r)))
-
 (defn- triangular*
   ([] (triangular* 0 1))
   ([sum n]
@@ -74,6 +66,12 @@
   (apply f (apply concat (butlast args) (last args))))
 
 (defn maybe-vec [x] (if (number? x) [x] x))
+
+(defn segment-melody
+  [xs]
+  (->> xs
+       (partition-by #(= % :end))
+       (take-nth 2)))
 
 (defn make-chord-from-pitch-vector-params
   [{:keys [pitch] :as m}]
@@ -122,7 +120,6 @@
          (partition 2 1)
          (map (fn [[x y]] (- y x))))))
 
-;; TODO: move to scores/
 (defn unfold-events
   [m]
   (let [f (:fn m)
@@ -206,6 +203,15 @@
                          (cons x (step (rest s) (conj seen fx)))))))
                  xs seen)))]
     (step coll #{})))
+
+;; Rhythm Trees
+
+(defn ratio-to-non-reduced-ratio-vector
+  ;; "Since it is not possible to encode ratios as json, we need to
+  ;; convert all ratios to a non-reduced vector of numbers."
+  [r]
+  (let [r (clojure.lang.Numbers/toRatio (rationalize r))]
+    ((juxt numerator denominator) r)))
 
 (defn partition-groups
   [f curr coll l]
@@ -323,5 +329,20 @@
         key-seq (count-map->key-sequence count-map)]
     (take-by-keyword-seq m key-seq)))
 
-;; (let [a {:a (range 7) :b (range 70 72) :c (range 1111 1122)}]
-;;   (weave-seqs a))
+(defn apply-slope
+  ([cnt start]
+   (repeat cnt start))
+  ([cnt start end]
+   (conj (into [] (repeat (dec cnt) start))
+         end))
+  ([cnt start mid end]
+   (let [mid_pos (int (Math/floor (/ cnt 2)))
+         end_pos (- cnt 1)]
+     (map (fn [x]
+            (cond (< x mid_pos)
+                  start
+                  (= x end_pos)
+                  end
+                  :else
+                  mid))
+          (range cnt)))))
