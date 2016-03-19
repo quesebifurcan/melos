@@ -3,7 +3,6 @@ import itertools
 import json
 
 from termcolor import colored
-import midi
 
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
@@ -201,10 +200,9 @@ def parse_segments(score_segments, staff_dict):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--title')
-    parser.add_argument('--author')
+    parser.add_argument('--title', default='Test')
+    parser.add_argument('--author', default='Anonymous')
     parser.add_argument('--score-out', dest='score_out')
-    parser.add_argument('--midi-out', nargs='?', dest='midi_out', default=False)
     parser.add_argument('--input-files', nargs='+', dest='input_files')
     args = parser.parse_args()
 

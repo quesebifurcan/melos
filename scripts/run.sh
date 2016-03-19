@@ -30,7 +30,6 @@ source $PY_VIRTUALENV && \
             --title "Test" \
             --author "Anonymous" \
             --score-out $PDF_OUTPUT \
-            --midi-out $MIDI_OUTPUT \
             --input-files \
             $SECTION_1
 

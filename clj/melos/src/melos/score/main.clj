@@ -1,7 +1,5 @@
 (ns melos.score.main
-  (:require clojure.edn
-            [clojure.math.combinatorics :as combinatorics]
-            [clojure.set :as set]
+  (:require [clojure.java.shell :refer [sh]]
             [schema.core :as s]
             [melos.lib
              [chord :as chord]
@@ -91,3 +89,12 @@
               (cycle tempi)
               (cycle final-event-extensions))
          (utils/export-to-json output-path))))
+
+(defn render []
+  (let [json-output-path "../../output/test.json"
+        pdf-output-path "../../output/score.pdf"
+        python "../../env/bin/python"
+        script "../../py/main.py"]
+    (make-score json-output-path)
+    (sh python script "--input-files" json-output-path "--score-out" pdf-output-path)
+    (println (str "Rendered PDF to " pdf-output-path))))
