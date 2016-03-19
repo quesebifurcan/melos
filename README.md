@@ -42,16 +42,16 @@ $ pip install -r requirements.txt
 ```
 ...and make a directory for the files we are about to create:
 ```
-mkdir output
+$ mkdir output
 ```
 After that, we should be able to start a Clojure REPL:
 ```
-cd clj/melos
-lein repl
+$ cd clj/melos
+$ lein repl
 ```
 This will trigger the installation of all Clojure dependencies (this might take a while).
 
-In the `melos.score.main` namespace, there is a function `render`, which allows us to inspect the results. Once the REPL has started, we can render an example:
+In the `melos.score.main` namespace, there is a function `render` which allows us to inspect the results. Once the REPL has started, we can render an example:
 ```
 user=> (require '[melos.score.main :refer [render]])
 user=> (render)
