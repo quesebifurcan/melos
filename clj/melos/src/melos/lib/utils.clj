@@ -67,6 +67,12 @@
 
 (defn maybe-vec [x] (if (number? x) [x] x))
 
+(defn segment-melody
+  [xs]
+  (->> xs
+       (partition-by #(= % :end))
+       (take-nth 2)))
+
 (defn make-chord-from-pitch-vector-params
   [{:keys [pitch] :as m}]
   (let [group (gensym "G__")]
@@ -323,5 +329,20 @@
         key-seq (count-map->key-sequence count-map)]
     (take-by-keyword-seq m key-seq)))
 
-;; (let [a {:a (range 7) :b (range 70 72) :c (range 1111 1122)}]
-;;   (weave-seqs a))
+(defn apply-slope
+  ([cnt start]
+   (repeat cnt start))
+  ([cnt start end]
+   (conj (into [] (repeat (dec cnt) start))
+         end))
+  ([cnt start mid end]
+   (let [mid_pos (int (Math/floor (/ cnt 2)))
+         end_pos (- cnt 1)]
+     (map (fn [x]
+            (cond (< x mid_pos)
+                  start
+                  (= x end_pos)
+                  end
+                  :else
+                  mid))
+          (range cnt)))))
