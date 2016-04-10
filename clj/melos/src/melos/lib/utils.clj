@@ -144,11 +144,11 @@
   ([cnt start]
    (repeat cnt start))
   ([cnt start end]
-   (conj (into [] (repeat (dec cnt) start))
+   (conj (vec (repeat (dec cnt) start))
          end))
   ([cnt start mid end]
    (let [mid_pos (int (Math/floor (/ cnt 2)))
-         end_pos (- cnt 1)]
+         end_pos (dec cnt)]
      (map (fn [x]
             (cond (< x mid_pos)
                   start

@@ -30,11 +30,8 @@
 (defn get-and-rotate
   [melody-sources accessor]
   (let [event (first (get-in @melody-sources [accessor]))]
-    (do (swap! melody-sources
-               update-in
-               [accessor]
-               (partial drop 1))
-        event)))
+    (swap! melody-sources update-in [accessor] (partial drop 1))
+    event))
 
 (defn collect-events-in-segment
   [melodic-indices events-seqs]
@@ -74,19 +71,19 @@
 (s/defn zero-count?
   :- s/Bool
   [note :- ms/Note]
-  (or (= 0 (:count note))
+  (or (zero? (:count note))
       (not (:dissonance-contributor? note))))
 
 (s/defn contains-zero-count
   :- s/Bool
   [chord :- ms/Chord]
   ((complement nil?)
-   (some #(= % 0) (map :count chord))))
+   (some zero? (map :count chord))))
 
 (s/defn get-candidates
   [events]
   (combinatorics/combinations events
-                              (- (count events) 1)))
+                              (dec (count events))))
 
 (s/defn find-best-candidate
   :- ms/Chord
@@ -186,7 +183,7 @@
   (let [max_ (apply max xs)
         min_ (apply min xs)
         div (- max_ min_)]
-    (if (or (= 0 div)
+    (if (or (zero? div)
             (apply = xs))
       (map (fn [x] 0) xs)
       (map (fn [x] (/ (- x min_) (- max_ min_)))
@@ -209,8 +206,7 @@
           all-parts (map :part events)
           part-match-scores (map (partial part-match-penalty all-parts)
                                  candidates)
-          part-match-norm (->> (normalize part-match-scores)
-                               (map (fn [x] (* x 3))))
+          part-match-norm (map (fn [x] (* x 3)) (normalize part-match-scores))
           age-penalty-scores (map age-penalty candidates)
           age-penalty-norm (normalize age-penalty-scores)
           dissonance-scores (map (fn [x] (chord/scaled-dissonance-value
@@ -220,20 +216,18 @@
           sorted (sort-by (fn [[x y z zz]]
                             (+ y z))
                           (transpose [candidates part-match-norm age-penalty-norm dissonance-norm]))
-          best (first (first sorted))]
+          best (ffirst sorted)]
       (if ((:check diss-params) best)
         best
-        (recur diss-params (->> (sort-by (fn [x] (chord/scaled-dissonance-value
-                                                  (map :pitch x)))
-                                         candidates)
-                                (first)))))))
+        (recur diss-params (first
+                            (sort-by
+                             (fn [x] (chord/scaled-dissonance-value (map :pitch x)))
+                             candidates)))))))
 
 (s/defn forward-time
   :- ms/Chord
   [events :- ms/Chord]
-  (->> events
-       ;; (filter :allow-extension?)
-       (map #(update-in % [:count] inc))))
+  (map #(update-in % [:count] inc) events))
 
 (defn filter-distinct
   [chord]
@@ -319,9 +313,7 @@
 
 (defn extend-events
   [diss-fn-params events]
-  (-> (handle-dissonance diss-fn-params)
-      (reductions events)
-      ))
+  (reductions (handle-dissonance diss-fn-params) events))
 
 (defn extend-phrases
   ([diss-fn-params]
@@ -334,12 +326,8 @@
           ;; last_ (map (fn [x] x) (last coll))
           next_ (map #(join-events % last_)
                      first-phrase)]
-      (if (or (consonant? (filter (complement :is-rest?)
-                                  (last next_))
-                          (:diss-params diss-fn-params))
-              ;; (not (consonant? (last (first phrases))
-              ;;                  (:diss-params diss-fn-params))))
-              )
+      (if (or (consonant? (remove :is-rest? (last next_))
+                          (:diss-params diss-fn-params)))
         (extend-phrases diss-fn-params
                         (concat coll
                                 next_)
@@ -348,11 +336,7 @@
                         (if (empty? coll)
                           next_
                           (concat (butlast coll)
-                                  [(map (fn [x]
-                                          (-> x
-                                              (assoc :phrase-end true)
-                                              ;; (update :count inc)))
-                                              ))
+                                  [(map (fn [x] (assoc x :phrase-end true))
                                         (last coll))]
                                   first-phrase ))
                        (rest phrases)))))))
@@ -378,7 +362,7 @@
                             (concat coll [(first chords)]))
               (pairwise-mod (drop 2 chords)
                             match-fns
-                            (concat coll (into [] (first result)))))))))
+                            (concat coll (vec (first result)))))))))
 
 (s/defn modify-durations
   :- [ms/Chord]
@@ -396,26 +380,26 @@
   (let [
         curr (distinct-by #((juxt :pitch :part) %) curr)
         next (distinct-by #((juxt :pitch :part) %) next)
-        old-curr (filter #(> (:count %) 0) next)
-        news (filter #(= (:count %) 0) next)
+        old-curr (filter #(pos? (:count %)) next)
+        news (filter #(zero? (:count %)) next)
         old-parts (set (map :part old-curr))
         new-parts (set (map :part news))
         curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
-                           (filter #(= (:count %) 0)))
+                           (filter #(zero? (:count %))))
         ]
     (let [result
           (and (empty? curr-blocking)
                ;; Make sure that two sequential events in one part are not merged.
                (empty? (clojure.set/intersection old-parts new-parts))
-               (every? #(:merge-left? %) news)
-               (every? #(:merge-right? %) old-curr))]
+               (every? :merge-left? news)
+               (every? :merge-right? old-curr))]
           result)))
 
 (s/defn merge-elts
   :- ms/Chord
   [a :- ms/Chord
    b :- ms/Chord]
-  (let [melodic-notes (filter #(= (:count %) 0) b)
+  (let [melodic-notes (filter #(zero? (:count %)) b)
         new-parts (set (map :part melodic-notes))
         new-a (filter #(not (contains? new-parts (:part %))) a)
         result (concat new-a melodic-notes)]
