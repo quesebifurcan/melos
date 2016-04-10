@@ -26,13 +26,11 @@
 
 (defn chromatic
   [part transposition]
-  (let [pitches [
-                 0 0 :end 2 0 :end 0 :end 2 0 :end 0 0 :end 2 :end
-                 ]
-        real-pitches (->> pitches
-                          (filter (complement keyword?)))
-        segmentation (->> pitches utils/segment-melody (map count))]
-    (->> {:pitch (->> real-pitches
+  (let [pitch-groups [0 0 :end 2 0 :end 0 :end 2 0 :end 0 0 :end 2 :end]
+        pitches (->> pitch-groups
+                     (filter (complement keyword?)))
+        segmentation (->> pitch-groups utils/segment-melody (map count))]
+    (->> {:pitch (->> pitches
                       (map (fn [x] (if (number? x) [x] x)))
                       (utils/transpose-all transposition))
           :part [part]
@@ -71,7 +69,7 @@
                               :voice-5
                               ]
                              (cycle)
-                             (take 200))
+                             (take 80))
         final-event-extensions [4/4 4/4]
         tempi [132]]
     (->> (chord-seq/collect-events-in-segment
