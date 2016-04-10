@@ -13,7 +13,7 @@
 
 ;; There is a lot of schema validation in the lib namespaces.
 ;; Setting this to `false` significantly improves performance.
-(s/set-fn-validation! true)
+(s/set-fn-validation! false)
 
 ;; basic 4/4 subdivisions
 (def measure:4-4
@@ -26,48 +26,54 @@
 
 (defn chromatic
   [part transposition]
-  (let [pitches [0 2 :end 0 :end 2 0 :end 2]
+  (let [pitches [
+                 0 0 :end 2 0 :end 0 :end 2 0 :end 0 0 :end 2 :end
+                 ]
         real-pitches (->> pitches
                           (filter (complement keyword?)))
         segmentation (->> pitches utils/segment-melody (map count))]
     (->> {:pitch (->> real-pitches
                       (map (fn [x] (if (number? x) [x] x)))
                       (utils/transpose-all transposition))
-        :part [part]
-        :merge-left? [false]
-        :merge-right? [false]
-        :notation [{:registration "A"}]
-        :duration [1/4]}
-       utils/unfold-parameters
-       (map utils/make-chord-from-pitch-vector-params)
-       (map #(s/validate ms/Chord %))
-       cycle
-       (utils/cyclic-partition segmentation)
-       (map #(s/validate ms/Phrase %)))))
+          :part [part]
+          :is-rest? [false true false true false false true false true false]
+          :merge-left? [false]
+          :merge-right? [false]
+          :notation [{:registration "A"}]
+          :duration [1/8 1/8 1/8 1/8 1/4 1/8 1/8 1/8 1/8 1/4]}
+         utils/unfold-parameters
+         (map utils/make-chord-from-pitch-vector-params)
+         (map #(s/validate ms/Chord %))
+         cycle
+         (utils/cyclic-partition segmentation)
+         (map #(s/validate ms/Phrase %)))))
+
 
 (defn make-score
   [output-path]
-  (let [melody-sources (atom {:voice-1 (chromatic :voice-1 7)
-                              :voice-2 (chromatic :voice-2 4)
-                              :voice-3 (chromatic :voice-3 0)
-                              :voice-4 (chromatic :voice-4 -5)
-                              :voice-5 (chromatic :voice-5 -12)})
+  (let [melody-sources (atom {:voice-1 (chromatic :voice-1 5)
+                              ;; :voice-2 (chromatic :voice-2 2)
+                              :voice-3 (chromatic :voice-3 -2)
+                              ;; :voice-4 (chromatic :voice-4 -7)
+                              :voice-5 (chromatic :voice-5 -16)})
         diss-fn-params {:max-count 100
                         :max-lingering 300
                         :diss-params [0 1 2]}
-        melodic-indices (->> [:voice-1
-                              :voice-2
+        melodic-indices (->> [
                               :voice-3
-                              :voice-4
+                              :voice-1
+                              :voice-3
+                              :voice-1
+                              :voice-3
                               :voice-5
                               :voice-1
                               :voice-3
-                              :voice-1
-                              :voice-2]
+                              :voice-5
+                              ]
                              (cycle)
-                             (take 40))
-        final-event-extensions [8/4 4/4]
-        tempi [100]]
+                             (take 200))
+        final-event-extensions [4/4 4/4]
+        tempi [132]]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
           melody-sources)
@@ -80,11 +86,11 @@
                 (->> phrase
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last extension)
-                     (rhythm-tree/make-r-tree [measure:stretched])
+                     (rhythm-tree/make-r-tree [measure:4-4])
                      (part/compose-part tempo [:voice-1
-                                               :voice-2
+                                               ;; :voice-2
                                                :voice-3
-                                               :voice-4
+                                               ;; :voice-4
                                                :voice-5])))
               (cycle tempi)
               (cycle final-event-extensions))
