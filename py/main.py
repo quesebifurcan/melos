@@ -45,7 +45,7 @@ def make_lilypond_file(score, title='', author=''):
     vertical_distance = 4
     spacing_vector = layouttools.make_spacing_vector(0, 0, 8, 0)
     lilypond_file.paper_block.system_system_spacing = spacing_vector
-    spacing_vector = layouttools.make_spacing_vector(0, 0, vertical_distance, 0)
+    spacing_vector = layouttools.make_spacing_vector(0, 0, 8, 0)
     lilypond_file.paper_block.top_markup_spacing = spacing_vector
     # LAYOUT BLOCK
     lilypond_file.layout_block.left_margin = 10
@@ -105,19 +105,18 @@ def make_note(node):
     events = node.get('events')
     pitches = set([event.get('pitch') for event in events])
     if "rest" in pitches:
-        rest = Rest(Duration(num, denom))
-        return rest
+        event = Rest(Duration(num, denom))
     else:
-        chord = Chord(pitches, Duration(num, denom))
-        notation = events[0].get('notation')
-        if notation and notation.get('registration') and not REGISTRATION == notation.get('registration'):
-            registration = notation.get('registration')
-            annotation = indicatortools.Annotation('registration', registration)
-            REGISTRATION = registration
-            registration_markup = REGISTRATIONS_DICT.get(registration)
-            attach(Markup(str(registration_markup), direction='^'), chord)
-            attach(annotation, chord)
-        return chord
+        event = Chord(pitches, Duration(num, denom))
+    notation = events[0].get('notation')
+    if notation and notation.get('registration') and not REGISTRATION == notation.get('registration'):
+        registration = notation.get('registration')
+        annotation = indicatortools.Annotation('registration', registration)
+        REGISTRATION = registration
+        registration_markup = REGISTRATIONS_DICT.get(registration)
+        attach(Markup(str(registration_markup), direction='^'), event)
+        attach(annotation, event)
+    return event
 
 def make_tuplet(d):
     num, denom = d.get('duration')
