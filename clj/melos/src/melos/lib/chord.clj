@@ -12,7 +12,7 @@
   :- s/Any
   [chord :- ms/Chord]
   (->> chord
-       (filter #(= (:count %) 0))
+       (filter #(zero? (:count %)))
        (first)))
 
 (s/defn get-melodic-duration
@@ -27,7 +27,7 @@
 (s/defn dissonance-contributors
   :- [ms/Note]
   [chord :- ms/Chord]
-  (filter #(:dissonance-contributor? %) chord))
+  (filter :dissonance-contributor? chord))
 
 (def dissonance-map-default
   "Map complementary intervals to relative dissonance values.
@@ -56,7 +56,7 @@
 (s/defn uniquify-pitches-in-chord
   :- #{ms/Pitch}
   [chord :- [ms/Pitch]]
-  (into #{} (map #(rem % 12) chord)))
+  (set (map #(rem % 12) chord)))
 
 (s/defn inversion-equivalent-pitchclass
   :- ms/Pitch

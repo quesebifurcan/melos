@@ -4,8 +4,8 @@
 (defn maybe-insert-rest
   [x]
   (if (:is-rest? x)
-      {:pitch "rest" :part (:part-name x)}
-      x))
+    (assoc x :pitch "rest" :part (:part-name x))
+    x))
 
 (defn part-events-in-node
   [part-name node]

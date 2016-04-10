@@ -67,7 +67,7 @@
                              (update-in event
                                         [:duration]
                                         (fn [x] (+ x duration)))))
-                      (conj []))]
+                      (vector))]
     (concat (butlast events)
             extended)))
 
@@ -78,8 +78,7 @@
         rtm-tree-dur (get-nested-measure-dur rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
         events (extend-last dur-diff events)]
-    (-> (insert-events rtm-tree events)
-        (select-keys [:children]))))
+    (select-keys (insert-events rtm-tree events) [:children])))
 
 ;; Insert events into rhythmic tree.
 
@@ -98,21 +97,17 @@
     (empty? events)
     nil
     (< (:duration (chord/get-melodic-event (first events))) 1/8)
-    (if (empty? (rest events))
-      nil
+    (when-not (empty? (rest events))
       (let [new-first (first (rest events))
             new-first (decrement-duration new-first)]
-        (concat [new-first]
-                (rest (rest events)))))
+        (concat [new-first] (rest (rest events)))))
     :else
     (let [new-first (decrement-duration (first events))]
-      (into [] (concat [new-first]
-                       (rest events))))))
+      (vec (concat [new-first]
+                   (rest events))))))
 
 (defn current-event [events]
-  (if (empty? events)
-    nil
-    (first events)))
+  (when-not (empty? events) (first events)))
 
 (defn forward-time!
   [events-atom node]
@@ -133,8 +128,7 @@
   [node]
   (let [children (:children node)
         events (map :events children)]
-    (filter #(not (empty? %))
-            (map chord/pitchset events))))
+    (remove empty? (map chord/pitchset events))))
 
 (defn all-children-same-pitch?
   [node]
@@ -142,7 +136,7 @@
     (and (every? #(= % (first pitch-sets))
                  (rest pitch-sets))
          (not (nil? (first pitch-sets)))
-         (not (empty? pitch-sets))
+         (seq pitch-sets)
          (> (count pitch-sets) 1))))
 
 (defn merge-tied
