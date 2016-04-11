@@ -105,7 +105,9 @@
           ;; last_ (map (fn [x] x) (last coll))
           next_ (map #(join-events % last_)
                      first-phrase)]
-      (if (or (consonant? (remove :is-rest? (last next_))
+      (let [non-rests (remove :is-rest? (last next_))]
+      (if (or (empty? non-rests)
+              (consonant? non-rests
                           (:diss-params diss-fn-params)))
         (extend-phrases diss-fn-params
                         (concat coll
@@ -118,7 +120,7 @@
                                   [(map (fn [x] (assoc x :phrase-end true))
                                         (last coll))]
                                   first-phrase ))
-                       (rest phrases)))))))
+                       (rest phrases))))))))
 
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
