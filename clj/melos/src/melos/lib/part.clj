@@ -30,9 +30,10 @@
   [tree part-name]
   (filter-by-part-names part-name tree))
 
-(defn compose-part
-  [tempo part-names rtm-tree]
+(defn compose-section
+  [tempo part-names markup rtm-tree]
   {:tempo tempo
+   :markup markup
    :parts (->> (map
                 (fn [part-name]
                   {:part-name part-name

@@ -19,10 +19,10 @@
   (if ((complement nil?) children)
     (let [w-dur (get-child-durations children)]
       {:duration dur
-       :w-duration w-dur
+       :written-duration w-dur
        :children (map parse-rtm-tree-node children)})
     {:duration dur
-     :w-duration dur
+     :written-duration dur
      :children nil
      :event nil}))
 

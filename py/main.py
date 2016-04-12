@@ -8,10 +8,9 @@ from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
 # TODO: Get rid of these globals
-REGISTRATION = None
 REGISTRATIONS_DICT = {
-    "A": "\\caps \\large REGISTRATION: \\large \\caps \\bold A",
-    "B": "\\caps \\large REGISTRATION: \\large \\caps \\bold B",
+    "a": "\\caps \\large REGISTRATION: \\large \\caps \\bold A",
+    "b": "\\caps \\large REGISTRATION: \\large \\caps \\bold B",
 }
 
 #------------------------------------------------------------------------------
@@ -94,13 +93,12 @@ def has_only_lower_tied(curr, next_):
 # JSON -> ABJAD
 #------------------------------------------------------------------------------
 def is_tuplet(d):
-    return not d.get('w-duration') == d.get('duration')
+    return not d.get('written-duration') == d.get('duration')
 
 def is_leaf(node):
     return node.get('events') is not None
 
 def make_note(node):
-    global REGISTRATION
     num, denom = node.get('duration')
     events = node.get('events')
     pitches = set([event.get('pitch') for event in events])
@@ -108,14 +106,6 @@ def make_note(node):
         event = Rest(Duration(num, denom))
     else:
         event = Chord(pitches, Duration(num, denom))
-    notation = events[0].get('notation')
-    if notation and notation.get('registration') and not REGISTRATION == notation.get('registration'):
-        registration = notation.get('registration')
-        annotation = indicatortools.Annotation('registration', registration)
-        REGISTRATION = registration
-        registration_markup = REGISTRATIONS_DICT.get(registration)
-        attach(Markup(str(registration_markup), direction='^'), event)
-        attach(annotation, event)
     return event
 
 def make_tuplet(d):
@@ -181,8 +171,12 @@ def apply_accidentals(staff):
 
 def parse_segments(score_segments, staff_dict):
     tempo = None
+    current_registration = None
     for i, segment in enumerate(score_segments):
-        parts, curr_tempo = [segment.get(x) for x in ['parts', 'tempo']]
+        parts, curr_tempo, section_markup = [
+            segment.get(x) for x in ['parts', 'tempo', 'markup']
+        ]
+        registration = section_markup.get('registration')
         if tempo == curr_tempo:
             curr_tempo = None
         else:
@@ -209,6 +203,11 @@ def parse_segments(score_segments, staff_dict):
                 if not note in notes_pre:
                     notes_new.append(note)
             attach(Tie(), notes_new)
+            part_registration = registration.get(part_name)
+            if not registration == current_registration:
+                markup = REGISTRATIONS_DICT.get(part_registration)
+                attach(Markup(markup, direction='^'), notes_new[0])
+        current_registration = registration
 
 def main():
     parser = argparse.ArgumentParser()

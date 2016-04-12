@@ -56,7 +56,7 @@
                               :voice-5 (chromatic :voice-5 -16)})
         diss-fn-params {:max-count 100
                         :max-lingering 300
-                        :diss-params [0 1 2]}
+                        :diss-params [0 2 4]}
         melodic-indices (->> [
                               :voice-3
                               :voice-1
@@ -71,6 +71,16 @@
                              (cycle)
                              (take 80))
         final-event-extensions [4/4 4/4]
+        section-markup-data [{:registration {:voice-1 "a"
+                                             :voice-2 "a"
+                                             :voice-3 "b"
+                                             :voice-4 "b"
+                                             :voice-5 "a"}},
+                             {:registration {:voice-1 "b"
+                                             :voice-2 "a"
+                                             :voice-3 "b"
+                                             :voice-4 "b"
+                                             :voice-5 "b"}}]
         tempi [132]]
     (->> (chord-seq/collect-events-in-segment
           melodic-indices
@@ -80,17 +90,20 @@
          ;; Filter phrases
          (utils/partition-groups (comp :phrase-end first) [] [])
          ;; Compose part
-         (map (fn [tempo extension phrase]
+         (map (fn [tempo section-markup extension phrase]
                 (->> phrase
                      chord-seq/merge-horizontally
                      (rhythm-tree/extend-last extension)
-                     (rhythm-tree/make-r-tree [measure:4-4])
-                     (part/compose-part tempo [:voice-1
-                                               ;; :voice-2
-                                               :voice-3
-                                               ;; :voice-4
-                                               :voice-5])))
+                     (rhythm-tree/make-r-tree [measure:stretched])
+                     (part/compose-section tempo
+                                           [:voice-1
+                                            ;; :voice-2
+                                            :voice-3
+                                            ;; :voice-4
+                                            :voice-5]
+                                           section-markup)))
               (cycle tempi)
+              (cycle section-markup-data)
               (cycle final-event-extensions))
          (utils/export-to-json output-path))))
 
