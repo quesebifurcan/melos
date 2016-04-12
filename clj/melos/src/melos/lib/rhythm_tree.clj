@@ -1,9 +1,9 @@
 (ns melos.lib.rhythm-tree
-(:require [melos.lib
-[chord :as chord]
-[chord-seq :as chord-seq]
-[schemas :as ms]]
-[schema.core :as s]))
+  (:require [melos.lib
+             [chord :as chord]
+             [chord-seq :as chord-seq]
+             [schemas :as ms]]
+            [schema.core :as s]))
 
 ;; Cycle measures across total duration.
 
@@ -13,21 +13,21 @@
        (contains? node :event)))
 
 (defn get-duration-of-node
-  [node]
-  (let [[num denom] (:w-duration node)]
+  [{:keys [written-duration]}]
+  (let [[num denom] written-duration]
     (/ num denom)))
 
-(defn accumulate-node-dur!
+(defn increment-node-duration
   [dur-atom node]
   (if (is-active-node? node)
     (swap! dur-atom + (get-duration-of-node node))
     node))
 
-(defn get-nested-measure-dur
+(defn get-measure-duration
   [measure]
-  (let [dur-atom (atom 0)]
-    (clojure.walk/prewalk (partial accumulate-node-dur! dur-atom)
-                          measure)
+  (let [dur-atom (atom 0)
+        fn_ (partial increment-node-duration dur-atom)]
+    (clojure.walk/prewalk fn_ measure)
     @dur-atom))
 
 (defn get-next-measure
@@ -35,7 +35,7 @@
    (get-next-measure measure-seq dur []))
   ([measure-seq dur coll]
    (let [head (first measure-seq)
-         head-dur (get-nested-measure-dur head)]
+         head-dur (get-measure-duration head)]
      (cond (>= head-dur dur)
            (concat coll head)
            :else
@@ -45,18 +45,13 @@
 
 (defn cycle-measures-across-duration
   [measure-seq duration]
-  (get-next-measure (cycle [measure-seq])
-                    duration))
+  (get-next-measure (cycle [measure-seq]) duration))
 
 ;; Build rhythmic tree.
 
 (defn init-rtm-tree
   [duration measures]
-  {:duration :?
-   :top-level true
-   :children (cycle-measures-across-duration
-              measures
-              duration)})
+  {:children (cycle-measures-across-duration measures duration)})
 
 (declare insert-events)
 
@@ -75,7 +70,7 @@
   [measures events]
   (let [total-dur (chord-seq/sum-melodic-durations events)
         rtm-tree (init-rtm-tree total-dur measures)
-        rtm-tree-dur (get-nested-measure-dur rtm-tree)
+        rtm-tree-dur (get-measure-duration rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
         events (extend-last dur-diff events)]
     (select-keys (insert-events rtm-tree events) [:children])))
