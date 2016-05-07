@@ -13,11 +13,72 @@
 
 (use-fixtures :once schema.test/validate-schemas)
 
-(deftest asdf
-  (testing "lksjdf"
+;; (defn get-param
+;;   [kfn]
+;;   (fn [node]
+;;     (if (
+;;       (map kfn (:events node))
+;;       node)))
+
+;; (defn get-params
+;;   [kfn coll]
+;;   (clojure.walk/prewalk (get-param kfn) coll))
+
+(deftest make-note
+  (testing "throws Exception when input params are not valid"
     (is (thrown? Exception
-                 (schemas/make-note {:part "lkjsdf"})))
-    (is (instance? Chord 123))))
+                 (schemas/make-note {:pitch "0"})))
+    (is (thrown? Exception
+                 (schemas/make-note {:invalid-key nil}))))
+  (testing "make-note creates a Note"
+    (let [params {:count 1
+                  :dissonance-contributor? true
+                  :group 'group-symbol
+                  :is-rest? false
+                  :max-count 1234
+                  :merge-left? false
+                  :merge-right? true
+                  :notation {:registration "A"}
+                  :part :piano-voice-1
+                  :pitch 10}
+          note (schemas/make-note params)
+          result (select-keys note (keys params))]
+      (is (not-empty result))
+      (is (= params result)))))
+
+(def measure:4-4
+  (measure/parse-rtm-tree-node
+   (measure/stretch-tree [4 4] 0 [[0] [0] [0] [0]])))
+
+(s/validate schemas/RhythmTreeNode
+            {:written-duration [1 2]
+             :duration [2 3]
+             :event nil
+             :children [{:written-duration [2 3]
+                         :duration [1 2]
+                         :event (schemas/make-note {})
+                         :children nil}]})
+
+;; measure:4-4
+
+;; (def asdf
+;;   (s/conditional #(contains? % :event)
+;;                  (s/schema-with-name {:event s/Int} "a")
+;;                  :else
+;;                  (s/schema-with-name {:asdf s/Int} "b")))
+
+;; (s/validate asdf {:asdf 8})
+
+;; (deftest make-chord
+;;   (testing "make-chord creates a chord"
+;;     (let [params {:pitches [0 1 2 3]
+;;                   :dissonance-contributor? true
+;;                   :group 'group-symbol-chord
+;;                   :max-count 1234
+;;                   :merge-left? false
+;;                   :merge-right? true
+                  ;; :tempo 132
+
 
 ;; (defn make-chord [{:keys [duration pitches part] :as m}]
 ;;   (let [group (gensym "G__")
@@ -30,17 +91,6 @@
 ;;   [node]
 ;;   (and (map? node)
 ;;        (contains? node :events)))
-
-;; (defn get-param
-;;   [kfn]
-;;   (fn [node]
-;;     (if (is-chord? node)
-;;       (map kfn (:events node))
-;;       node)))
-
-;; (defn get-params
-;;   [kfn coll]
-;;   (clojure.walk/prewalk (get-param kfn) coll))
 
 ;; (deftest make-note-test
 ;;   (testing "Initializes note with default parameters"

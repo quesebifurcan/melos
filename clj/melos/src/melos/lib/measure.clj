@@ -20,16 +20,16 @@
     (let [w-dur (get-child-durations children)]
       {:duration dur
        :written-duration w-dur
+       :event nil
        :children (map parse-rtm-tree-node* children)})
     {:duration dur
      :written-duration dur
-     :children nil
-     :event nil}))
+     :event nil
+     :children nil}))
 
 (defn parse-rtm-tree-node
   [[dur children]]
-  (assoc (parse-rtm-tree-node* [dur children])
-         :measure-root true))
+  (parse-rtm-tree-node* [dur children]))
 
 (defn stretch-tree
   [duration curr-prolation child-prolations]

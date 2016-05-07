@@ -4,7 +4,6 @@
 (s/defrecord Note
     [count                   :- s/Int
      dissonance-contributor? :- s/Bool
-     duration                :- s/Num
      group                   :- s/Symbol
      is-rest?                :- s/Bool
      max-count               :- s/Int
@@ -16,17 +15,16 @@
 
 (defn note-default
   []
-  {:pitch 0
-   :duration 1/4
+  {:count 0,
+   :dissonance-contributor? true
    :group (gensym "G__")
+   :is-rest? false
+   :max-count 100
    :merge-left? false
    :merge-right? false
-   :dissonance-contributor? true
-   :part :none,
    :notation nil
-   :count 0,
-   :is-rest? false
-   :max-count 100})
+   :part :none,
+   :pitch 0})
 
 (s/defn make-note
   :- Note
@@ -35,11 +33,29 @@
 
 (s/defrecord Chord
     [duration :- s/Num
-     events :- [Note]])
+     tempo    :- s/Int
+     events   :- [Note]])
 
 (s/defn make-chord
   []
   (map->Chord {:duration 1/4 :events [(map->Note {})]}))
+
+(def DurationVector
+  (s/pair s/Int "Numerator" s/Int "Denominator"))
+
+(def RhythmTreeNode
+  (s/conditional :event
+                 {:duration DurationVector
+                  :written-duration DurationVector
+                  :event (s/maybe Note)
+                  :children (s/pred nil?)}
+                 :children
+                 {:duration DurationVector
+                  :written-duration DurationVector
+                  :event (s/pred nil?)
+                  :children [(s/maybe (s/recursive #'RhythmTreeNode))]}))
+
+;; OLD:
 
 (def PartName (s/enum nil :lower :upper :ped))
 
