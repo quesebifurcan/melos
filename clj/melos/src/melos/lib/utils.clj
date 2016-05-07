@@ -51,7 +51,7 @@
 (defn make-chord-from-pitch-vector-params
   [{:keys [pitch] :as m}]
   (let [group (gensym "G__")]
-    (map (fn [p]
+    (mapv (fn [p]
            (make-note (merge {:pitch p :group group}
                              (dissoc m :pitch))))
          pitch)))

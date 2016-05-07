@@ -21,8 +21,12 @@
               :count s/Int))
 
 (def Chord
-  (s/both (s/pred (complement empty?))
-          [Note]))
+  {:duration s/Num
+   :events [Note]})
+
+;; (def Chord
+;;   (s/both (s/pred (complement empty?))
+;;           [Note]))
 
 (def Phrase
   (s/both (s/pred (complement empty?))

@@ -51,7 +51,7 @@
 
 (defn init-rtm-tree
   [duration measures]
-  {:children (cycle-measures-across-duration measures duration)})
+  (cycle-measures-across-duration measures duration))
 
 (declare insert-events)
 
@@ -73,31 +73,31 @@
         rtm-tree-dur (get-measure-duration rtm-tree)
         dur-diff (- rtm-tree-dur total-dur)
         events (extend-last dur-diff events)]
-    (select-keys (insert-events rtm-tree events) [:children])))
+    (insert-events rtm-tree events)))
 
 ;; Insert events into rhythmic tree.
 
 (defn decrement-duration
-  [vertical-moment]
+  [dec-by vertical-moment]
   (map (fn [x] (update-in x
                           [:duration]
-                          (fn [y] (- y 1/8))))
+                          (fn [y] (- y dec-by))))
        vertical-moment))
 
 (defn update-events
-  [events]
+  [dec-by events]
   ;; TODO: specify which duration to subtract and check that no event
   ;; is shorter than this duration.
   (cond
     (empty? events)
     nil
-    (< (:duration (chord/get-melodic-event (first events))) 1/8)
+    (< (:duration (chord/get-melodic-event (first events))) dec-by)
     (when-not (empty? (rest events))
       (let [new-first (first (rest events))
-            new-first (decrement-duration new-first)]
+            new-first (decrement-duration dec-by new-first)]
         (concat [new-first] (rest (rest events)))))
     :else
-    (let [new-first (decrement-duration (first events))]
+    (let [new-first (decrement-duration dec-by (first events))]
       (vec (concat [new-first]
                    (rest events))))))
 
@@ -108,8 +108,9 @@
   [events-atom node]
   (if (and (map? node)
            (contains? node :event))
-    (do (swap! events-atom update-events)
-        (assoc node :events (current-event @events-atom)))
+    (let [dec-by (get-duration-of-node node)]
+    (do (swap! events-atom (partial update-events dec-by))
+        (assoc node :events (current-event @events-atom))))
     node))
 
 (defn insert-events [rtm-tree events]
@@ -134,27 +135,20 @@
          (seq pitch-sets)
          (> (count pitch-sets) 1))))
 
+(defn children-have-common-group?
+  [node]
+  (let [children (:children node)
+        events (mapcat :events children)
+        groups (set (map :group events))]
+    (= (count groups) 1)))
+
 (defn merge-tied
   [node]
-  (if (all-children-same-pitch? node)
-    (assoc node :events
-           ((comp :events first :children) node))
+  (if (and (all-children-same-pitch? node)
+           (children-have-common-group? node))
+    (assoc node :events ((comp :events first :children) node))
     node))
 
 (defn merge-all-tied
   [measure]
   (clojure.walk/postwalk merge-tied measure))
-
-;; TODO: join adjacent tuplets where all notes have the same ids.
-;; TODO: convert tripleted two-note groups with equal length to eigth notes.
-;; TODO: clojure.zip
-;; TODO: attach time signatures.
-;; TODO: filter parts.
-;; TODO: insert FixedDurationTuplet when needed.
-
-;; TODO: clean up treatment of node/measure.
-
-;; TODO: test with real events. Skip onsets?
-
-;;-------------------------------------------------------------------
-;; Convenience functions for creating rhythmic trees.

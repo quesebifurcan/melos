@@ -27,21 +27,17 @@
      parts-tree))
 
 (defn split-out-part
-  [tree part-name]
+  [part-name tree]
   (filter-by-part-names part-name tree))
 
 (defn compose-section
-  [tempo part-names markup rtm-tree]
+  [section-name tempo part-names markup rtm-tree]
   {:tempo tempo
+   :section-name section-name
    :markup markup
    :parts (->> (map
                 (fn [part-name]
                   {:part-name part-name
                    :events (split-out-part rtm-tree part-name)})
                 part-names)
-               ;; Comment this line to get a "pulsed" version of
-               ;; the music; no notes will be merged.
-               ;; TODO: each gesture specifies how it should make
-               ;; use of this.
-               (rtm/merge-all-tied)
-               )})
+               (rtm/merge-all-tied))})

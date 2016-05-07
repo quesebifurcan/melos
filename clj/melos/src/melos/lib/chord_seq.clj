@@ -111,7 +111,7 @@
                           (:diss-params diss-fn-params)))
         (extend-phrases diss-fn-params
                         (concat coll
-                                next_)
+                                  next_)
                         (rest phrases))
         (extend-phrases diss-fn-params
                         (if (empty? coll)
@@ -119,8 +119,24 @@
                           (concat (butlast coll)
                                   [(map (fn [x] (assoc x :phrase-end true))
                                         (last coll))]
-                                  first-phrase ))
+                                  first-phrase )
+                          )
                        (rest phrases))))))))
+
+;; (defn extend-chords
+;;   ([pred merge-fn xs]
+;;    (extend-chords pred
+;;                   merge-fn
+;;                   (first xs)
+;;                   (rest xs)))
+;;   ([pred merge-fn head tail]
+;;    (let [nxt (first tail)]
+;;      (cond (nil? head) []
+;;            (nil? nxt) [head]
+;;            ;; TODO: add clause for consing existing head
+;;            :else
+;;            (recur (concat head nxt)
+;;                   (rest tail))))))
 
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.

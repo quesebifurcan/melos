@@ -14,17 +14,22 @@
        (rv+)
        (utils/ratio-to-non-reduced-ratio-vector)))
 
-(defn parse-rtm-tree-node
+(defn parse-rtm-tree-node*
   [[dur children]]
   (if ((complement nil?) children)
     (let [w-dur (get-child-durations children)]
       {:duration dur
        :written-duration w-dur
-       :children (map parse-rtm-tree-node children)})
+       :children (map parse-rtm-tree-node* children)})
     {:duration dur
      :written-duration dur
      :children nil
      :event nil}))
+
+(defn parse-rtm-tree-node
+  [[dur children]]
+  (assoc (parse-rtm-tree-node* [dur children])
+         :measure-root true))
 
 (defn stretch-tree
   [duration curr-prolation child-prolations]
@@ -35,7 +40,10 @@
               [3 4] [[2 4] [2 8]]
               [2 4] [[2 8] [2 8]]
               [3 8] [[2 8] [1 8]]
-              [2 8] [[1 8] [1 8]]}]
+              [2 8] [[1 8] [1 8]]
+              [1 8] [[1 16] [1 16]]
+              [1 16] [[1 32] [1 32]]
+              }]
     (if (and (seq child-prolations)
              (contains? divs duration))
       (let [curr-timeframe (update-in duration [0] (fn [x] (+ curr-prolation x)))

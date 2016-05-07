@@ -4,7 +4,6 @@
                  [org.clojure/data.json "0.2.5"]
                  [org.clojure/math.combinatorics "0.0.8"]
                  [org.clojure/math.numeric-tower "0.0.4"]
-                 [org.clojure/test.check "0.9.0"]
                  [org.clojure/tools.trace "0.7.8"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [prismatic/plumbing "0.4.2"]
