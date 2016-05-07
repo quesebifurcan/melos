@@ -45,7 +45,6 @@
           :duration [1/4 1/8 1/8]}
          utils/unfold-parameters
          (map utils/make-chord-from-pitch-vector-params)
-         (map #(s/validate ms/Chord %))
          cycle
          (utils/cyclic-partition segmentation)
          (map #(s/validate ms/Phrase %)))))

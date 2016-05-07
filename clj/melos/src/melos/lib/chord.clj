@@ -8,25 +8,22 @@
              [utils :refer [triangular-n]]]
             [schema.core :as s]))
 
-(s/defn get-melodic-event
-  :- s/Any
-  [chord :- ms/Chord]
+(defn get-melodic-event
+  [chord]
   (->> chord
        (filter #(zero? (:count %)))
        (first)))
 
-(s/defn get-melodic-duration
-  :- s/Num
-  [chord :- ms/Chord]
+(defn get-melodic-duration
+  [chord]
   ((comp :duration get-melodic-event) chord))
 
 (defn pitchset
   [chord]
   (set (map :pitch chord)))
 
-(s/defn dissonance-contributors
-  :- [ms/Note]
-  [chord :- ms/Chord]
+(defn dissonance-contributors
+  [chord]
   (filter :dissonance-contributor? chord))
 
 (def dissonance-map-default
@@ -53,40 +50,34 @@
     (functor/fmap #(math/expt % 10/9)
                   interval->dissonance)))
 
-(s/defn uniquify-pitches-in-chord
-  :- #{ms/Pitch}
-  [chord :- [ms/Pitch]]
+(defn uniquify-pitches-in-chord
+  [chord]
   (set (map #(rem % 12) chord)))
 
-(s/defn inversion-equivalent-pitchclass
-  :- ms/Pitch
-  [pc :- ms/Pitch]
+(defn inversion-equivalent-pitchclass
+  [pc]
   (let [pc (rem pc 12)]
     (if (> pc 6) (- 12 pc) pc)))
 
-(s/defn inversion-equivalent-pitchclasses
-  :- [ms/Pitch]
-  [pitches :- [ms/Pitch]]
+(defn inversion-equivalent-pitchclasses
+  [pitches]
   (map inversion-equivalent-pitchclass pitches))
 
-(s/defn all-intervals
-  :- [ms/Pitch]
-  [pitches :- #{ms/Pitch}]
+(defn all-intervals
+  [pitches]
   (map #(math/abs (apply - %))
        (combinatorics/combinations pitches 2)))
 
-(s/defn calc-dissonance-divisor
-  :- s/Int
-  [pitches :- [ms/Pitch]]
+(defn calc-dissonance-divisor
+  [pitches]
   (-> pitches
       (uniquify-pitches-in-chord)
       (count)
       (triangular-n)))
 
-(s/defn dissonance-value-partial
-  [mapping :- ms/DissonanceMapping]
-  (s/fn :- s/Num
-    [pitches :- [ms/Pitch]]
+(defn dissonance-value-partial
+  [mapping]
+  (fn [pitches]
     (->> pitches
          (uniquify-pitches-in-chord)
          (all-intervals)
@@ -97,9 +88,8 @@
 (def dissonance-value
   (atom (dissonance-value-partial dissonance-map-default)))
 
-(s/defn scaled-dissonance-value
-  :- s/Num
-  [pitches :- [ms/Pitch]]
+(defn scaled-dissonance-value
+  [pitches]
   (if (empty? pitches)
     0
     (let [divisor (calc-dissonance-divisor pitches)]

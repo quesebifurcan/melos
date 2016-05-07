@@ -7,7 +7,17 @@
             [melos.lib.part :as part]
             [melos.lib.utils :as utils]
             [schema.core :as s]
-            [clojure.test :refer [deftest is are testing]]))
+            [schema.test]
+            [clojure.test :refer [deftest is are testing use-fixtures]])
+  (:import [melos.lib.schemas Note Chord]))
+
+(use-fixtures :once schema.test/validate-schemas)
+
+(deftest asdf
+  (testing "lksjdf"
+    (is (thrown? Exception
+                 (schemas/make-note {:part "lkjsdf"})))
+    (is (instance? Chord 123))))
 
 ;; (defn make-chord [{:keys [duration pitches part] :as m}]
 ;;   (let [group (gensym "G__")

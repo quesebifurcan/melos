@@ -6,7 +6,6 @@
 
             [clojure.algo.generic.functor :as functor]
             [melos.lib
-             [note :refer [make-note]]
              [schemas :as ms]]
             [schema.core :as s]))
 
@@ -49,12 +48,14 @@
        (take-nth 2)))
 
 (defn make-chord-from-pitch-vector-params
-  [{:keys [pitch] :as m}]
-  (let [group (gensym "G__")]
-    (mapv (fn [p]
-           (make-note (merge {:pitch p :group group}
-                             (dissoc m :pitch))))
-         pitch)))
+  ;; [{:keys [pitch] :as m}]
+  ;; (let [group (gensym "G__")]
+  ;;   (mapv (fn [p]
+  ;;          (make-note (merge {:pitch p :group group}
+  ;;                            (dissoc m :pitch))))
+  ;;        pitch)))
+  []
+  [])
 
 (defn cyclic-partition
   [splits xs]
