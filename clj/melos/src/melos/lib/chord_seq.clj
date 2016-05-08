@@ -3,6 +3,7 @@
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
             [clojure.set :as set]
+            [clojure.algo.generic.functor :as functor]
             [melos.lib
              [note :as note]
              [chord :as chord]
@@ -36,13 +37,22 @@
 (defn get-and-rotate
   [melody-sources accessor]
   (let [event (first (get-in @melody-sources [accessor]))]
-    (swap! melody-sources update-in [accessor] (partial drop 1))
+    (swap! melody-sources update-in [accessor] rest)
     event))
 
-(defn collect-events-in-segment
-  [melodic-indices events-seqs]
-  (map (fn [x] (get-and-rotate events-seqs x))
-       melodic-indices))
+(defn cycle-event-seqs'
+  [accessors event-seqs]
+  (let [event-seqs (->> event-seqs
+                        (functor/fmap cycle)
+                        atom)]
+    (map (fn [accessor] (get-and-rotate event-seqs accessor))
+         accessors)))
+
+(s/defn cycle-event-seqs
+  :- [ms/Phrase]
+  [accessors  :- [s/Keyword]
+   event-seqs :- {s/Keyword [ms/Phrase]}]
+  (cycle-event-seqs' accessors event-seqs))
 
 ;; (chord-seq/collect-events-in-segment
 ;;  [:a :a]

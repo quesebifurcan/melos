@@ -13,8 +13,6 @@
 
 (use-fixtures :once schema.test/validate-schemas)
 
-(defn select-chord-key [k chord] (map k (:events chord)))
-
 (defn select-chord-keys
   [ks form]
   (clojure.walk/postwalk
@@ -74,7 +72,7 @@
                         {:pitch 3}}}))))
   (testing "all notes in a chord belong to the same :group"
     (let [chord (test-chord)]
-      (is (= (count (set (select-chord-key :group chord)))
+      (is (= (count (set (chord/select-chord-key :group chord)))
              1))))
   (testing "make-chord creates a chord from default params"
     (is (instance? Chord (chord/make-chord {})))))
@@ -190,50 +188,54 @@
                         {:pitch 4 :part :a}
                         {:pitch 5 :part :a}}})))))
 
-;;   ;;   (let [a (chord/make-chord {:pitches [0 2 7]
-;;   ;;                                :dissonance-contributor? true
-;;   ;;                                :duration 1/4
-;;   ;;                                :part :a
-;;   ;;                                :tempo 60})
-;;   ;;         b (chord/make-chord {:pitches [0]
-;;   ;;                                :dissonance-contributor? true
-;;   ;;                                :duration 4/4
-;;   ;;                                :part :a
-;;   ;;                                :tempo 120})
-;;   ;;         merged (chord-seq/merge-chords a b)]
-;;   ;;     (is (= (select-chord-keys [:duration :pitch :tempo :part]
-;;   ;;                               merged)
-;;   ;;            {:duration 4/4
-;;   ;;             :tempo 120
-;;   ;;             :events #{{:pitch 0 :part :a}
-;;   ;;                       {:pitch 2 :part :a}
-;;   ;;                       {:pitch 7 :part :a}}}))
-;;   ;;     (is (= (ms/select-chord-key :group b)
-;;   ;;            (ms/select-chord-key :group merged))))
-;;   ;;   (let [a (chord/make-chord {:pitches [0 2]
-;;   ;;                                :dissonance-contributor? true
-;;   ;;                                :duration 1/4
-;;   ;;                                :part :a
-;;   ;;                                :tempo 60})
-;;   ;;         b (chord/make-chord {:pitches [0 2 7]
-;;   ;;                                :dissonance-contributor? true
-;;   ;;                                :duration 4/4
-;;   ;;                                :part :a
-;;   ;;                                :tempo 120})
-;;   ;;         merged (chord-seq/merge-chords a b)]
-;;   ;;     (is (= (select-chord-keys [:duration :pitch :tempo :part]
-;;   ;;                               merged)
-;;   ;;            {:duration 4/4
-;;   ;;             :tempo 120
-;;   ;;             :events #{{:pitch 0 :part :a}
-;;   ;;                       {:pitch 7 :part :a}
-;;   ;;                       {:pitch 2 :part :a}}})))))
-;;   )
+(deftest phrase
+  (testing "validates phrase"
+    (let [chord-data [{:pitches [0] :part :a}
+                      {:pitches [1] :part :a}
+                      {:pitches [2] :part :a}]
+          phrase (map chord/make-chord chord-data)]
+      (is (s/validate ms/Phrase phrase))))
+  (testing "empty phrases are invalid"
+    (is (thrown? Exception
+                 (s/validate ms/Phrase [])))))
 
-;; TODO:
-;; rules for merging
+(defn map->chord'
+  [m]
+  (clojure.walk/prewalk
+   (fn [form]
+     (if (and (map? form)
+              (contains? form :pitches))
+       (chord/make-chord form)
+       form))
+   m))
 
-;; (deftest round-robin)
+(deftest cycle-event-seqs
+  (testing "interleaves phrases and cycles the source materials"
+    (let [phrase-data {:a [[{:pitches [0] :part :a}
+                            {:pitches [1] :part :a}
+                            {:pitches [2] :part :a}]
+                           [{:pitches [0 1] :part :a}]]
+                       :b [[{:pitches [10 20] :part :b}
+                            {:pitches [11 21] :part :b}]]}
+          event-seqs (map->chord' phrase-data)
+          accessors [:a :b :a :b]
+          result (chord-seq/cycle-event-seqs accessors event-seqs)]
+      (is (s/validate [ms/Phrase] (:a event-seqs)))
+      (is (s/validate [ms/Phrase] (:b event-seqs)))
+      (is (s/validate [ms/Phrase] result))
+      (is (= (select-chord-keys [:pitch :part] result)
+             [[{:events #{{:pitch 0 :part :a}}}
+               {:events #{{:pitch 1 :part :a}}}
+               {:events #{{:pitch 2 :part :a}}}]
+              [{:events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
+               {:events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]
+              [{:events #{{:pitch 0 :part :a} {:pitch 1 :part :a}}}]
+              [{:events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
+               {:events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]])))))
+
+(deftest extend-phrases
+  (is (= 1 1)))
+
 ;; (deftest dissonance-values)
 ;; (deftest consonant?)
 ;; (deftest segment-chords)
@@ -255,75 +257,3 @@
 ;;                          :duration [1 2]
 ;;                          :event (schemas/make-note {})
 ;;                          :children nil}]})
-
-;; (defn make-chord [{:keys [duration pitches part] :as m}]
-;;   (let [group (gensym "G__")
-;;         make-note' (fn [pitch]
-;;                      (note/make-note {:part part :pitch pitch :group group}))]
-;;     {:duration duration
-;;      :events (map make-note' pitches)}))
-
-;; (defn is-chord?
-;;   [node]
-;;   (and (map? node)
-;;        (contains? node :events)))
-
-;; (deftest make-note-test
-;;   (testing "Initializes note with default parameters"
-;;     (is (s/validate schemas/Note (note/make-note {:part :test}))))
-;;   (testing "Creates unique groups"
-;;     (let [notes [(note/make-note {:part :test})
-;;                  (note/make-note {:part :test})
-;;                  (note/make-note {:part :test})]
-;;           groups (map :group notes)]
-;;       (is (= (count notes)
-;;              (count (set groups)))))))
-
-;; ;; concatenates chords
-;; ;; adds note to chord
-;; ;; extract params from chord
-;; ;; updates chord
-;; (deftest make-chord-test
-;;   (let [chords [{:duration 1/4
-;;                  :pitches [1 2 3 4]
-;;                  :part :upper}
-;;                 {:duration 1/4
-;;                  :pitches [1 2 2 3 4 5 6]
-;;                  :part :upper}
-;;                 {:duration 1/4
-;;                  :pitches [10 20]
-;;                  :part :upper}]]
-;;     (doseq [input chords]
-;;       (testing "make-chord generates valid chords"
-;;         (is (s/validate schemas/Chord (make-chord input))))
-;;       (testing "creates one note for each pitch"
-;;         (is (= (count (:pitches input))
-;;                (count (:events (make-chord input))))))
-;;       (testing "all notes have the same :group"
-;;         (let [group-count (->> (make-chord input)
-;;                                (get-params :group)
-;;                                set
-;;                                count)]
-;;           (is (= 1 group-count))))
-;;       (testing "all notes have the same :part"
-;;         (let [expected #{(:part input)}
-;;               result (->> (make-chord input)
-;;                           (get-params :part)
-;;                           set)]
-;;           (is (= expected result)))))))
-
-;; (defrecord Note_ [pitch duration])
-;; (defrecord Chord_ [duration events])
-
-;; (s/validate {:pitch s/Int :duration s/Num}
-;;             (map->Note_ {:pitch 1 :duration 1/4}))
-
-;; (map->Chord_ {:duration 1 :events [(map->Note_ {})]})
-
-;; (let [a (map->Note_ {:duration (map map->Note_ [{:duration 1} {:duration 2} {:duration 3}])})]
-;;   (clojure.walk/prewalk
-;;    (fn [node]
-;;      (if (instance? Note_ node)
-;;        (assoc node :pitch 129384719283749)
-;;        node))
-;;    a))

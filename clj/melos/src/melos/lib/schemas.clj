@@ -18,6 +18,9 @@
      tempo    :- s/Int
      events   :- [Note]])
 
+(def Phrase (s/both (s/pred (complement empty?))
+                    [Chord]))
+
 (def DurationVector
   (s/pair s/Int "Numerator" s/Int "Denominator"))
 
@@ -62,9 +65,9 @@
 ;;   (s/both (s/pred (complement empty?))
 ;;           [Note]))
 
-(def Phrase
-  (s/both (s/pred (complement empty?))
-          [s/Any]))
+;; (def Phrase
+;;   (s/both (s/pred (complement empty?))
+;;           [s/Any]))
 
 (def PartCountMap
   {PartName s/Int})
