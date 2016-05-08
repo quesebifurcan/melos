@@ -54,12 +54,6 @@
    event-seqs :- {s/Keyword [ms/Phrase]}]
   (cycle-event-seqs' accessors event-seqs))
 
-;; (chord-seq/collect-events-in-segment
-;;  [:a :a]
-;;  (atom
-;;   {:a [[1 2 3] [4 5 6]]}))
-;; => (1 2 3 4 5 6)
-
 ;;-----------------------------------------------------------------------------
 ;; Extend events.
 

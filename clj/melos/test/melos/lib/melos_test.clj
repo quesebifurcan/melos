@@ -244,16 +244,3 @@
 ;; (deftest merge-horizontally)
 ;; (deftest chord-seq->rhythm-tree)
 ;; (deftest simplify-tree)
-
-;; (def measure:4-4
-;;   (measure/parse-rtm-tree-node
-;;    (measure/stretch-tree [4 4] 0 [[0] [0] [0] [0]])))
-
-;; (s/validate schemas/RhythmTreeNode
-;;             {:written-duration [1 2]
-;;              :duration [2 3]
-;;              :event nil
-;;              :children [{:written-duration [2 3]
-;;                          :duration [1 2]
-;;                          :event (schemas/make-note {})
-;;                          :children nil}]})
