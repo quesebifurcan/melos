@@ -211,27 +211,52 @@
 
 (deftest cycle-event-seqs
   (testing "interleaves phrases and cycles the source materials"
-    (let [phrase-data {:a [[{:pitches [0] :part :a}
-                            {:pitches [1] :part :a}
-                            {:pitches [2] :part :a}]
-                           [{:pitches [0 1] :part :a}]]
-                       :b [[{:pitches [10 20] :part :b}
-                            {:pitches [11 21] :part :b}]]}
+    (let [phrase-data {:a [[{:pitches [0] :part :a :duration 1}
+                            {:pitches [1] :part :a :duration 2}
+                            {:pitches [2] :part :a :duration 3}]
+                           [{:pitches [0 1] :part :a :duration 4}]]
+                       :b [[{:pitches [10 20] :part :b :duration 5}
+                            {:pitches [11 21] :part :b :duration 6}]]}
           event-seqs (map->chord' phrase-data)
           accessors [:a :b :a :b]
           result (chord-seq/cycle-event-seqs accessors event-seqs)]
       (is (s/validate [ms/Phrase] (:a event-seqs)))
       (is (s/validate [ms/Phrase] (:b event-seqs)))
       (is (s/validate [ms/Phrase] result))
-      (is (= (select-chord-keys [:pitch :part] result)
-             [[{:events #{{:pitch 0 :part :a}}}
-               {:events #{{:pitch 1 :part :a}}}
-               {:events #{{:pitch 2 :part :a}}}]
-              [{:events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
-               {:events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]
-              [{:events #{{:pitch 0 :part :a} {:pitch 1 :part :a}}}]
-              [{:events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
-               {:events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]])))))
+      (is (= (select-chord-keys [:pitch :part :duration] result)
+             [[{:duration 1 :events #{{:pitch 0 :part :a}}}
+               {:duration 2 :events #{{:pitch 1 :part :a}}}
+               {:duration 3 :events #{{:pitch 2 :part :a}}}]
+              [{:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
+               {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]
+              [{:duration 4 :events #{{:pitch 0 :part :a} {:pitch 1 :part :a}}}]
+              [{:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
+               {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]])))))
+
+(deftest extend-events
+  (is (= (chord-seq/extend-events identity identity [])
+         []))
+  (is (= (chord-seq/extend-events (fn [x y] (< (+ x y) 10))
+                                  +
+                                  [3 2 7 1 2 3 10 2])
+         [3 5 7 8 2 5 10 2]))
+  (is (= (chord-seq/extend-events (fn [x y] (<= (+ (count x) (count y)) 3))
+                                  concat
+                                  [[1] [2] [3] [4] [5] [6] [7] [8]])
+         [[1] [1 2] [1 2 3] [4] [4 5] [4 5 6] [7] [7 8]])))
+
+
+;; consonant?
+;; (deftest merge-phrase
+;;   (let [a (map chord/make-chord [{:pitches [0] :part :a}
+;;                                  {:pitches [1] :part :a}
+;;                                  {:pitches [2] :part :a}])
+;;         b (map chord/make-chord [{:pitches [0] :part :a}
+;;                                  {:pitches [1] :part :a}
+;;                                  {:pitches [2] :part :a}])
+;;               phrase (map chord/make-chord chord-data)]
+
+;; (deftest extend-phrases)
 
 ;; (deftest dissonance-values)
 ;; (deftest consonant?)
