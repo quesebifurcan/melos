@@ -2,7 +2,7 @@
   (:require [melos.lib.note :as note]
             [melos.lib.chord :as chord]
             [melos.lib.chord-seq :as chord-seq]
-            [melos.lib.schemas :as schemas]
+            [melos.lib.schemas :as ms]
             [melos.lib.measure :as measure]
             [melos.lib.part :as part]
             [melos.lib.utils :as utils]
@@ -13,23 +13,28 @@
 
 (use-fixtures :once schema.test/validate-schemas)
 
-;; (defn get-param
-;;   [kfn]
-;;   (fn [node]
-;;     (if (
-;;       (map kfn (:events node))
-;;       node)))
+(defn select-chord-key [k chord] (map k (:events chord)))
 
-;; (defn get-params
-;;   [kfn coll]
-;;   (clojure.walk/prewalk (get-param kfn) coll))
+(defn select-chord-keys
+  [ks form]
+  (clojure.walk/postwalk
+   (fn [node]
+     (cond (instance? Note node)
+           (select-keys node ks)
+           (instance? Chord node)
+           (merge (select-keys node ks)
+                  {:events (into #{} (:events node))})
+           :else
+           node))
+   form))
 
 (deftest make-note
   (testing "throws Exception when input params are not valid"
     (is (thrown? Exception
-                 (schemas/make-note {:pitch "0"})))
+                 (note/make-note {:pitch "0"})))
     (is (thrown? Exception
-                 (schemas/make-note {:invalid-key nil}))))
+                 (note/make-note {:invalid-key nil}))))
+
   (testing "make-note creates a Note"
     (let [params {:count 1
                   :dissonance-contributor? true
@@ -41,44 +46,215 @@
                   :notation {:registration "A"}
                   :part :piano-voice-1
                   :pitch 10}
-          note (schemas/make-note params)
+          note (note/make-note params)
           result (select-keys note (keys params))]
       (is (not-empty result))
       (is (= params result)))))
 
-(def measure:4-4
-  (measure/parse-rtm-tree-node
-   (measure/stretch-tree [4 4] 0 [[0] [0] [0] [0]])))
+(defn test-chord
+  []
+  (let [params {:pitches [0 1 2 3]
+                :dissonance-contributor? true
+                :duration 9/8
+                :max-count 1234
+                :merge-left? false
+                :merge-right? true
+                :tempo 132}]
+    (chord/make-chord params)))
 
-(s/validate schemas/RhythmTreeNode
-            {:written-duration [1 2]
-             :duration [2 3]
-             :event nil
-             :children [{:written-duration [2 3]
-                         :duration [1 2]
-                         :event (schemas/make-note {})
-                         :children nil}]})
+(deftest make-chord
+  (testing "make-chord creates a chord from params"
+    (let [chord (test-chord)]
+      (is (= (select-chord-keys [:duration :pitch :tempo] chord)
+             {:duration 9/8
+              :tempo 132
+              :events #{{:pitch 0}
+                        {:pitch 1}
+                        {:pitch 2}
+                        {:pitch 3}}}))))
+  (testing "all notes in a chord belong to the same :group"
+    (let [chord (test-chord)]
+      (is (= (count (set (select-chord-key :group chord)))
+             1))))
+  (testing "make-chord creates a chord from default params"
+    (is (instance? Chord (chord/make-chord {})))))
 
-;; measure:4-4
+(deftest contains-part?
+  (is (= ((chord/contains-part? #{:a}) {})
+         false))
+  (is (= ((chord/contains-part? #{:a}) {:part :a})
+         true))
+  (is (= ((chord/contains-part? #{:a}) {:part :b})
+         false)))
 
-;; (def asdf
-;;   (s/conditional #(contains? % :event)
-;;                  (s/schema-with-name {:event s/Int} "a")
-;;                  :else
-;;                  (s/schema-with-name {:asdf s/Int} "b")))
+(deftest remove-part
+  (is (= (chord/remove-parts* #{:a :d} [{:part :a}
+                                        {:part :b}
+                                        {:part :c}
+                                        {:part :d}])
+         [{:part :b}
+          {:part :c}]))
+  (is (= (chord/remove-parts* #{} [{:part :a}
+                                   {:part :b}
+                                   {:part :c}
+                                   {:part :d}])
+         [{:part :a}
+          {:part :b}
+          {:part :c}
+          {:part :d}]))
+  (is (= (chord/remove-parts* #{:a :b :c :d} [{:part :a}
+                                              {:part :b}
+                                              {:part :c}
+                                              {:part :d}])
+         [])))
 
-;; (s/validate asdf {:asdf 8})
+(deftest remove-parts
+  (let [notes [{:pitch 0 :part :a}
+               {:pitch 1 :part :b}
+               {:pitch 2 :part :c}
+               {:pitch 3 :part :d}]
+        chord (chord/make-chord {:duration 1/4
+                                 :events (map note/make-note notes)})
+        result (chord/remove-parts [:a :d] chord)]
+    (is (= (select-chord-keys #{:pitch :part} result)
+           {:events #{{:pitch 1 :part :b}
+                      {:pitch 2 :part :c}}}))))
 
-;; (deftest make-chord
-;;   (testing "make-chord creates a chord"
-;;     (let [params {:pitches [0 1 2 3]
-;;                   :dissonance-contributor? true
-;;                   :group 'group-symbol-chord
-;;                   :max-count 1234
-;;                   :merge-left? false
-;;                   :merge-right? true
-                  ;; :tempo 132
+(deftest merge-chords
+  (testing "merges two chords distinct by :part and :pitch"
+    (let [a (chord/make-chord {:pitches [0 1]
+                               :dissonance-contributor? true
+                               :duration 1/4
+                               :part :a
+                               :tempo 60})
+          b (chord/make-chord {:pitches [2 3]
+                               :dissonance-contributor? true
+                               :duration 4/4
+                               :part :b
+                               :tempo 120})
+          merged (chord-seq/merge-chords a b)]
+      (is (= (select-chord-keys [:duration :pitch :tempo :part]
+                                merged)
+             {:duration 4/4
+              :tempo 120
+              :events #{{:pitch 0 :part :a}
+                        {:pitch 1 :part :a}
+                        {:pitch 2 :part :b}
+                        {:pitch 3 :part :b}}}))))
 
+  (testing "merges two chords distinct by :part"
+    (let [a (chord/make-chord {:pitches [0 1]
+                               :dissonance-contributor? true
+                               :duration 1/4
+                               :part :a
+                               :tempo 60})
+          b (chord/make-chord {:pitches [0 1]
+                               :dissonance-contributor? true
+                               :duration 4/4
+                               :part :b
+                               :tempo 120})
+          merged (chord-seq/merge-chords a b)]
+      (is (= (select-chord-keys [:duration :pitch :tempo :part]
+                                merged)
+             {:duration 4/4
+              :tempo 120
+              :events #{{:pitch 0 :part :a}
+                        {:pitch 1 :part :a}
+                        {:pitch 0 :part :b}
+                        {:pitch 1 :part :b}}}))))
+
+  (testing "if a :part is present in both `a` and `b`, the result will only contain elements present in `b`"
+    (let [a (chord/make-chord {:pitches [0 1]
+                               :dissonance-contributor? true
+                               :duration 1/4
+                               :part :a
+                               :tempo 60})
+          b (chord/make-chord {:pitches [2 3]
+                               :dissonance-contributor? true
+                               :duration 4/4
+                               :part :b
+                               :tempo 120})
+          c (chord/make-chord {:pitches [4 5]
+                               :dissonance-contributor? true
+                               :duration 4/4
+                               :part :a
+                               :tempo 120})
+          merged (chord-seq/merge-chords (chord-seq/merge-chords a b)
+                                         c)]
+      (is (= (select-chord-keys [:duration :pitch :tempo :part]
+                                merged)
+             {:duration 4/4
+              :tempo 120
+              :events #{{:pitch 2 :part :b}
+                        {:pitch 3 :part :b}
+                        {:pitch 4 :part :a}
+                        {:pitch 5 :part :a}}})))))
+
+;;   ;;   (let [a (chord/make-chord {:pitches [0 2 7]
+;;   ;;                                :dissonance-contributor? true
+;;   ;;                                :duration 1/4
+;;   ;;                                :part :a
+;;   ;;                                :tempo 60})
+;;   ;;         b (chord/make-chord {:pitches [0]
+;;   ;;                                :dissonance-contributor? true
+;;   ;;                                :duration 4/4
+;;   ;;                                :part :a
+;;   ;;                                :tempo 120})
+;;   ;;         merged (chord-seq/merge-chords a b)]
+;;   ;;     (is (= (select-chord-keys [:duration :pitch :tempo :part]
+;;   ;;                               merged)
+;;   ;;            {:duration 4/4
+;;   ;;             :tempo 120
+;;   ;;             :events #{{:pitch 0 :part :a}
+;;   ;;                       {:pitch 2 :part :a}
+;;   ;;                       {:pitch 7 :part :a}}}))
+;;   ;;     (is (= (ms/select-chord-key :group b)
+;;   ;;            (ms/select-chord-key :group merged))))
+;;   ;;   (let [a (chord/make-chord {:pitches [0 2]
+;;   ;;                                :dissonance-contributor? true
+;;   ;;                                :duration 1/4
+;;   ;;                                :part :a
+;;   ;;                                :tempo 60})
+;;   ;;         b (chord/make-chord {:pitches [0 2 7]
+;;   ;;                                :dissonance-contributor? true
+;;   ;;                                :duration 4/4
+;;   ;;                                :part :a
+;;   ;;                                :tempo 120})
+;;   ;;         merged (chord-seq/merge-chords a b)]
+;;   ;;     (is (= (select-chord-keys [:duration :pitch :tempo :part]
+;;   ;;                               merged)
+;;   ;;            {:duration 4/4
+;;   ;;             :tempo 120
+;;   ;;             :events #{{:pitch 0 :part :a}
+;;   ;;                       {:pitch 7 :part :a}
+;;   ;;                       {:pitch 2 :part :a}}})))))
+;;   )
+
+;; TODO:
+;; rules for merging
+
+;; (deftest round-robin)
+;; (deftest dissonance-values)
+;; (deftest consonant?)
+;; (deftest segment-chords)
+;; (deftest join-events)
+;; (deftest extend-phrases)
+;; (deftest merge-horizontally)
+;; (deftest chord-seq->rhythm-tree)
+;; (deftest simplify-tree)
+
+;; (def measure:4-4
+;;   (measure/parse-rtm-tree-node
+;;    (measure/stretch-tree [4 4] 0 [[0] [0] [0] [0]])))
+
+;; (s/validate schemas/RhythmTreeNode
+;;             {:written-duration [1 2]
+;;              :duration [2 3]
+;;              :event nil
+;;              :children [{:written-duration [2 3]
+;;                          :duration [1 2]
+;;                          :event (schemas/make-note {})
+;;                          :children nil}]})
 
 ;; (defn make-chord [{:keys [duration pitches part] :as m}]
 ;;   (let [group (gensym "G__")

@@ -4,9 +4,61 @@
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
             [melos.lib
+             [note :as note]
              [schemas :as ms]
              [utils :refer [triangular-n]]]
-            [schema.core :as s]))
+            [schema.core :as s])
+  (:import [melos.lib.schemas Chord]))
+
+(defn select-chord-key [k chord] (map k (:events chord)))
+
+(def chord-default
+  {:duration 1
+   :tempo 60
+   :events []})
+
+;; TODO: use select-keys complimentary function:
+;; (def test (partial apply dissoc {:b 8 :a 2 :c 234}))
+
+(defn make-chord-sel
+  [m]
+  (cond (contains? m :pitches)
+        :from-pitch-list
+        :default
+        :from-event-list))
+
+(defmulti make-chord make-chord-sel)
+
+(s/defmethod make-chord :default
+  [m]
+  (ms/map->Chord (merge chord-default m)))
+
+(s/defmethod make-chord :from-pitch-list
+  :- Chord
+  [m :- s/Any]
+  (let [pitches      (:pitches m)
+        m            (merge chord-default m)
+        note-params  (select-keys m (keys (note/note-default)))
+        chord-params (select-keys m (keys chord-default))
+        group        (gensym "G__")
+        events       (map (fn [pitch]
+                            (note/make-note (merge note-params {:group group :pitch pitch})))
+                          pitches)]
+    (ms/map->Chord (merge chord-params {:events events}))))
+
+(defn contains-part?
+  [part-names]
+  (fn [event]
+    (contains? part-names (:part event))))
+
+(defn remove-parts*
+  [part-names events]
+  (remove (contains-part? part-names) events))
+
+(s/defn remove-parts
+  [part-names :- [s/Keyword]
+   chord :- Chord]
+  (update-in chord [:events] (fn [x] (remove-parts* (set part-names) x))))
 
 (defn get-melodic-event
   [chord]
@@ -94,4 +146,3 @@
     0
     (let [divisor (calc-dissonance-divisor pitches)]
       (/ (@dissonance-value pitches) divisor))))
-

@@ -10,6 +10,14 @@
              [utils :refer [rotate distinct-by]]]
             [schema.core :as s]))
 
+(defn merge-chords
+  [a b]
+  (let [new-part-names (chord/select-chord-key :part b)]
+    (update-in b [:events] (fn [events] (->> a
+                                             (chord/remove-parts new-part-names)
+                                             :events
+                                             (concat events))))))
+
 (defn get-melodic-durations
   [chords]
   (map chord/get-melodic-duration chords))

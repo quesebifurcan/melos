@@ -13,47 +13,25 @@
      part                    :- s/Keyword
      pitch                   :- s/Int])
 
-(defn note-default
-  []
-  {:count 0,
-   :dissonance-contributor? true
-   :group (gensym "G__")
-   :is-rest? false
-   :max-count 100
-   :merge-left? false
-   :merge-right? false
-   :notation nil
-   :part :none,
-   :pitch 0})
-
-(s/defn make-note
-  :- Note
-  [params :- s/Any]
-  (map->Note (merge (note-default) params)))
-
 (s/defrecord Chord
     [duration :- s/Num
      tempo    :- s/Int
      events   :- [Note]])
-
-(s/defn make-chord
-  []
-  (map->Chord {:duration 1/4 :events [(map->Note {})]}))
 
 (def DurationVector
   (s/pair s/Int "Numerator" s/Int "Denominator"))
 
 (def RhythmTreeNode
   (s/conditional :event
-                 {:duration DurationVector
+                 {:duration         DurationVector
                   :written-duration DurationVector
-                  :event (s/maybe Note)
-                  :children (s/pred nil?)}
+                  :event            (s/maybe Note)
+                  :children         (s/pred nil?)}
                  :children
-                 {:duration DurationVector
-                  :written-duration DurationVector
-                  :event (s/pred nil?)
-                  :children [(s/maybe (s/recursive #'RhythmTreeNode))]}))
+                 {:duration          DurationVector
+                  :written-duration  DurationVector
+                  :event             (s/pred nil?)
+                  :children          [(s/maybe (s/recursive #'RhythmTreeNode))]}))
 
 ;; OLD:
 
