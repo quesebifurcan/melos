@@ -233,9 +233,6 @@
               [{:events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
                {:events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]])))))
 
-(deftest extend-phrases
-  (is (= 1 1)))
-
 ;; (deftest dissonance-values)
 ;; (deftest consonant?)
 ;; (deftest segment-chords)

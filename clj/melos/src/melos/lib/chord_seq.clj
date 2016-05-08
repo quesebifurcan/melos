@@ -9,10 +9,13 @@
              [chord :as chord]
              [schemas :as ms]
              [utils :refer [rotate distinct-by]]]
-            [schema.core :as s]))
+            [schema.core :as s])
+  (:import [melos.lib.schemas Chord]))
 
-(defn merge-chords
-  [a b]
+(s/defn merge-chords
+  :- Chord
+  [a :- Chord
+   b :- Chord]
   (let [new-part-names (chord/select-chord-key :part b)]
     (update-in b [:events] (fn [events] (->> a
                                              (chord/remove-parts new-part-names)
