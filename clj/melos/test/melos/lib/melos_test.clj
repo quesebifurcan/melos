@@ -234,17 +234,57 @@
                {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]])))))
 
 (deftest extend-events
-  (is (= (chord-seq/extend-events identity identity [])
-         []))
-  (is (= (chord-seq/extend-events (fn [x y] (< (+ x y) 10))
-                                  +
-                                  [3 2 7 1 2 3 10 2])
-         [3 5 7 8 2 5 10 2]))
-  (is (= (chord-seq/extend-events (fn [x y] (<= (+ (count x) (count y)) 3))
-                                  concat
-                                  [[1] [2] [3] [4] [5] [6] [7] [8]])
-         [[1] [1 2] [1 2 3] [4] [4 5] [4 5 6] [7] [7 8]])))
-
+  (testing "sanity check: maybe-extend works when used with `reductions`"
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true) concat)]
+      (is (= (fn_ [1] [2])
+             [1 2]))
+      (is (= (reductions fn_ [[1] [2] [3] [4]])
+             [[1] [1 2] [1 2 3] [1 2 3 4]])))
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] false) concat)]
+      (is (= (reductions fn_ [[1] [2] [3] [4]])
+             [[1] [2] [3] [4]]))))
+  (testing "merges two chords"
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true)
+                                      chord-seq/merge-chords)
+          a (chord/make-chord {:pitches [0] :part :a})
+          b (chord/make-chord {:pitches [1] :part :b})
+          result (fn_ a b)]
+      (is (= (select-chord-keys [:pitch :part] result)
+             {:events #{{:pitch 0 :part :a} {:pitch 1 :part :b}}}))))
+  (testing "merges chords when used with `reductions`"
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true)
+                                      chord-seq/merge-chords)
+          chords (map chord/make-chord [{:pitches [0] :part :a}
+                                        {:pitches [1] :part :b}
+                                        {:pitches [2] :part :c}
+                                        {:pitches [3] :part :d}])
+          result (reductions fn_ chords)]
+      (is (= (select-chord-keys [:pitch :part] result)
+             [{:events #{{:pitch 0 :part :a}}}
+              {:events #{{:pitch 0 :part :a}
+                         {:pitch 1 :part :b}}}
+              {:events #{{:pitch 0 :part :a}
+                         {:pitch 1 :part :b}
+                         {:pitch 2 :part :c}}}
+              {:events #{{:pitch 0 :part :a}
+                         {:pitch 1 :part :b}
+                         {:pitch 2 :part :c}
+                         {:pitch 3 :part :d}}}])))
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true)
+                                      chord-seq/merge-chords)
+          chords (map chord/make-chord [{:pitches [0] :part :a}
+                                        {:pitches [1] :part :b}
+                                        {:pitches [2] :part :a}
+                                        {:pitches [3] :part :b}])
+          result (reductions fn_ chords)]
+      (is (= (select-chord-keys [:pitch :part] result)
+             [{:events #{{:pitch 0 :part :a}}}
+              {:events #{{:pitch 0 :part :a}
+                         {:pitch 1 :part :b}}}
+              {:events #{{:pitch 1 :part :b}
+                         {:pitch 2 :part :a}}}
+              {:events #{{:pitch 2 :part :a}
+                         {:pitch 3 :part :b}}}])))))
 
 ;; consonant?
 ;; (deftest merge-phrase

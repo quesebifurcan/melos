@@ -130,26 +130,10 @@
                           )
                        (rest phrases))))))))
 
-(defn extend-events
-  ([pred merge-fn xs]
-   (extend-events pred
-                  merge-fn
-                  (first xs)
-                  (rest xs)))
-  ([pred merge-fn head tail]
-   (let [nxt (first tail)]
-     (cond (nil? head) []
-           (nil? nxt) [head]
-           (pred head nxt)
-           (cons head (extend-events pred
-                                     merge-fn
-                                     (merge-fn head nxt)
-                                     (rest tail)))
-           :else
-           (cons head (extend-events pred
-                                     merge-fn
-                                     nxt
-                                     (rest tail)))))))
+(defn maybe-extend
+  [pred merge-fn]
+  (fn [a b]
+    (if (pred a b) (merge-fn a b) b)))
 
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
