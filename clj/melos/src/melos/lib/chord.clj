@@ -60,6 +60,8 @@
    chord :- Chord]
   (update-in chord [:events] (fn [x] (remove-parts* (set part-names) x))))
 
+;; OLD
+
 (defn get-melodic-event
   [chord]
   (->> chord
@@ -102,9 +104,8 @@
     (functor/fmap #(math/expt % 10/9)
                   interval->dissonance)))
 
-(defn uniquify-pitches-in-chord
-  [chord]
-  (set (map #(rem % 12) chord)))
+(defn pitch->pitchclass [p] (rem (+ 60 p) 12))
+(defn pitches->pitchclasses [chord] (set (map pitch->pitchclass chord)))
 
 (defn inversion-equivalent-pitchclass
   [pc]
@@ -117,32 +118,34 @@
 
 (defn all-intervals
   [pitches]
-  (map #(math/abs (apply - %))
-       (combinatorics/combinations pitches 2)))
-
-(defn calc-dissonance-divisor
-  [pitches]
   (-> pitches
-      (uniquify-pitches-in-chord)
-      (count)
-      (triangular-n)))
+      pitches->pitchclasses
+      (combinatorics/combinations 2)
+      set))
 
-(defn dissonance-value-partial
-  [mapping]
-  (fn [pitches]
-    (->> pitches
-         (uniquify-pitches-in-chord)
-         (all-intervals)
-         (inversion-equivalent-pitchclasses)
-         (map mapping)
-         (apply +))))
+;; (defn interval-count
+;;   [pitches]
+;;   (if (<= (count pitches) 1)
+;;     0
+;;     (-> pitches
+;;         pitches->pitchclasses
+;;         count
+;;         dec
+;;         triangular-n)))
 
-(def dissonance-value
-  (atom (dissonance-value-partial dissonance-map-default)))
+(defn dissonance-value
+  [mapping intervals]
+  (->> intervals
+       inversion-equivalent-pitchclasses
+       (map mapping)
+       (apply +)))
 
 (defn scaled-dissonance-value
-  [pitches]
+  [mapping pitches]
   (if (empty? pitches)
     0
-    (let [divisor (calc-dissonance-divisor pitches)]
-      (/ (@dissonance-value pitches) divisor))))
+    ;; TODO: move (math/abs...) to separate function
+    (let [intervals (map #(math/abs (apply - %))
+                         (all-intervals pitches))]
+      (/ (dissonance-value mapping intervals)
+         (count intervals)))))
