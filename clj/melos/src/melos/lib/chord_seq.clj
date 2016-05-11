@@ -73,9 +73,9 @@
    (filter-dissonance-contributors chord)))
 
 (defn consonant?
-  [chord limit]
-  (let [limit (chord/scaled-dissonance-value limit)]
-    (<= (dissonance-value chord) limit)))
+  [mapping limit pitches]
+  (let [limit (chord/scaled-dissonance-value mapping limit)]
+    (<= (chord/scaled-dissonance-value mapping pitches) limit)))
 
 (defn forward-time
   [events]

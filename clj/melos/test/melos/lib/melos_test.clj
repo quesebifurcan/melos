@@ -199,6 +199,89 @@
     (is (thrown? Exception
                  (s/validate ms/Phrase [])))))
 
+(deftest pitches->pitchclasses
+  (is (= (chord/pitches->pitchclasses [0 1 2])
+         (chord/pitches->pitchclasses [-12 -11 -10])
+         (chord/pitches->pitchclasses [0 1 2 -12 -11 -10])
+         #{0 1 2}))
+  (is (= (chord/pitches->pitchclasses []) #{})))
+
+(deftest all-intervals
+  (is (= (chord/all-intervals [0 1 2])
+         (chord/all-intervals [-12 -11 -10])
+         (chord/all-intervals [0 1 2 -12 -11 -10])
+         #{[0 1] [0 2] [1 2]}))
+  (is (= (chord/all-intervals []) #{})))
+
+(deftest interval->num
+  (are [input expected] (= (chord/interval->num input) expected)
+    [0 2]    2
+    [0 -2]   2
+    [-2 0]   2
+    [-2 -14] 12
+    [14 -14] 28))
+
+(deftest dissonance-value
+  (let [mapping-a {0 1
+                   1 1
+                   2 2
+                   3 3
+                   4 4
+                   5 5
+                   6 6}
+        mapping-b {0 0,
+                   1 10,
+                   2 4,
+                   3 3,
+                   4 2,
+                   5 1,
+                   6 5}]
+    (testing "empty pitch seq returns `0`"
+      (is (= (chord/scaled-dissonance-value {} []) 0)))
+    (testing "sums dissonance-value score"
+      (are [a b] (= (chord/dissonance-value mapping-a a) b)
+        [] 0
+        [1 2 3] 6
+        [1 6] 7))
+    (testing "scales dissonance-value so that chords with different numbers of pitches can be compared"
+      (are [a b] (= (chord/scaled-dissonance-value mapping-a a) b)
+        [0 2] 2
+        [0 6] 6
+        [1 3] 2
+        [0 1 2] 4/3
+        [1 2 3] 4/3))
+    (testing "m2 can be considered more dissonant than M2"
+      (is (> (chord/scaled-dissonance-value mapping-b [0 1])
+             (chord/scaled-dissonance-value mapping-b [0 2]))))
+    (testing "M2 can be considered more dissonant than m3"
+      (is (> (chord/scaled-dissonance-value mapping-b [0 2])
+             (chord/scaled-dissonance-value mapping-b [0 3]))))
+    (testing "P4 and P5 are equally dissonant/consonant"
+      (is (= (chord/scaled-dissonance-value mapping-b [0 5])
+             (chord/scaled-dissonance-value mapping-b [0 7])))
+      (is (= (chord/scaled-dissonance-value mapping-b [0 5 10])
+             (chord/scaled-dissonance-value mapping-b [0 7 14]))))))
+
+(deftest consonant?
+  (let [mapping {0 0,
+                 1 6,
+                 2 4,
+                 3 3,
+                 4 2,
+                 5 1,
+                 6 5}]
+    (are [limit pitches] (= (chord-seq/consonant? mapping limit pitches))
+      [0 1] [0]
+      [0 4] [0 12]
+      [0 4] [0 7]
+      [0 4] [0 5]
+      [0 1] [0 2]
+      [0 1 0 0 0] [0 2 2 2 2 2]
+      [-24 -23 0 12 24] [0 2]
+      [0 4 7 10] [0 4 7]
+      [0 3 7 10] [0 3 7]
+      [0 1] [0 6])))
+
 (defn map->chord'
   [m]
   (clojure.walk/prewalk
@@ -284,72 +367,34 @@
               {:events #{{:pitch 1 :part :b}
                          {:pitch 2 :part :a}}}
               {:events #{{:pitch 2 :part :a}
-                         {:pitch 3 :part :b}}}])))))
-
-(deftest pitches->pitchclasses
-  (is (= (chord/pitches->pitchclasses [0 1 2])
-         (chord/pitches->pitchclasses [-12 -11 -10])
-         (chord/pitches->pitchclasses [0 1 2 -12 -11 -10])
-         #{0 1 2}))
-  (is (= (chord/pitches->pitchclasses []) #{})))
-
-(deftest all-intervals
-  (is (= (chord/all-intervals [0 1 2])
-         (chord/all-intervals [-12 -11 -10])
-         (chord/all-intervals [0 1 2 -12 -11 -10])
-         #{[0 1] [0 2] [1 2]}))
-  (is (= (chord/all-intervals []) #{})))
-
-(deftest dissonance-value
-  (let [mapping-a {0 1
-                   1 1
-                   2 2
+                         {:pitch 3 :part :b}}}]))))
+  (testing "merge chords using `consonant?` as predicate"
+    (let [fn_ (chord-seq/maybe-extend 
+               (fn [a b]
+                 (chord-seq/consonant?
+                  {0 0
+                   1 6
+                   2 4
                    3 3
-                   4 4
-                   5 5
-                   6 6}
-        mapping-b {0 0,
-                   1 10,
-                   2 4,
-                   3 3,
-                   4 2,
-                   5 1,
-                   6 5}]
-    (testing "empty pitch seq returns `0`"
-      (is (= (chord/scaled-dissonance-value {} []) 0)))
-    (testing "sums dissonance-value score"
-      (is (= (chord/dissonance-value mapping-a []) 0))
-      (is (= (chord/dissonance-value mapping-a [1 2 3]) 6))
-      (is (= (chord/dissonance-value mapping-a [1 6]) 7)))
-    (testing "scales dissonance-value so that chords with different numbers of pitches can be compared"
-      (is (= (chord/scaled-dissonance-value mapping-a [0 2]) 2))
-      (is (= (chord/scaled-dissonance-value mapping-a [0 6]) 6))
-      (is (= (chord/scaled-dissonance-value mapping-a [1 3]) 2))
-      (is (= (chord/scaled-dissonance-value mapping-a [0 1 2]) 4/3))
-      (is (= (chord/scaled-dissonance-value mapping-a [1 2 3]) 4/3)))
-    (testing "m2 can be considered more dissonant than M2"
-      (is (> (chord/scaled-dissonance-value mapping-b [0 1])
-             (chord/scaled-dissonance-value mapping-b [0 2]))))
-    (testing "P4 and P5 are equally dissonant/consonant"
-      (is (= (chord/scaled-dissonance-value mapping-b [0 5])
-             (chord/scaled-dissonance-value mapping-b [0 7])))
-      (is (= (chord/scaled-dissonance-value mapping-b [0 5 10])
-             (chord/scaled-dissonance-value mapping-b [0 7 14]))))))
-
-;; (deftest interval-count
-;;   (testing "takes octave equivalence into account"
-;;     (is (= (chord/interval-count [0 1 2])
-;;            (chord/interval-count [0 1 2 12 13 14])
-;;            3))
-;;     (is (= (chord/interval-count [0 1 2 3 4])
-;;            (chord/interval-count [0 1 2 3 4 12 13 14 15 16])
-;;            10))
-;;     (is (= (chord/interval-count [0 1 2 3])
-;;            (chord/interval-count [0 1 2 3 -12 -11 -10 -9])
-;;            6)))
-;;   (testing "edge cases"
-;;     (is (= (chord/interval-count []) 0))
-;;     (is (= (chord/interval-count [1]) 0))))
+                   4 2
+                   5 1
+                   6 5}
+                  [0 4 7]
+                  (chord/select-chord-key :pitch (chord-seq/merge-chords a b))))
+               chord-seq/merge-chords)
+          chords (map chord/make-chord [{:pitches [0] :part :a}
+                                        {:pitches [7] :part :b}
+                                        {:pitches [12] :part :a}
+                                        {:pitches [4] :part :b}])
+          result (reductions fn_ chords)]
+      (is (= (select-chord-keys [:pitch :part] result)
+             [{:events #{{:pitch 0 :part :a}}}
+              {:events #{{:pitch 0 :part :a}
+                         {:pitch 7 :part :b}}}
+              {:events #{{:pitch 7 :part :b}
+                         {:pitch 12 :part :a}}}
+              {:events #{{:pitch 12 :part :a}
+                         {:pitch 4 :part :b}}}])))))
 
 ;; consonant?
 ;; (deftest merge-phrase

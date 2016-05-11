@@ -123,16 +123,6 @@
       (combinatorics/combinations 2)
       set))
 
-;; (defn interval-count
-;;   [pitches]
-;;   (if (<= (count pitches) 1)
-;;     0
-;;     (-> pitches
-;;         pitches->pitchclasses
-;;         count
-;;         dec
-;;         triangular-n)))
-
 (defn dissonance-value
   [mapping intervals]
   (->> intervals
@@ -140,12 +130,12 @@
        (map mapping)
        (apply +)))
 
+(defn interval->num [[a b]] (math/abs (- a b)))
+
 (defn scaled-dissonance-value
   [mapping pitches]
-  (if (empty? pitches)
-    0
-    ;; TODO: move (math/abs...) to separate function
-    (let [intervals (map #(math/abs (apply - %))
-                         (all-intervals pitches))]
+  (let [intervals (map interval->num (all-intervals pitches))]
+    (if (< (count intervals) 1)
+      0
       (/ (dissonance-value mapping intervals)
          (count intervals)))))
