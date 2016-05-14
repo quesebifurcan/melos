@@ -14,9 +14,10 @@
      pitch                   :- s/Int])
 
 (s/defrecord Chord
-    [duration :- s/Num
-     tempo    :- s/Int
-     events   :- [Note]])
+    [duration   :- s/Num
+     tempo      :- s/Int
+     phrase-end :- s/Bool
+     events     :- [Note]])
 
 (def Phrase (s/both (s/pred (complement empty?))
                     [Chord]))

@@ -15,6 +15,7 @@
 (def chord-default
   {:duration 1
    :tempo 60
+   :phrase-end false
    :events []})
 
 ;; TODO: use select-keys complimentary function:
@@ -139,3 +140,8 @@
       0
       (/ (dissonance-value mapping intervals)
          (count intervals)))))
+
+(defn consonant?
+  [mapping limit pitches]
+  (let [limit (scaled-dissonance-value mapping limit)]
+    (<= (scaled-dissonance-value mapping pitches) limit)))

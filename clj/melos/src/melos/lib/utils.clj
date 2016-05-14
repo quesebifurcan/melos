@@ -147,6 +147,13 @@
            run-inc (concat run (vector included))]
        (cons run-inc (partition-by-inclusive f (rest rem)))))))
 
+(defn take-realized
+  [coll]
+  (if-not (instance? clojure.lang.IPending coll)
+    (cons (first coll) (take-realized (rest coll)))
+    (when (realized? coll)
+             (cons (first coll) (take-realized (rest coll))))))
+
 (defn unfold-parameters
   [m]
   (->> m

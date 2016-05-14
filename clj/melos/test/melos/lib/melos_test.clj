@@ -8,7 +8,8 @@
             [melos.lib.utils :as utils]
             [schema.core :as s]
             [schema.test]
-            [clojure.test :refer [deftest is are testing use-fixtures]])
+            [clojure.test :refer [deftest is are testing use-fixtures]]
+            [clojure.data :refer [diff]])
   (:import [melos.lib.schemas Note Chord]))
 
 (use-fixtures :once schema.test/validate-schemas)
@@ -270,7 +271,7 @@
                  4 2,
                  5 1,
                  6 5}]
-    (are [limit pitches] (= (chord-seq/consonant? mapping limit pitches))
+    (are [limit pitches] (= (chord/consonant? mapping limit pitches))
       [0 1] [0]
       [0 4] [0 12]
       [0 4] [0 7]
@@ -327,16 +328,14 @@
       (is (= (reductions fn_ [[1] [2] [3] [4]])
              [[1] [2] [3] [4]]))))
   (testing "merges two chords"
-    (let [fn_ (chord-seq/maybe-extend (fn [a b] true)
-                                      chord-seq/merge-chords)
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true) chord-seq/merge-chords)
           a (chord/make-chord {:pitches [0] :part :a})
           b (chord/make-chord {:pitches [1] :part :b})
           result (fn_ a b)]
       (is (= (select-chord-keys [:pitch :part] result)
              {:events #{{:pitch 0 :part :a} {:pitch 1 :part :b}}}))))
   (testing "merges chords when used with `reductions`"
-    (let [fn_ (chord-seq/maybe-extend (fn [a b] true)
-                                      chord-seq/merge-chords)
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true) chord-seq/merge-chords)
           chords (map chord/make-chord [{:pitches [0] :part :a}
                                         {:pitches [1] :part :b}
                                         {:pitches [2] :part :c}
@@ -353,8 +352,7 @@
                          {:pitch 1 :part :b}
                          {:pitch 2 :part :c}
                          {:pitch 3 :part :d}}}])))
-    (let [fn_ (chord-seq/maybe-extend (fn [a b] true)
-                                      chord-seq/merge-chords)
+    (let [fn_ (chord-seq/maybe-extend (fn [a b] true) chord-seq/merge-chords)
           chords (map chord/make-chord [{:pitches [0] :part :a}
                                         {:pitches [1] :part :b}
                                         {:pitches [2] :part :a}
@@ -369,18 +367,18 @@
               {:events #{{:pitch 2 :part :a}
                          {:pitch 3 :part :b}}}]))))
   (testing "merge chords using `consonant?` as predicate"
-    (let [fn_ (chord-seq/maybe-extend 
-               (fn [a b]
-                 (chord-seq/consonant?
-                  {0 0
+    (let [mapping {0 0
                    1 6
                    2 4
                    3 3
                    4 2
                    5 1
                    6 5}
-                  [0 4 7]
-                  (chord/select-chord-key :pitch (chord-seq/merge-chords a b))))
+          fn_ (chord-seq/maybe-extend
+               (fn [a b] (->> [a b]
+                              (apply chord-seq/merge-chords)
+                              (chord/select-chord-key :pitch)
+                              (chord/consonant? mapping [0 4 7])))
                chord-seq/merge-chords)
           chords (map chord/make-chord [{:pitches [0] :part :a}
                                         {:pitches [7] :part :b}
@@ -396,20 +394,54 @@
               {:events #{{:pitch 12 :part :a}
                          {:pitch 4 :part :b}}}])))))
 
-;; consonant?
-;; (deftest merge-phrase
-;;   (let [a (map chord/make-chord [{:pitches [0] :part :a}
-;;                                  {:pitches [1] :part :a}
-;;                                  {:pitches [2] :part :a}])
-;;         b (map chord/make-chord [{:pitches [0] :part :a}
-;;                                  {:pitches [1] :part :a}
-;;                                  {:pitches [2] :part :a}])
-;;               phrase (map chord/make-chord chord-data)]
+(defn partition-phrases
+  [xs]
+  (filter identity
+          (utils/partition-by-inclusive (complement :phrase-end) xs)))
 
-;; (deftest extend-phrases)
+(def default-mapping
+  {0 0, 1 6, 2 4, 3 4, 4 2, 5 1, 6 5})
 
-;; (deftest dissonance-values)
-;; (deftest consonant?)
+(defn merge-ph
+  [a b]
+  (if (chord/consonant? default-mapping [0 4 7]
+                        (chord/select-chord-key :pitch
+                                                (chord-seq/merge-chords (last a)
+                                                                        (last b))))
+    (map (fn [x] (chord-seq/merge-chords (last a) x)) b)
+    b))
+
+(deftest merge-phrases
+  (let [a (map chord/make-chord [{:pitches [0] :part :b}
+                                 {:pitches [2] :part :b :phrase-end true}])
+        b (map chord/make-chord [{:pitches [0] :part :a}
+                                 {:pitches [2] :part :a :phrase-end true}])
+        c (map chord/make-chord [{:pitches [12] :part :c}
+                                 {:pitches [14] :part :c :phrase-end true}])
+        old (chord/make-chord {:pitches [7] :part :a})
+        result (reductions merge-ph [old] (cycle [a b c]))]
+    (testing "merges phrases"
+      (is (= [nil nil]
+             ((juxt first second)
+              (diff (select-chord-keys [:pitch :part] (take 4 result))
+                    [[{:events #{{:pitch 7 :part :a}}}]
+                     [{:events #{{:pitch 7 :part :a}
+                                 {:pitch 0 :part :b}}}
+                      {:events #{{:pitch 7 :part :a}
+                                 {:pitch 2 :part :b}}}]
+                     [{:events #{{:pitch 2 :part :b}
+                                 {:pitch 0 :part :a}}}
+                      {:events #{{:pitch 2 :part :b}
+                                 {:pitch 2 :part :a}}}]
+                     [{:events #{{:pitch 2 :part :b}
+                                 {:pitch 2 :part :a}
+                                 {:pitch 12 :part :c}}}
+                      {:events #{{:pitch 2 :part :b}
+                                 {:pitch 2 :part :a}
+                                 {:pitch 14 :part :c}}}]])))))
+    (testing "is lazy"
+      (is (= (count (utils/take-realized result)) 4)))))
+
 ;; (deftest segment-chords)
 ;; (deftest join-events)
 ;; (deftest extend-phrases)
