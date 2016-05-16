@@ -105,3 +105,31 @@
 ;;        [[[1 8]]
 ;;         [[1 8]]]]
 ;;       [[1 8]]]]]]]]
+
+(def duration-resolutions
+  {1              [[3/4 :stretch] [2/4 :stretch]]
+   [3/4 :stretch] [2/4 2/4]
+   2/4            [[2/4 :stretch] 1/4]
+   [2/4 :stretch] [1/4 1/4 [1/4 :stretch]]
+   [1/4 :stretch] [1/8 1/8 1/8]
+   1/4            [1/8 1/8]})
+
+(defn get-duration [node] (if (vector? node) (first node) node))
+
+(defn get-summed-durations
+  [template node]
+  (if-let [nxt (get template node)]
+    (map (partial get-summed-durations template)
+         nxt)
+    (get-duration node)))
+
+(defn insert-node
+  [template node]
+  (let [nxt (get template node)]
+    {:duration (get-duration node)
+     :sum-of-leaves-duration (->> (get-summed-durations template node)
+                                  flatten
+                                  (apply +))
+     :children (map (partial insert-node template) nxt)}))
+
+(insert-node duration-resolutions [3/4 :stretch])
