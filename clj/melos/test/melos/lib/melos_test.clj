@@ -7,9 +7,14 @@
             [melos.lib.part :as part]
             [melos.lib.utils :as utils]
             [schema.core :as s]
+            [clojure.algo.generic.functor :as functor]
+            [clojure.math
+             [combinatorics :as combinatorics]
+             [numeric-tower :as math]]
             [schema.test]
             [clojure.test :refer [deftest is are testing use-fixtures]]
-            [clojure.data :refer [diff]])
+            [clojure.data :refer [diff]]
+            [clojure.zip :as zip])
   (:import [melos.lib.schemas Note Chord]))
 
 (use-fixtures :once schema.test/validate-schemas)
@@ -26,6 +31,12 @@
            :else
            node))
    form))
+
+(def empty-diff [nil nil])
+
+(defn diff_
+  [a b]
+  ((juxt first second) (diff a b)))
 
 (deftest make-note
   (testing "throws Exception when input params are not valid"
@@ -334,24 +345,24 @@
           result (fn_ a b)]
       (is (= (select-chord-keys [:pitch :part] result)
              {:events #{{:pitch 0 :part :a} {:pitch 1 :part :b}}}))))
-  (testing "merges chords when used with `reductions`"
+  (testing "merges chords when used with `reductions` and increments :count"
     (let [fn_ (chord-seq/maybe-extend (fn [a b] true) chord-seq/merge-chords)
-          chords (map chord/make-chord [{:pitches [0] :part :a}
-                                        {:pitches [1] :part :b}
-                                        {:pitches [2] :part :c}
-                                        {:pitches [3] :part :d}])
+          chords (map chord/make-chord [{:pitches [0] :part :a :count 0}
+                                        {:pitches [1] :part :b :count 0}
+                                        {:pitches [2] :part :c :count 0}
+                                        {:pitches [3] :part :d :count 0}])
           result (reductions fn_ chords)]
-      (is (= (select-chord-keys [:pitch :part] result)
-             [{:events #{{:pitch 0 :part :a}}}
-              {:events #{{:pitch 0 :part :a}
-                         {:pitch 1 :part :b}}}
-              {:events #{{:pitch 0 :part :a}
-                         {:pitch 1 :part :b}
-                         {:pitch 2 :part :c}}}
-              {:events #{{:pitch 0 :part :a}
-                         {:pitch 1 :part :b}
-                         {:pitch 2 :part :c}
-                         {:pitch 3 :part :d}}}])))
+      (is (= (select-chord-keys [:pitch :part :count 0] result)
+             [{:events #{{:pitch 0 :part :a :count 0}}}
+              {:events #{{:pitch 0 :part :a :count 1}
+                         {:pitch 1 :part :b :count 0}}}
+              {:events #{{:pitch 0 :part :a :count 2}
+                         {:pitch 1 :part :b :count 1}
+                         {:pitch 2 :part :c :count 0}}}
+              {:events #{{:pitch 0 :part :a :count 3}
+                         {:pitch 1 :part :b :count 2}
+                         {:pitch 2 :part :c :count 1}
+                         {:pitch 3 :part :d :count 0}}}])))
     (let [fn_ (chord-seq/maybe-extend (fn [a b] true) chord-seq/merge-chords)
           chords (map chord/make-chord [{:pitches [0] :part :a}
                                         {:pitches [1] :part :b}
@@ -394,53 +405,158 @@
               {:events #{{:pitch 12 :part :a}
                          {:pitch 4 :part :b}}}])))))
 
-(defn partition-phrases
-  [xs]
-  (filter identity
-          (utils/partition-by-inclusive (complement :phrase-end) xs)))
-
 (def default-mapping
-  {0 0, 1 6, 2 4, 3 4, 4 2, 5 1, 6 5})
+  (functor/fmap #(math/expt % 10/9)
+                {0 0,
+                 1 10,
+                 2 4,
+                 3 3,
+                 4 2,
+                 5 1,
+                 6 5}))
 
-(defn merge-ph
-  [a b]
-  (if (chord/consonant? default-mapping [0 4 7]
-                        (chord/select-chord-key :pitch
-                                                (chord-seq/merge-chords (last a)
-                                                                        (last b))))
-    (map (fn [x] (chord-seq/merge-chords (last a) x)) b)
-    b))
+(deftest reduce-dissonance
+  (testing "get candidates"
+    (is (= (into #{} (map set (chord/get-candidates #{1 2 3})))
+           #{#{1 2} #{1 3} #{2 3}})))
+  (testing "reduce dissonance once"
+    (let [chord (chord/make-chord {:events (map note/make-note [{:pitch 0 :count 2}
+                                                                {:pitch 2 :count 0}
+                                                                {:pitch 7 :count 1}])})]
+      (is (= (select-chord-keys [:pitch :count]
+                                (chord/reduce-dissonance default-mapping [0 7] chord))
+             {:events #{{:pitch 2 :count 0}
+                        {:pitch 7 :count 1}}}))))
+  (testing "reduce dissonance"
+    (let [chord (chord/make-chord {:events (map note/make-note [{:pitch 0 :count 1}
+                                                                {:pitch 2 :count 0}
+                                                                {:pitch 3 :count 2}])})]
+      (is (= (select-chord-keys [:pitch :count]
+                                (chord/reduce-dissonance default-mapping [0 2] chord))
+             {:events #{{:pitch 0 :count 1}
+                        {:pitch 2 :count 0}}}))))
+  (testing "if below dissonance threshold, return input"
+    (let [chord (chord/make-chord {:events (map note/make-note [{:pitch 0 :count 0}
+                                                                {:pitch 2 :count 1}
+                                                                {:pitch 3 :count 2}])})]
+      (is (= (select-chord-keys [:pitch :count]
+                                (chord/reduce-dissonance default-mapping [0 1] chord))
+             {:events #{{:pitch 0 :count 0}
+                        {:pitch 2 :count 1}
+                        {:pitch 3 :count 2}}})))))
 
-(deftest merge-phrases
-  (let [a (map chord/make-chord [{:pitches [0] :part :b}
-                                 {:pitches [2] :part :b :phrase-end true}])
-        b (map chord/make-chord [{:pitches [0] :part :a}
-                                 {:pitches [2] :part :a :phrase-end true}])
-        c (map chord/make-chord [{:pitches [12] :part :c}
-                                 {:pitches [14] :part :c :phrase-end true}])
-        old (chord/make-chord {:pitches [7] :part :a})
-        result (reductions merge-ph [old] (cycle [a b c]))]
-    (testing "merges phrases"
-      (is (= [nil nil]
-             ((juxt first second)
-              (diff (select-chord-keys [:pitch :part] (take 4 result))
-                    [[{:events #{{:pitch 7 :part :a}}}]
-                     [{:events #{{:pitch 7 :part :a}
-                                 {:pitch 0 :part :b}}}
-                      {:events #{{:pitch 7 :part :a}
-                                 {:pitch 2 :part :b}}}]
-                     [{:events #{{:pitch 2 :part :b}
-                                 {:pitch 0 :part :a}}}
-                      {:events #{{:pitch 2 :part :b}
-                                 {:pitch 2 :part :a}}}]
-                     [{:events #{{:pitch 2 :part :b}
-                                 {:pitch 2 :part :a}
-                                 {:pitch 12 :part :c}}}
-                      {:events #{{:pitch 2 :part :b}
-                                 {:pitch 2 :part :a}
-                                 {:pitch 14 :part :c}}}]])))))
-    (testing "is lazy"
-      (is (= (count (utils/take-realized result)) 4)))))
+;;-----------------------------------------------------------------------------
+;; Test different merging strategies
+;;-----------------------------------------------------------------------------
+
+(defn merge-all
+  []
+  (fn f
+    ([xs]
+     (f [] xs))
+    ([a b]
+     (map (partial chord-seq/merge-chords (last a)) b))))
+
+(defn merge-phrases-1
+  [limit]
+  (fn f
+    ([xs]
+     (f [] xs))
+    ([a b]
+     (let [pitches (->> (last b)
+                        (chord-seq/merge-chords (last a))
+                        (chord/select-chord-key :pitch))]
+       (if (chord/consonant? default-mapping limit pitches)
+         (map (partial chord-seq/merge-chords (last a)) b)
+         b)))))
+
+(defn merge-phrases-2
+  [limit]
+  (fn f
+    ([xs]
+     (f [] xs))
+    ([a b]
+     (let [pitches (->> (last b)
+                        (chord-seq/merge-chords (last a))
+                        (chord/select-chord-key :pitch))]
+       (if (chord/consonant? default-mapping limit pitches)
+         (map (partial chord-seq/merge-chords (last a)) b)
+         (concat (map (partial chord-seq/merge-chords (last a)) (butlast b))
+                 [(last b)]))))))
+
+(defn merge-phrases-3
+  [limit]
+  (fn f
+    ([xs]
+     (f [] xs))
+    ([a b]
+     (let [result (map (partial chord-seq/merge-chords (last a)) b)]
+       (concat (butlast result)
+               [(chord/reduce-dissonance default-mapping limit (last result))])))))
+
+(deftest merge-phrases-by-gradual-dissonance-reduction
+  (let [phrases [(map chord/make-chord [{:pitches [12] :part :a}
+                                        {:pitches [14] :part :a}
+                                        {:pitches [16] :part :a}])
+                 (map chord/make-chord [{:pitches [5] :part :b}
+                                        {:pitches [7] :part :b}
+                                        {:pitches [8] :part :b}])
+                 (map chord/make-chord [{:pitches [2] :part :c}
+                                        {:pitches [4] :part :c}
+                                        {:pitches [5] :part :c}])]]
+    (testing "initial state; merge-all"
+      (is (= (select-chord-keys [:pitch]
+                                (reductions (merge-all) phrases))
+             [[{:events #{{:pitch 12}}}
+               {:events #{{:pitch 14}}}
+               {:events #{{:pitch 16}}}]
+              [{:events #{{:pitch 16} {:pitch 5}}}
+               {:events #{{:pitch 16} {:pitch 7}}}
+               {:events #{{:pitch 16} {:pitch 8}}}]
+              [{:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
+               {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
+               {:events #{{:pitch 16} {:pitch 8} {:pitch 5}}}]])))
+
+    (testing "merge phrase-by-phrase; drop accumulated result if last event in new phrase introduces a dissonance"
+      (is (= (select-chord-keys [:pitch]
+                                (reductions (merge-phrases-1 [0 3]) phrases))
+              [[{:events #{{:pitch 12}}}
+                {:events #{{:pitch 14}}}
+                {:events #{{:pitch 16}}}]
+               [{:events #{{:pitch 16} {:pitch 5}}}
+                {:events #{{:pitch 16} {:pitch 7}}}
+                {:events #{{:pitch 16} {:pitch 8}}}]
+               [{:events #{{:pitch 2}}}
+                {:events #{{:pitch 4}}}
+                {:events #{{:pitch 5}}}]])))
+
+    (testing "merge phrase-by-phrase; only compare final events in phrases; merge all others. Reset if needed"
+      (is (= (select-chord-keys [:pitch]
+                                (reductions (merge-phrases-2 [0 3]) phrases))
+             [[{:events #{{:pitch 12}}}
+               {:events #{{:pitch 14}}}
+               {:events #{{:pitch 16}}}]
+              [{:events #{{:pitch 16} {:pitch 5}}}
+               {:events #{{:pitch 16} {:pitch 7}}}
+               {:events #{{:pitch 16} {:pitch 8}}}]
+              [{:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
+               {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
+               {:events #{{:pitch 5}}}]])))
+
+  (testing "merge phrase-by-phrase; gradually reduce dissonance of final chord in each phrase"
+    (is (= (select-chord-keys [:pitch]
+                              (reductions (merge-phrases-3 [0 3]) phrases))
+           [[{:events #{{:pitch 12}}}
+             {:events #{{:pitch 14}}}
+             {:events #{{:pitch 16}}}]
+            [{:events #{{:pitch 16} {:pitch 5}}}
+             {:events #{{:pitch 16} {:pitch 7}}}
+               {:events #{{:pitch 16} {:pitch 8}}}]
+              [{:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
+               {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
+               {:events #{{:pitch 8} {:pitch 5}}}]])))))
+
+;; (apply + (flatten (get-summed-durations 1)))
 
 ;; (deftest segment-chords)
 ;; (deftest join-events)
