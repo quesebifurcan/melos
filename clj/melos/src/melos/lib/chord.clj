@@ -8,7 +8,7 @@
              [schemas :as ms]
              [utils :refer [triangular-n]]]
             [schema.core :as s])
-  (:import [melos.lib.schemas Chord]))
+  (:import [melos.lib.schemas Note Chord]))
 
 (defn select-chord-key [k chord] (map k (:events chord)))
 
@@ -145,3 +145,37 @@
   [mapping limit pitches]
   (let [limit (scaled-dissonance-value mapping limit)]
     (<= (scaled-dissonance-value mapping pitches) limit)))
+
+(defn sum-counts [xs] (apply + (map :count xs)))
+
+(defn get-candidates
+  [events]
+  (combinatorics/combinations events (dec (count events))))
+
+(s/defn valid-events?
+  :- s/Bool
+  [mapping :- {s/Num s/Num}
+   limit   :- [s/Int]
+   xs      :- [Note]]
+  (boolean (and (some #(zero? (:count %)) xs)
+                (consonant? mapping limit (map :pitch xs)))))
+
+(s/defn reduce-dissonance'
+  :- Chord
+  [mapping :- {s/Num s/Num}
+   limit   :- [s/Int]
+   chord   :- Chord]
+  (let [events (->> chord
+                    :events
+                    get-candidates
+                    (filter (partial valid-events? mapping limit)))]
+    (assoc chord :events (first events))))
+
+;; 1. calculate consonant candidates
+;; 2. pick the one candidate with the least sum of :count
+(defn reduce-dissonance
+  [mapping limit chord]
+  (if (consonant? mapping limit (select-chord-key :pitch chord))
+    chord
+    (reduce-dissonance mapping limit (reduce-dissonance' mapping limit chord))))
+

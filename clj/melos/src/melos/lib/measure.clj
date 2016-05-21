@@ -114,10 +114,10 @@
    [1/4 :stretch] [1/8 1/8 1/8]
    1/4            [1/8 1/8]})
 
-(def duration-resolutions
-  {1 [2/4 2/4]
-   2/4 [1/4 1/4]
-   1/4 [1/8 1/8]})
+;; (def duration-resolutions
+;;   {1 [2/4 2/4]
+;;    2/4 [1/4 1/4]
+;;    1/4 [1/8 1/8]})
 
 (defn get-duration [node] (if (vector? node) (first node) node))
 
@@ -140,27 +140,36 @@
 ;; TODO: multiple events, sequence of measures
 (let [measure (insert-node duration-resolutions 1)
       note (atom {:pitch 0 :w-duration 1/8})]
-  (clojure.walk/prewalk
-   (fn [node]
-     (if (and (map? node)
-              (:children node))
-       (cond (<= (:w-duration @note) 0)
-             (assoc node :rest true :children nil)
-             (empty? (:children node))
-             (do (swap! note
-                        #(update % :w-duration (fn [x] (- x (:duration node)))))
-                 (assoc node :events (assoc @note :w-duration (:duration node))))
-             (> (:sum-of-leaves-duration node)
+  (->>
+   (clojure.walk/prewalk
+    (fn [node]
+      (if (and (map? node)
+               (:children node))
+        (cond (<= (:w-duration @note) 0)
+              (assoc node :rest true :children nil)
+              (empty? (:children node))
+              (do (swap! note
+                         #(update % :w-duration (fn [x] (- x (:duration node)))))
+                  (assoc node :events (assoc @note :w-duration (:duration node))))
+              (> (:sum-of-leaves-duration node)
                  (:w-duration @note))
-             node
-             (>= (:w-duration @note)
-                 (:sum-of-leaves-duration node))
-             (do (swap! note
-                        #(update % :w-duration
-                                 (fn [x] (- x (:sum-of-leaves-duration node)))))
-                 (assoc node :events (assoc @note :w-duration (:duration node))
-                        :children nil))
-             :else
-             node)
-       node))
-   measure))
+              node
+              (>= (:w-duration @note)
+                  (:sum-of-leaves-duration node))
+              (do (swap! note
+                         #(update % :w-duration
+                                  (fn [x] (- x (:sum-of-leaves-duration node)))))
+                  (assoc node :events (assoc @note :w-duration (:duration node))
+                         :children nil))
+              :else
+              nil)
+        node))
+    [measure measure measure])
+   ))
+
+;; -- recipe?
+;; (let [a (atom 0)
+;;       b (repeat 1)]
+;;   (take-while (fn [x] (< @a 18))
+;;               (map (fn [x] (do (swap! a inc) x))
+;;                    b)))

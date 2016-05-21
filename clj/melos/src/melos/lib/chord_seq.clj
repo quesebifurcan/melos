@@ -8,19 +8,25 @@
              [note :as note]
              [chord :as chord]
              [schemas :as ms]
-             [utils :refer [rotate distinct-by]]]
+             [utils :refer [rotate distinct-by partition-by-inclusive]]]
             [schema.core :as s])
   (:import [melos.lib.schemas Chord]))
+
+(defn update-events
+  [chord k f]
+  (update chord :events (fn [events]
+                          (map (fn [event] (update event k f))
+                               events))))
 
 (s/defn merge-chords
   :- Chord
   [a :- Chord
    b :- Chord]
   (let [new-part-names (chord/select-chord-key :part b)]
-    (update-in b [:events] (fn [events] (->> a
-                                             (chord/remove-parts new-part-names)
-                                             :events
-                                             (concat events))))))
+    (update b :events (fn [events] (->> (update-events a :count inc)
+                                        (chord/remove-parts new-part-names)
+                                        :events
+                                        (concat events))))))
 
 (defn get-melodic-durations
   [chords]
@@ -132,26 +138,35 @@
   (fn [a b]
     (if (pred a b) (merge-fn a b) b)))
 
+(defn partition-phrases
+  [xs]
+  (filter identity
+          (partition-by-inclusive (complement :phrase-end) xs)))
+
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
 
+;; (defn can-merge?
+;;   [curr next]
+;;   (let [curr (distinct-by #((juxt :pitch :part) %) curr)
+;;         next (distinct-by #((juxt :pitch :part) %) next)
+;;         old-curr (filter #(pos? (:count %)) next)
+;;         news (filter #(zero? (:count %)) next)
+;;         old-parts (set (map :part old-curr))
+;;         new-parts (set (map :part news))
+;;         curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
+;;                            (filter #(zero? (:count %))))]
+;;     (let [result
+;;           (and (empty? curr-blocking)
+;;                ;; Make sure that two sequential events in one part are not merged.
+;;                (empty? (clojure.set/intersection old-parts new-parts))
+;;                (every? :merge-left? news)
+;;                (every? :merge-right? old-curr))]
+;;           result)))
+
 (defn can-merge?
-  [curr next]
-  (let [curr (distinct-by #((juxt :pitch :part) %) curr)
-        next (distinct-by #((juxt :pitch :part) %) next)
-        old-curr (filter #(pos? (:count %)) next)
-        news (filter #(zero? (:count %)) next)
-        old-parts (set (map :part old-curr))
-        new-parts (set (map :part news))
-        curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
-                           (filter #(zero? (:count %))))]
-    (let [result
-          (and (empty? curr-blocking)
-               ;; Make sure that two sequential events in one part are not merged.
-               (empty? (clojure.set/intersection old-parts new-parts))
-               (every? :merge-left? news)
-               (every? :merge-right? old-curr))]
-          result)))
+  [a b]
+  true)
 
 (defn merge-elts
   [a b]
@@ -179,3 +194,5 @@
                              (rest events))
          :else
          (cons head (merge-horizontally events)))))
+
+
