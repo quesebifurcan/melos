@@ -445,9 +445,9 @@
                         {:pitch 2 :count 1}
                         {:pitch 3 :count 2}}})))))
 
-;;-----------------------------------------------------------------------------
+;;------------------------------------------------------------------------
 ;; merge-phrases
-;;-----------------------------------------------------------------------------
+;;------------------------------------------------------------------------
 
 (defn merge-all
   []
@@ -517,7 +517,8 @@
                {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
                {:events #{{:pitch 16} {:pitch 8} {:pitch 5}}}]])))
 
-    (testing "merge phrase-by-phrase; drop accumulated result if last event in new phrase introduces a dissonance"
+    (testing "merge phrase-by-phrase; drop accumulated result if last event
+in new phrase introduces a dissonance"
       (is (= (select-chord-keys [:pitch]
                                 (reductions (merge-phrases-1 [0 3]) phrases))
               [[{:events #{{:pitch 12}}}
@@ -530,7 +531,8 @@
                 {:events #{{:pitch 4}}}
                 {:events #{{:pitch 5}}}]])))
 
-    (testing "merge phrase-by-phrase; only compare final events in phrases; merge all others. Reset if needed"
+    (testing "merge phrase-by-phrase; only compare final events in phrases;
+merge all others. Reset if needed"
       (is (= (select-chord-keys [:pitch]
                                 (reductions (merge-phrases-2 [0 3]) phrases))
              [[{:events #{{:pitch 12}}}
@@ -543,7 +545,8 @@
                {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
                {:events #{{:pitch 5}}}]])))
 
-  (testing "merge phrase-by-phrase; gradually reduce dissonance of final chord in each phrase"
+  (testing "merge phrase-by-phrase; gradually reduce dissonance of final
+chord in each phrase"
     (is (= (select-chord-keys [:pitch]
                               (reductions (merge-phrases-3 [0 3]) phrases))
            [[{:events #{{:pitch 12}}}
@@ -560,15 +563,18 @@
   (let [notes [{:pitch 0 :count 3}
                {:pitch 1 :count 0}
                {:pitch 2 :count 0}]]
-    (is (= (select-chord-keys [:pitch :count]
-                              (chord/get-melodic-events (chord/make-chord {:events (map note/make-note notes)})))
+    (is (= (select-chord-keys
+            [:pitch :count]
+            (chord/get-melodic-events
+             (chord/make-chord {:events (map note/make-note notes)})))
            #{{:pitch 1 :count 0}
              {:pitch 2 :count 0}}))))
 
 (deftest merge-adjacent?
-  (are [as bs result] (let [a (chord/make-chord {:events (map note/make-note as)})
-                            b (chord/make-chord {:events (map note/make-note bs)})]
-                        (is (= result (chord-seq/merge-adjacent? a b))))
+  (are [as bs result]
+      (let [a (chord/make-chord {:events (map note/make-note as)})
+            b (chord/make-chord {:events (map note/make-note bs)})]
+        (is (= result (chord-seq/merge-adjacent? a b))))
     [{:pitch 0 :merge-right? true :part :a}]
     [{:pitch 2 :merge-left? true :part :b}]
     true
@@ -583,19 +589,22 @@
     false))
 
 (defn test-merge-horizontally
-  [consonance-pred chords expected]
-  (let [phrase (map (fn [notes]
-                      (chord/make-chord {:events (map note/make-note notes)}))
-                    chords)
-        result (select-chord-keys [:pitch]
-                                  (chord-seq/merge-horizontally consonance-pred phrase))]
+  [ks consonance-pred chords expected]
+  (let [phrase
+        (map (fn [notes]
+               (chord/make-chord {:events (map note/make-note notes)}))
+             chords)
+        result (select-chord-keys
+                ks
+                (chord-seq/merge-horizontally consonance-pred phrase))]
     (is (= result expected))))
 
 (deftest merge-horizontally
   (testing "merges consecutive chords into one if their sum can be considered
 consonant and they all allow left- and right-merge"
     (test-merge-horizontally
-     (fn [_ _] true) ;; fake consonance-pred
+     [:pitch]
+     (fn [_ _] true) ;; fake consonance-pred, always true
      [[{:pitch 12 :part :a :count 0 :merge-left? false :merge-right? true}]
       [{:pitch 14 :part :b :count 0 :merge-left? true :merge-right? true}]
       [{:pitch 16 :part :c :count 0 :merge-left? true :merge-right? false}]]
@@ -603,13 +612,99 @@ consonant and they all allow left- and right-merge"
      ))
   (testing "does not merge if not consonant; conses instead"
     (test-merge-horizontally
+     [:pitch]
      (fn [_ _] false) ;; always false
      [[{:pitch 12 :part :a :count 0 :merge-left? false :merge-right? true}]
       [{:pitch 14 :part :b :count 0 :merge-left? true :merge-right? true}]
       [{:pitch 16 :part :c :count 0 :merge-left? true :merge-right? false}]]
      [{:events #{{:pitch 12}}}
       {:events #{{:pitch 14}}}
-      {:events #{{:pitch 16}}}])))
+      {:events #{{:pitch 16}}}]))
+  (testing "does not merge consecutive melodic events in the same part; merges
+notes with the same :pitch but different :part"
+    (test-merge-horizontally
+     [:pitch :part]
+     (fn [_ _] true)
+     [
+      [{:pitch 12 :part :a :count 0 :merge-left? true :merge-right? true}]
+      [{:pitch 14 :part :a :count 0 :merge-left? true :merge-right? true}]
+      [{:pitch 16 :part :a :count 0 :merge-left? true :merge-right? true}]
+      [{:pitch 14 :part :b :count 0 :merge-left? true :merge-right? true}]
+      [{:pitch 16 :part :c :count 0 :merge-left? true :merge-right? true}]
+      ]
+     [{:events #{{:pitch 12 :part :a}}}
+      {:events #{{:pitch 14 :part :a}}}
+      {:events #{{:pitch 16 :part :a}
+                 {:pitch 14 :part :b}
+                 {:pitch 16 :part :c}}}])))
+
+(deftest make-rtm-tree
+  (testing "creates a valid rhythmic tree"
+    (let [durations {1 [1/2 1/2]
+                     1/2 [1/4 1/4]}]
+      (is (s/validate ms/RhythmTreeNode
+                      (measure/make-rtm-tree durations 1)))
+      (is (s/validate ms/RhythmTreeNode
+                      (measure/make-rtm-tree durations 1/2)))
+      (is (s/validate [ms/RhythmTreeNode]
+                      [(measure/make-rtm-tree durations 1)
+                       (measure/make-rtm-tree durations 1)]))))
+  (testing "allows multiple resolutions of one duration"
+    (let [durations {1              [[3/4 :stretch] [2/4 :stretch]]
+                     [3/4 :stretch] [2/4 2/4]
+                     2/4            [[2/4 :stretch] 1/4]
+                     [2/4 :stretch] [1/4 1/4 [1/4 :stretch]]
+                     [1/4 :stretch] [1/8 1/8 1/8]
+                     1/4            [1/8 1/8]}]
+      (is (s/validate ms/RhythmTreeNode
+                      (measure/make-rtm-tree durations 1)))
+      (is (s/validate ms/RhythmTreeNode
+                      (measure/make-rtm-tree durations 2/4)))
+      (is (s/validate ms/RhythmTreeNode
+                      (measure/make-rtm-tree durations [2/4 :stretch])))
+      (is (s/validate ms/RhythmTreeNode
+                      (measure/make-rtm-tree durations 1/4)))
+      (is (s/validate [ms/RhythmTreeNode]
+                      [(measure/make-rtm-tree durations 1)
+                       (measure/make-rtm-tree durations [3/4 :stretch])
+                       (measure/make-rtm-tree durations 2/4)
+                       (measure/make-rtm-tree durations [2/4 :stretch])])))))
+
+(deftest insert-into-tree
+  (let [durations {1 [1/2 1/2]
+                   1/2 [1/4 1/4]}]
+    (testing "init tree"
+      (is (= (measure/make-rtm-tree durations 1)
+             {:duration 1,
+              :chord nil,
+              :sum-of-leaves-duration 1N,
+              :children [{:duration 1/2,
+                          :chord nil,
+                          :sum-of-leaves-duration 1/2,
+                          :children [{:duration 1/4,
+                                      :chord nil,
+                                      :sum-of-leaves-duration 0,
+                                      :children []}
+                                     {:duration 1/4,
+                                      :chord nil,
+                                      :sum-of-leaves-duration 0,
+                                      :children []}]}
+                         {:duration 1/2,
+                          :chord nil,
+                          :sum-of-leaves-duration 1/2,
+                          :children [{:duration 1/4,
+                                      :chord nil,
+                                      :sum-of-leaves-duration 0,
+                                      :children []}
+                                     {:duration 1/4,
+                                      :chord nil,
+                                      :sum-of-leaves-duration 0,
+                                      :children []}]}]})))
+    (testing "insert single note"
+      (is (= (measure/maybe-insert-chord (measure/make-rtm-tree durations 1/2)
+                                         (chord/make-chord {:pitches [0] :part :a})))))
+
+    ))
 
 ;; (deftest segment-chords)
 ;; (deftest join-events)
