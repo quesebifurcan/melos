@@ -8,6 +8,7 @@
             [melos.lib.utils :as utils]
             [schema.core :as s]
             [clojure.algo.generic.functor :as functor]
+            [clojure.zip :as zip]
             [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
@@ -700,11 +701,46 @@ notes with the same :pitch but different :part"
                                       :chord nil,
                                       :sum-of-leaves-duration 0,
                                       :children []}]}]})))
-    (testing "insert single note"
-      (is (= (measure/maybe-insert-chord (measure/make-rtm-tree durations 1/2)
-                                         (chord/make-chord {:pitches [0] :part :a})))))
+
+    ;; (testing "insert single note"
+    ;;   (is (= (measure/maybe-insert-chord (measure/make-rtm-tree durations 1/2)
+    ;;                                      (chord/make-chord {:pitches [0] :part :a}))
+    ;;          1
+    ;;          )))
+
+    ;; (is (= (select-chord-keys
+    ;;         [:duration :pitch]
+    ;;         (measure/insert-events (measure/make-rtm-tree durations 1/4)
+    ;;                                [(chord/make-chord {:pitches [4] :duration 1/4})]))
+    ;;        {:duration 1/4
+    ;;         :sum-of-leaves-duration 0
+    ;;         :children []
+    ;;         :chord {:duration 1/4
+    ;;                 :events #{{:pitch 4}}}}))
+
+    (testing "insert chord"
+      (let [zipper (measure/rtm-tree-zipper {:duration 1/4
+                                             :chord nil
+                                             :sum-of-leaves-duration 0
+                                             :children []})]
+        (is (s/validate ms/RhythmTreeNode (zip/node zipper)))
+        (is (= (select-chord-keys [:pitch :duration]
+                                  (measure/insert-events zipper
+                                                         (chord/make-chord
+                                                          {:pitches [1] :duration 1/4})))
+               {:duration 1/4
+                :children []
+                :sum-of-leaves-duration 0
+                :chord {:duration 1/4 :events #{{:pitch 1}}}}))
+        ))
 
     ))
+
+
+  (select-chord-keys [:pitch :duration]
+                   [{:duration 1/4
+                     :sum-of-leaves-duration 2/4
+                     :chord (chord/make-chord {:pitches [4]})}])
 
 ;; (deftest segment-chords)
 ;; (deftest join-events)

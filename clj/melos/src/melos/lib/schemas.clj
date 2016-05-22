@@ -25,17 +25,19 @@
 (def DurationVector
   (s/pair s/Int "Numerator" s/Int "Denominator"))
 
+(def Duration s/Num)
+
 (def RhythmTreeNode
   (s/conditional :event
-                 {:duration         DurationVector
-                  :written-duration DurationVector
-                  :event            (s/maybe Note)
+                 {:duration         Duration
+                  :sum-of-leaves-duration Duration
+                  :chord            (s/maybe Note)
                   :children         (s/pred nil?)}
                  :children
-                 {:duration          DurationVector
-                  :written-duration  DurationVector
-                  :event             (s/pred nil?)
-                  :children          [(s/maybe (s/recursive #'RhythmTreeNode))]}))
+                 {:duration         Duration
+                  :sum-of-leaves-duration Duration
+                  :chord            (s/pred nil?)
+                  :children         [(s/maybe (s/recursive #'RhythmTreeNode))]}))
 
 ;; OLD:
 
