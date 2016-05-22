@@ -446,7 +446,7 @@
                         {:pitch 3 :count 2}}})))))
 
 ;;-----------------------------------------------------------------------------
-;; Test different merging strategies
+;; merge-phrases
 ;;-----------------------------------------------------------------------------
 
 (defn merge-all
@@ -556,7 +556,60 @@
                {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
                {:events #{{:pitch 8} {:pitch 5}}}]])))))
 
-;; (apply + (flatten (get-summed-durations 1)))
+(deftest get-melodic-events
+  (let [notes [{:pitch 0 :count 3}
+               {:pitch 1 :count 0}
+               {:pitch 2 :count 0}]]
+    (is (= (select-chord-keys [:pitch :count]
+                              (chord/get-melodic-events (chord/make-chord {:events (map note/make-note notes)})))
+           #{{:pitch 1 :count 0}
+             {:pitch 2 :count 0}}))))
+
+(deftest merge-adjacent?
+  (are [as bs result] (let [a (chord/make-chord {:events (map note/make-note as)})
+                            b (chord/make-chord {:events (map note/make-note bs)})]
+                        (is (= result (chord-seq/merge-adjacent? a b))))
+    [{:pitch 0 :merge-right? true :part :a}]
+    [{:pitch 2 :merge-left? true :part :b}]
+    true
+    [{:pitch 0 :merge-right? false :part :a}]
+    [{:pitch 2 :merge-left? true :part :b}]
+    false
+    [{:pitch 0 :merge-right? true :part :a}]
+    [{:pitch 2 :merge-left? false :part :b}]
+    false
+    [{:pitch 0 :merge-right? true :part :a}]
+    [{:pitch 2 :merge-left? true :part :a}]
+    false))
+
+(defn test-merge-horizontally
+  [consonance-pred chords expected]
+  (let [phrase (map (fn [notes]
+                      (chord/make-chord {:events (map note/make-note notes)}))
+                    chords)
+        result (select-chord-keys [:pitch]
+                                  (chord-seq/merge-horizontally consonance-pred phrase))]
+    (is (= result expected))))
+
+(deftest merge-horizontally
+  (testing "merges consecutive chords into one if their sum can be considered
+consonant and they all allow left- and right-merge"
+    (test-merge-horizontally
+     (fn [_ _] true) ;; fake consonance-pred
+     [[{:pitch 12 :part :a :count 0 :merge-left? false :merge-right? true}]
+      [{:pitch 14 :part :b :count 0 :merge-left? true :merge-right? true}]
+      [{:pitch 16 :part :c :count 0 :merge-left? true :merge-right? false}]]
+     [{:events #{{:pitch 12} {:pitch 14} {:pitch 16}}}]
+     ))
+  (testing "does not merge if not consonant; conses instead"
+    (test-merge-horizontally
+     (fn [_ _] false) ;; always false
+     [[{:pitch 12 :part :a :count 0 :merge-left? false :merge-right? true}]
+      [{:pitch 14 :part :b :count 0 :merge-left? true :merge-right? true}]
+      [{:pitch 16 :part :c :count 0 :merge-left? true :merge-right? false}]]
+     [{:events #{{:pitch 12}}}
+      {:events #{{:pitch 14}}}
+      {:events #{{:pitch 16}}}])))
 
 ;; (deftest segment-chords)
 ;; (deftest join-events)
