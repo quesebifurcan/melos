@@ -61,13 +61,16 @@
    chord :- Chord]
   (update-in chord [:events] (fn [x] (remove-parts* (set part-names) x))))
 
-;; OLD
-
-(defn get-melodic-event
+(defn get-melodic-events
   [chord]
   (->> chord
-       (filter #(zero? (:count %)))
-       (first)))
+       :events
+       (filter (comp zero? :count))
+       set))
+
+;; OLD
+
+(declare get-melodic-event)
 
 (defn get-melodic-duration
   [chord]
@@ -146,6 +149,10 @@
   (let [limit (scaled-dissonance-value mapping limit)]
     (<= (scaled-dissonance-value mapping pitches) limit)))
 
+;;-----------------------------------------------------------------------------
+;; Reduce dissonance gradually
+;;-----------------------------------------------------------------------------
+
 (defn sum-counts [xs] (apply + (map :count xs)))
 
 (defn get-candidates
@@ -154,7 +161,7 @@
 
 (s/defn valid-events?
   :- s/Bool
-  [mapping :- {s/Num s/Num}
+  [mapping :- ms/DissonanceMapping
    limit   :- [s/Int]
    xs      :- [Note]]
   (boolean (and (some #(zero? (:count %)) xs)
@@ -162,7 +169,7 @@
 
 (s/defn reduce-dissonance'
   :- Chord
-  [mapping :- {s/Num s/Num}
+  [mapping :- ms/DissonanceMapping
    limit   :- [s/Int]
    chord   :- Chord]
   (let [events (->> chord
@@ -173,9 +180,11 @@
 
 ;; 1. calculate consonant candidates
 ;; 2. pick the one candidate with the least sum of :count
-(defn reduce-dissonance
-  [mapping limit chord]
+(s/defn reduce-dissonance
+  :- Chord
+  [mapping :- ms/DissonanceMapping
+   limit   :- [s/Int]
+   chord   :- Chord]
   (if (consonant? mapping limit (select-chord-key :pitch chord))
     chord
     (reduce-dissonance mapping limit (reduce-dissonance' mapping limit chord))))
-
