@@ -146,53 +146,55 @@
 ;;-----------------------------------------------------------------------------
 ;; Merge events horizontally.
 
-;; (defn can-merge?
-;;   [curr next]
-;;   (let [curr (distinct-by #((juxt :pitch :part) %) curr)
-;;         next (distinct-by #((juxt :pitch :part) %) next)
-;;         old-curr (filter #(pos? (:count %)) next)
-;;         news (filter #(zero? (:count %)) next)
-;;         old-parts (set (map :part old-curr))
-;;         new-parts (set (map :part news))
-;;         curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
-;;                            (filter #(zero? (:count %))))]
-;;     (let [result
-;;           (and (empty? curr-blocking)
-;;                ;; Make sure that two sequential events in one part are not merged.
-;;                (empty? (clojure.set/intersection old-parts new-parts))
-;;                (every? :merge-left? news)
-;;                (every? :merge-right? old-curr))]
-;;           result)))
-
 (defn can-merge?
-  [a b]
-  true)
+  [curr next]
+  (let [curr (distinct-by #((juxt :pitch :part) %) curr)
+        next (distinct-by #((juxt :pitch :part) %) next)
+        old-curr (filter #(pos? (:count %)) next)
+        news (filter #(zero? (:count %)) next)
+        old-parts (set (map :part old-curr))
+        new-parts (set (map :part news))
+        curr-blocking (->> curr (filter #(contains? new-parts (:part %)))
+                           (filter #(zero? (:count %))))]
+    (let [result
+          (and (empty? curr-blocking)
+               ;; Make sure that two sequential events in one part are not merged.
+               (empty? (clojure.set/intersection old-parts new-parts))
+               (every? :merge-left? news)
+               (every? :merge-right? old-curr))]
+          result)))
 
-(defn merge-elts
-  [a b]
-  (let [melodic-notes (filter #(zero? (:count %)) b)
-        new-parts (set (map :part melodic-notes))
-        new-a (filter #(not (contains? new-parts (:part %))) a)
-        result (concat new-a melodic-notes)]
-   result))
+(defn merge-adjacent?
+  ([a b]
+   (merge-adjacent? (fn [_ _] true) a b))
+  ([pred a b]
+   (let [a' (chord/get-melodic-events a)
+         b' (chord/get-melodic-events b)]
+     (and (pred a b)
+          (every? :merge-right? a')
+          (every? :merge-left? b')
+          (empty? (clojure.set/intersection
+                   (set (map :part a'))
+                   (set (map :part b'))))))))
+
+;; (defn merge-elts
+;;   [a b]
+;;   (let [melodic-notes (filter #(zero? (:count %)) b)
+;;         new-parts (set (map :part melodic-notes))
+;;         new-a (filter #(not (contains? new-parts (:part %))) a)
+;;         result (concat new-a melodic-notes)]
+;;    result))
 
 (defn merge-horizontally
-  ([events]
+  ([consonance-pred events]
    (if (seq events)
-     (merge-horizontally (first events)
-                         (rest events))))
-  ([head events]
+     (merge-horizontally consonance-pred (first events) (rest events))))
+  ([consonance-pred head events]
    (cond (empty? events)
          (list head)
-         ;; TODO: add harmonic filter to merge.
-         (and (can-merge? head (first events))
-              (consonant? (merge-elts head
-                                      (first events))
-                          [0 2 4 5]))
-         (merge-horizontally (merge-elts head
-                                         (first events))
+         (merge-adjacent? consonance-pred head (first events))
+         (merge-horizontally consonance-pred
+                             (merge-chords head (first events))
                              (rest events))
          :else
-         (cons head (merge-horizontally events)))))
-
-
+         (cons head (merge-horizontally consonance-pred events)))))
