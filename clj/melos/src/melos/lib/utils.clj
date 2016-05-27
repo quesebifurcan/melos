@@ -104,23 +104,23 @@
 ;; => [1 1]
 
 (defn partition-groups
-  [f curr coll l]
-  (if (empty? l)
-    (if (empty? curr)
-      coll
-      (concat coll [curr]))
-    (let [nxt (first l)]
-      (if (f nxt)
-        (partition-groups f
-                          []
-                          (concat coll
-                                  [(concat curr
-                                           [nxt])])
-                          (rest l))
-        (partition-groups f
-                          (concat curr [nxt])
-                          coll
-                          (rest l))))))
+  ([pred xs]
+   (partition-groups pred [] [] xs))
+  ([pred curr accum xs]
+   (if (empty? xs)
+     (if (empty? curr)
+       accum
+       (concat accum [curr]))
+     (let [nxt (first xs)]
+       (if (pred nxt)
+         (partition-groups pred
+                           []
+                           (concat accum [(concat curr [nxt])])
+                           (rest xs))
+         (partition-groups pred
+                           (concat curr [nxt])
+                           accum
+                           (rest xs)))))))
 
 (defn partition-by-inclusive
   "like partition-by, but also puts the first non-matching element

@@ -309,25 +309,61 @@
   (testing "interleaves phrases and cycles the source materials"
     (let [phrase-data {:a [[{:pitches [0] :part :a :duration 1}
                             {:pitches [1] :part :a :duration 2}
-                            {:pitches [2] :part :a :duration 3}]
-                           [{:pitches [0 1] :part :a :duration 4}]]
-                       :b [[{:pitches [10 20] :part :b :duration 5}
-                            {:pitches [11 21] :part :b :duration 6}]]}
+                            {:pitches [2] :part :a :duration 3 :phrase-end true}]
+                           [{:pitches [0 1] :part :a :duration 4 :phrase-end true}]]
+                       :b [[{:pitches [10 20] :part :b :duration 5 :phrase-end true}
+                            {:pitches [11 21] :part :b :duration 6 :phrase-end true}]]}
           event-seqs (map->chord' phrase-data)
           accessors [:a :b :a :b]
           result (chord-seq/cycle-event-seqs accessors event-seqs)]
       (is (s/validate [ms/Phrase] (:a event-seqs)))
       (is (s/validate [ms/Phrase] (:b event-seqs)))
-      (is (s/validate [ms/Phrase] result))
-      (is (= (select-chord-keys [:pitch :part :duration] result)
-             [[{:duration 1 :events #{{:pitch 0 :part :a}}}
+      (is (s/validate ms/Phrase result))
+      (is (= empty-diff
+             (diff_
+              (select-chord-keys [:pitch :part :duration] result)
+              [{:duration 1 :events #{{:pitch 0 :part :a}}}
                {:duration 2 :events #{{:pitch 1 :part :a}}}
-               {:duration 3 :events #{{:pitch 2 :part :a}}}]
-              [{:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
-               {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]
-              [{:duration 4 :events #{{:pitch 0 :part :a} {:pitch 1 :part :a}}}]
-              [{:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
-               {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]])))))
+               {:duration 3 :events #{{:pitch 2 :part :a}}}
+               {:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
+               {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}
+               {:duration 4 :events #{{:pitch 0 :part :a} {:pitch 1 :part :a}}}
+               {:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
+               {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]))))))
+
+(deftest partition-phrases
+  (testing "partition-groups segments phrases correctly"
+    (are [expected result] (= expected result)
+      [1 3 2 1 4 2]
+      (->> [{:phrase-end true}
+            {:phrase-end false}
+            {:phrase-end false}
+            {:phrase-end true}
+            {:phrase-end false}
+            {:phrase-end true}
+            {:phrase-end true}
+            {:phrase-end false}
+            {:phrase-end false}
+            {:phrase-end false}
+            {:phrase-end true}
+            {:phrase-end false}
+            {:phrase-end true}]
+           (utils/partition-groups :phrase-end [] [])
+           (map count))
+      [1 1 1 1]
+      (->> [{:phrase-end true}
+            {:phrase-end true}
+            {:phrase-end true}
+            {:phrase-end true}]
+           (utils/partition-groups :phrase-end [] [])
+           (map count))
+      [4]
+      (->> [{:phrase-end false}
+            {:phrase-end false}
+            {:phrase-end false}
+            {:phrase-end false}]
+           (utils/partition-groups :phrase-end [] [])
+           (map count)))))
 
 (deftest extend-events
   (testing "sanity check: maybe-extend works when used with `reductions`"
