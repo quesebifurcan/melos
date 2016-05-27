@@ -309,10 +309,10 @@
   (testing "interleaves phrases and cycles the source materials"
     (let [phrase-data {:a [[{:pitches [0] :part :a :duration 1}
                             {:pitches [1] :part :a :duration 2}
-                            {:pitches [2] :part :a :duration 3 :phrase-end true}]
-                           [{:pitches [0 1] :part :a :duration 4 :phrase-end true}]]
-                       :b [[{:pitches [10 20] :part :b :duration 5 :phrase-end true}
-                            {:pitches [11 21] :part :b :duration 6 :phrase-end true}]]}
+                            {:pitches [2] :part :a :duration 3 :phrase-end? true}]
+                           [{:pitches [0 1] :part :a :duration 4 :phrase-end? true}]]
+                       :b [[{:pitches [10 20] :part :b :duration 5 :phrase-end? true}
+                            {:pitches [11 21] :part :b :duration 6 :phrase-end? true}]]}
           event-seqs (map->chord' phrase-data)
           accessors [:a :b :a :b]
           result (chord-seq/cycle-event-seqs accessors event-seqs)]
@@ -335,34 +335,34 @@
   (testing "partition-groups segments phrases correctly"
     (are [expected result] (= expected result)
       [1 3 2 1 4 2]
-      (->> [{:phrase-end true}
-            {:phrase-end false}
-            {:phrase-end false}
-            {:phrase-end true}
-            {:phrase-end false}
-            {:phrase-end true}
-            {:phrase-end true}
-            {:phrase-end false}
-            {:phrase-end false}
-            {:phrase-end false}
-            {:phrase-end true}
-            {:phrase-end false}
-            {:phrase-end true}]
-           (utils/partition-groups :phrase-end [] [])
+      (->> [{:phrase-end? true}
+            {:phrase-end? false}
+            {:phrase-end? false}
+            {:phrase-end? true}
+            {:phrase-end? false}
+            {:phrase-end? true}
+            {:phrase-end? true}
+            {:phrase-end? false}
+            {:phrase-end? false}
+            {:phrase-end? false}
+            {:phrase-end? true}
+            {:phrase-end? false}
+            {:phrase-end? true}]
+           (utils/partition-groups :phrase-end? [] [])
            (map count))
       [1 1 1 1]
-      (->> [{:phrase-end true}
-            {:phrase-end true}
-            {:phrase-end true}
-            {:phrase-end true}]
-           (utils/partition-groups :phrase-end [] [])
+      (->> [{:phrase-end? true}
+            {:phrase-end? true}
+            {:phrase-end? true}
+            {:phrase-end? true}]
+           (utils/partition-groups :phrase-end? [] [])
            (map count))
       [4]
-      (->> [{:phrase-end false}
-            {:phrase-end false}
-            {:phrase-end false}
-            {:phrase-end false}]
-           (utils/partition-groups :phrase-end [] [])
+      (->> [{:phrase-end? false}
+            {:phrase-end? false}
+            {:phrase-end? false}
+            {:phrase-end? false}]
+           (utils/partition-groups :phrase-end? [] [])
            (map count)))))
 
 (deftest extend-events
@@ -492,9 +492,9 @@
     ([xs]
      (f [] xs))
     ([a b]
-     (map (partial chord-seq/merge-chords (last a)) b))))
+     (chord-seq/merge-chords a b))))
 
-(defn merge-phrases-1
+(defn merge-phrases-1'
   [limit]
   (fn f
     ([xs]
@@ -507,19 +507,27 @@
          (map (partial chord-seq/merge-chords (last a)) b)
          b)))))
 
+(defn merge-phrases-1
+  [phrases]
+  (apply concat (reductions (merge-phrases-1' [0 3])
+                            (utils/partition-groups
+                             :phrase-end?
+                             [] []
+                             phrases))))
+
 (defn merge-phrases-2
   [limit]
   (fn f
     ([xs]
      (f [] xs))
     ([a b]
-     (let [pitches (->> (last b)
-                        (chord-seq/merge-chords (last a))
-                        (chord/select-chord-key :pitch))]
-       (if (chord/consonant? default-mapping limit pitches)
-         (map (partial chord-seq/merge-chords (last a)) b)
-         (concat (map (partial chord-seq/merge-chords (last a)) (butlast b))
-                 [(last b)]))))))
+     (if (:phrase-end? b)
+       (let [pitches (->> (chord-seq/merge-chords a b)
+                          (chord/select-chord-key :pitch))]
+         (if (chord/consonant? default-mapping limit pitches)
+           (chord-seq/merge-chords a b)
+           b))
+       (chord-seq/merge-chords a b)))))
 
 (defn merge-phrases-3
   [limit]
@@ -527,74 +535,78 @@
     ([xs]
      (f [] xs))
     ([a b]
-     (let [result (map (partial chord-seq/merge-chords (last a)) b)]
-       (concat (butlast result)
-               [(chord/reduce-dissonance default-mapping limit (last result))])))))
+     (if (:phrase-end? b)
+       (chord/reduce-dissonance default-mapping
+                                limit
+                                (chord-seq/merge-chords a b))
+       (chord-seq/merge-chords a b)))))
 
 (deftest merge-phrases-by-gradual-dissonance-reduction
-  (let [phrases [(map chord/make-chord [{:pitches [12] :part :a}
-                                        {:pitches [14] :part :a}
-                                        {:pitches [16] :part :a}])
-                 (map chord/make-chord [{:pitches [5] :part :b}
-                                        {:pitches [7] :part :b}
-                                        {:pitches [8] :part :b}])
-                 (map chord/make-chord [{:pitches [2] :part :c}
-                                        {:pitches [4] :part :c}
-                                        {:pitches [5] :part :c}])]]
+  (let [phrases (map chord/make-chord [{:pitches [12] :part :a}
+                                       {:pitches [14] :part :a}
+                                       {:pitches [16] :part :a :phrase-end? true}
+                                       {:pitches [5] :part :b}
+                                       {:pitches [7] :part :b}
+                                       {:pitches [8] :part :b :phrase-end? true}
+                                       {:pitches [2] :part :c}
+                                       {:pitches [4] :part :c}
+                                       {:pitches [5] :part :c :phrase-end? true}])]
+
     (testing "initial state; merge-all"
-      (is (= (select-chord-keys [:pitch]
-                                (reductions (merge-all) phrases))
-             [[{:events #{{:pitch 12}}}
+      (is (= empty-diff
+             (diff_
+              (select-chord-keys [:pitch] (reductions (merge-all) phrases))
+              [{:events #{{:pitch 12}}}
                {:events #{{:pitch 14}}}
-               {:events #{{:pitch 16}}}]
-              [{:events #{{:pitch 16} {:pitch 5}}}
+               {:events #{{:pitch 16}}}
+               {:events #{{:pitch 16} {:pitch 5}}}
                {:events #{{:pitch 16} {:pitch 7}}}
-               {:events #{{:pitch 16} {:pitch 8}}}]
-              [{:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
+               {:events #{{:pitch 16} {:pitch 8}}}
+               {:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
                {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
-               {:events #{{:pitch 16} {:pitch 8} {:pitch 5}}}]])))
+               {:events #{{:pitch 16} {:pitch 8} {:pitch 5}}}]))))
 
     (testing "merge phrase-by-phrase; drop accumulated result if last event
 in new phrase introduces a dissonance"
       (is (= (select-chord-keys [:pitch]
-                                (reductions (merge-phrases-1 [0 3]) phrases))
-              [[{:events #{{:pitch 12}}}
-                {:events #{{:pitch 14}}}
-                {:events #{{:pitch 16}}}]
-               [{:events #{{:pitch 16} {:pitch 5}}}
-                {:events #{{:pitch 16} {:pitch 7}}}
-                {:events #{{:pitch 16} {:pitch 8}}}]
-               [{:events #{{:pitch 2}}}
-                {:events #{{:pitch 4}}}
-                {:events #{{:pitch 5}}}]])))
+                                (merge-phrases-1 phrases))
+             [{:events #{{:pitch 12}}}
+              {:events #{{:pitch 14}}}
+              {:events #{{:pitch 16}}}
+              {:events #{{:pitch 16} {:pitch 5}}}
+              {:events #{{:pitch 16} {:pitch 7}}}
+              {:events #{{:pitch 16} {:pitch 8}}}
+              {:events #{{:pitch 2}}}
+              {:events #{{:pitch 4}}}
+              {:events #{{:pitch 5}}}])))
 
     (testing "merge phrase-by-phrase; only compare final events in phrases;
 merge all others. Reset if needed"
       (is (= (select-chord-keys [:pitch]
                                 (reductions (merge-phrases-2 [0 3]) phrases))
-             [[{:events #{{:pitch 12}}}
-               {:events #{{:pitch 14}}}
-               {:events #{{:pitch 16}}}]
-              [{:events #{{:pitch 16} {:pitch 5}}}
-               {:events #{{:pitch 16} {:pitch 7}}}
-               {:events #{{:pitch 16} {:pitch 8}}}]
-              [{:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
-               {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
-               {:events #{{:pitch 5}}}]])))
+             [{:events #{{:pitch 12}}}
+              {:events #{{:pitch 14}}}
+              {:events #{{:pitch 16}}}
+              {:events #{{:pitch 16} {:pitch 5}}}
+              {:events #{{:pitch 16} {:pitch 7}}}
+              {:events #{{:pitch 16} {:pitch 8}}}
+              {:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
+              {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
+              {:events #{{:pitch 5}}}])))
 
   (testing "merge phrase-by-phrase; gradually reduce dissonance of final
 chord in each phrase"
     (is (= (select-chord-keys [:pitch]
                               (reductions (merge-phrases-3 [0 3]) phrases))
-           [[{:events #{{:pitch 12}}}
-             {:events #{{:pitch 14}}}
-             {:events #{{:pitch 16}}}]
-            [{:events #{{:pitch 16} {:pitch 5}}}
-             {:events #{{:pitch 16} {:pitch 7}}}
-               {:events #{{:pitch 16} {:pitch 8}}}]
-              [{:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
-               {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
-               {:events #{{:pitch 8} {:pitch 5}}}]])))))
+           [{:events #{{:pitch 12}}}
+            {:events #{{:pitch 14}}}
+            {:events #{{:pitch 16}}}
+            {:events #{{:pitch 16} {:pitch 5}}}
+            {:events #{{:pitch 16} {:pitch 7}}}
+            {:events #{{:pitch 16} {:pitch 8}}}
+            {:events #{{:pitch 16} {:pitch 8} {:pitch 2}}}
+            {:events #{{:pitch 16} {:pitch 8} {:pitch 4}}}
+            {:events #{{:pitch 8} {:pitch 5}}}])))))
 
 (deftest get-melodic-events
   (let [notes [{:pitch 0 :count 3}
@@ -775,13 +787,3 @@ notes with the same :pitch but different :part"
                                                :chord {:rest true}
                                                :sum-of-leaves-duration 0,
                                                :children []}]}]})))))))
-
-;; CHORD:
-;; {:segmentation {:phrase-end true :dissonance-contributor false}}
-
-;; (deftest segment-chords)
-;; (deftest join-events)
-;; (deftest extend-phrases)
-;; (deftest merge-horizontally)
-;; (deftest chord-seq->rhythm-tree)
-;; (deftest simplify-tree)

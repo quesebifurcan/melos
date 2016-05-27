@@ -15,7 +15,7 @@
 (def chord-default
   {:duration 1
    :tempo 60
-   :phrase-end false
+   :phrase-end? false
    :events []})
 
 (defn make-chord-sel

@@ -2,8 +2,6 @@
   (:require [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
-            [clojure.math.combinatorics :as combinatorics]
-
             [clojure.algo.generic.functor :as functor]
             [melos.lib
              [schemas :as ms]]
