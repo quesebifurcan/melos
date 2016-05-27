@@ -18,9 +18,6 @@
    :phrase-end false
    :events []})
 
-;; TODO: use select-keys complimentary function:
-;; (def test (partial apply dissoc {:b 8 :a 2 :c 234}))
-
 (defn make-chord-sel
   [m]
   (cond (contains? m :pitches)
@@ -67,46 +64,6 @@
        :events
        (filter (comp zero? :count))
        set))
-
-;; OLD
-
-(declare get-melodic-event)
-
-(defn get-melodic-duration
-  [chord]
-  ((comp :duration get-melodic-event) chord))
-
-(defn pitchset
-  [chord]
-  (set (map :pitch chord)))
-
-(defn dissonance-contributors
-  [chord]
-  (filter :dissonance-contributor? chord))
-
-(def dissonance-map-default
-  "Map complementary intervals to relative dissonance values.
-
-  (\"Complementary intervals\": the minor second is considered equally
-  dissonant to the major seventh; the major second is considered
-  equally dissonant to the minor seventh; the minor third is
-  considered equally dissonant to the major sixth etc.)
-
-  All dissonance values are raised to the power of 10/9. This is an
-  arbitrarily chosen \"magic number\" -- the exact value of the
-  dissonance values is not important; they just need to be
-  sufficiently different.
-  "
-  (let [interval->dissonance
-        {0 0,
-         1 10,
-         2 4,
-         3 3,
-         4 2,
-         5 1,
-         6 5}]
-    (functor/fmap #(math/expt % 10/9)
-                  interval->dissonance)))
 
 (defn pitch->pitchclass [p] (rem (+ 60 p) 12))
 (defn pitches->pitchclasses [chord] (set (map pitch->pitchclass chord)))
