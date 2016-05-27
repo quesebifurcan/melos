@@ -702,45 +702,46 @@ notes with the same :pitch but different :part"
                                       :sum-of-leaves-duration 0,
                                       :children []}]}]})))
 
-    ;; (testing "insert single note"
-    ;;   (is (= (measure/maybe-insert-chord (measure/make-rtm-tree durations 1/2)
-    ;;                                      (chord/make-chord {:pitches [0] :part :a}))
-    ;;          1
-    ;;          )))
-
-    ;; (is (= (select-chord-keys
-    ;;         [:duration :pitch]
-    ;;         (measure/insert-events (measure/make-rtm-tree durations 1/4)
-    ;;                                [(chord/make-chord {:pitches [4] :duration 1/4})]))
-    ;;        {:duration 1/4
-    ;;         :sum-of-leaves-duration 0
-    ;;         :children []
-    ;;         :chord {:duration 1/4
-    ;;                 :events #{{:pitch 4}}}}))
-
-    (testing "insert chord"
-      (let [zipper (measure/rtm-tree-zipper {:duration 1/4
-                                             :chord nil
-                                             :sum-of-leaves-duration 0
-                                             :children []})]
+    (testing "insert chords, multiple nodes"
+      (let [tree (measure/make-rtm-tree durations 1)
+            zipper (measure/rtm-tree-zipper tree)
+            chords (map chord/make-chord [
+                                          {:pitches [0] :duration 1/4}
+                                          {:pitches [1] :duration 2/4}
+                                          ])
+            result (zip/node (measure/insert-chords chords zipper))
+            ]
         (is (s/validate ms/RhythmTreeNode (zip/node zipper)))
-        (is (= (select-chord-keys [:pitch :duration]
-                                  (measure/insert-events zipper
-                                                         (chord/make-chord
-                                                          {:pitches [1] :duration 1/4})))
-               {:duration 1/4
-                :children []
-                :sum-of-leaves-duration 0
-                :chord {:duration 1/4 :events #{{:pitch 1}}}}))
-        ))
+        (is (= empty-diff
+               (diff_ (select-chord-keys [:pitch :duration] result)
+                      {:duration 1,
+                       :chord nil,
+                       :sum-of-leaves-duration 1N,
+                       :children [{:duration 1/2,
+                                   :chord nil,
+                                   :sum-of-leaves-duration 1/2,
+                                   :children [{:duration 1/4,
+                                               :chord {:duration 1/4 :events #{{:pitch 0}}}
+                                               :sum-of-leaves-duration 0,
+                                               :children []}
+                                              {:duration 1/4,
+                                               :chord {:duration 2/4 :events #{{:pitch 1}}}
+                                               :sum-of-leaves-duration 0,
+                                               :children []}]}
+                                  {:duration 1/2,
+                                   :chord nil,
+                                   :sum-of-leaves-duration 1/2,
+                                   :children [{:duration 1/4,
+                                               :chord {:duration 1/4 :events #{{:pitch 1}}}
+                                               :sum-of-leaves-duration 0,
+                                               :children []}
+                                              {:duration 1/4,
+                                               :chord {:rest true}
+                                               :sum-of-leaves-duration 0,
+                                               :children []}]}]})))))))
 
-    ))
-
-
-  (select-chord-keys [:pitch :duration]
-                   [{:duration 1/4
-                     :sum-of-leaves-duration 2/4
-                     :chord (chord/make-chord {:pitches [4]})}])
+;; CHORD:
+;; {:segmentation {:phrase-end true :dissonance-contributor false}}
 
 ;; (deftest segment-chords)
 ;; (deftest join-events)
