@@ -31,13 +31,9 @@
 
 (def triangular (triangular*))
 
-(defn triangular-n
-  "Get the nth triangular number."
-  [n]
-  (last (take n triangular)))
+(defn triangular-n [n] (last (take n triangular)))
 
-(defn export-to-json [path data]
-  (spit path (json/write-str data)))
+(defn export-to-json [path data] (spit path (json/write-str data)))
 
 (defn segment-melody
   [xs]
@@ -58,9 +54,7 @@
             (lazy-seq (cyclic-repeats (rotate repeats)
                                       (rotate xs))))))
 
-(defn transpose
-  [step coll]
-  (map (partial + step) coll))
+(defn transpose [step coll] (map (partial + step) coll))
 
 (defn transpose-all
   [step forms]

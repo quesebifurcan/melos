@@ -757,7 +757,7 @@ notes with the same :pitch but different :part"
                                           {:pitches [0] :duration 1/4}
                                           {:pitches [1] :duration 2/4}
                                           ])
-            result (zip/node (measure/insert-chords chords zipper))
+            result (measure/insert-chords chords zipper)
             ]
         (is (s/validate ms/RhythmTreeNode (zip/node zipper)))
         (is (= empty-diff

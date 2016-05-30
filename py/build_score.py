@@ -1,5 +1,7 @@
 import itertools
 
+from fractions import Fraction
+
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
@@ -10,7 +12,7 @@ def is_leaf(node):
     return node.get('events') is not None
 
 def annotate(node, event):
-    events = node.get('events')
+    events = node.get('chord').get('events')
     part = ''
     for e in events:
         part = e.get('part')
@@ -22,29 +24,28 @@ def annotate(node, event):
         pitchgroups[pitch] = group
     part_annotation = indicatortools.Annotation('part', part)
     groups_annotation = indicatortools.Annotation('groups', pitchgroups)
-    notation_annotation = indicatortools.Annotation('notation', notation[0])
+    # notation_annotation = indicatortools.Annotation('notation', notation[0])
     attach(part_annotation, event)
     attach(groups_annotation, event)
-    attach(notation_annotation, event)
+    # attach(notation_annotation, event)
     return event
 
 def make_note(node):
-    num, denom = node.get('duration')
-    events = node.get('events')
+    duration = Fraction(node.get('duration'))
+    events = node.get('chord').get('events')
     pitches = [event.get('pitch') for event in events]
-    if "rest" in pitches:
-        event = Rest(Duration(num, denom))
+    if not events:
+        event = Rest(Duration(duration))
     else:
-        event = Chord(pitches, Duration(num, denom))
+        event = Chord(pitches, Duration(duration))
     event = annotate(node, event)
     return event
 
 def make_measure(node):
-    return Measure(tuple(node.get('duration')))
+    return Measure(Fraction(node.get('duration')))
 
 def make_tuplet(d):
-    num, denom = d.get('duration')
-    return FixedDurationTuplet(Duration(num, denom), [])
+    return FixedDurationTuplet(Duration(Fraction(d.get('duration'))), [])
 
 def extend_node(node, children, is_measure=False, is_tuplet=False):
     if is_measure and is_tuplet:
@@ -69,7 +70,7 @@ def parse_node(node, is_measure=False):
     else:
         children = []
         for child in node.get('children', []):
-            if child.get('events') is not None:
+            if child.get('chord') is not None:
                 note = make_note(child)
                 children.append(note)
             else:
@@ -79,11 +80,11 @@ def parse_node(node, is_measure=False):
 def parse_segment(segment):
     result = {}
     section_name = segment.get('section-name')
-    for part in segment.get('parts', []):
-        part_name = part.get('part-name')
-        events = part.get('events')
+    voices = segment.get('voices')
+    for part_name in segment.get('parts', []):
+        events = voices.get(part_name)
         measures = []
-        for node in events.get('children'):
+        for node in events:
             measure = parse_node(node, is_measure=True)
             measures.append(measure)
         result[part_name] = measures
