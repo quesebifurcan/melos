@@ -87,3 +87,29 @@
                              (rest events))
          :else
          (cons head (merge-horizontally consonance-pred events)))))
+
+(defn same?
+  [a b]
+  (let [a-groups (set (chord/select-chord-key :group a))
+        b-groups (set (chord/select-chord-key :group b))]
+    (= a-groups b-groups)))
+
+(defn event-seq-merger
+  [merge-pred merge-fn]
+  (fn inner
+    ([xs]
+     (if (seq xs)
+       (inner (first xs) (rest xs))))
+    ([x xs]
+     (cond (empty? xs)
+           (list x)
+           (merge-pred x (first xs))
+           (inner (merge-fn x (first xs)) (rest xs))
+           :else
+           (cons x (inner xs))))))
+
+(defn merge-durations
+  [a b]
+  (update a :duration (fn [x] (+ x (:duration b)))))
+
+(def simplify-event-seq (event-seq-merger same? merge-durations))
