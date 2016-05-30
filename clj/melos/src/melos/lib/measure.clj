@@ -42,11 +42,13 @@
 
 (defn insert-chords [notes loc]
   (if (zip/end? loc)
-    loc
+    (zip/node loc)
     (if (map? (zip/node loc))
       (cond (empty? notes)
             (recur []
                    (zip/next (zip/edit loc #(assoc % :chord {:rest true} :children []))))
+            (:root (zip/node loc))
+            (recur notes (zip/next loc))
             (> (:duration (first notes))
                (get-loc-duration loc))
             (recur (cons (update
