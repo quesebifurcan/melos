@@ -42,7 +42,7 @@ def make_note(node):
     return event
 
 def make_measure(node):
-    return Measure(Fraction(node.get('duration')))
+    return Measure(Duration(node.get('duration')))
 
 def make_tuplet(d):
     return FixedDurationTuplet(Duration(Fraction(d.get('duration'))), [])
@@ -97,6 +97,6 @@ def parse_segments(score_segments, voices):
             try:
                 measures = music[voice.name]
             except KeyError:
-                print 'No music for "{}" was found, skipping'.format(voice.name)
+                print('No music for "{}" was found, skipping'.format(voice.name))
                 continue
             voice.extend(measures)

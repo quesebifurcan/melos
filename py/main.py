@@ -51,13 +51,13 @@ def make_score(args):
 
     # TODO
     parse_segments(score_segments[0]['sections'], score_data.voices)
-    print score_data.voices
+    print(score_data.voices)
 
     for voice in score_data.voices:
         for measure in iterate(voice).by_class(Measure):
-            print measure.name
+            print(measure.name)
         attach_ties(voice)
-    print colored("Apply formatting...", 'cyan')
+    print(colored("Apply formatting...", 'cyan'))
     apply_score_overrides(score_data.score)
     return score_data
 
@@ -71,8 +71,8 @@ def main():
     with open(args.input, 'r') as infile:
         data = json.load(infile)
 
-    print data.get('title')
-    print data.get('author')
+    print(data.get('title'))
+    print(data.get('author'))
 
     # staff = Staff()
     # for x in json_data.get('music'):
@@ -81,10 +81,10 @@ def main():
     #         staff.append(result)
     # show(staff)
 
-    print colored("Creating score...", 'cyan')
+    print(colored("Creating score...", 'cyan'))
     score_data = make_score(args)
-    print colored("Persist score as pdf...", 'cyan')
-    print score_data
+    print(colored("Persist score as pdf...", 'cyan'))
+    print(score_data)
 
     # def get_annotation(elt, name):
     #     annotations = inspect_(elt).get_indicators(indicatortools.Annotation)
