@@ -1,12 +1,17 @@
 (ns melos.score.main
-  (:require [melos.lib
+  (:require [cheshire.core :refer :all]
+            [cheshire.generate :refer [add-encoder
+                                       remove-encoder
+                                       encode-map]]
+            [melos.lib
              [note      :as note]
              [chord     :as chord]
              [chord-seq :as chord-seq]
              [measure   :as measure]
              [part      :as part]
              [schemas   :as ms]
-             [utils     :as utils]]))
+             [utils     :as utils]])
+  (:import [melos.lib.schemas Note Chord]))
 
 (def durations
   {1 [1/2 1/2]
