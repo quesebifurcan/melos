@@ -14,8 +14,9 @@
   (:import [melos.lib.schemas Note Chord]))
 
 (def durations
-  {1 [1/2 1/2]
-   1/2 [1/4 1/4 1/4]
+  {1 [3/4 1/2]
+   3/4 [1/2 1/4]
+   1/2 [1/4 1/4]
    1/4 [1/8 1/8]
    1/8 [1/16 1/16]})
 
@@ -38,8 +39,8 @@
               (range 0 range_)))})
 
 (def voices (apply merge [(melos :voice-1 0 11 3)
-                          (melos :voice-3 0 8 2)
-                          (melos :voice-5 0 5 1)]))
+                          (melos :voice-3 -2 8 2)
+                          (melos :voice-5 -10 5 1)]))
 
 (def event-seqs
   (chord-seq/cycle-event-seqs (take 10 (cycle [:voice-1 :voice-3 :voice-5])) voices))
@@ -76,23 +77,35 @@
   (-> (measure/insert-chords event-seq rtm-tree-zipper)
       :children))
 
-(defn make-part
+(def voice->staff
+  {:voice-1 :a
+   :voice-3 :b
+   :voice-5 :c})
+
+(defn make-voice
   [part-name]
-  {part-name
-   (->> (part/filter-chords part-name extended-events)
-        chord-seq/simplify-event-seq
-        make-rtm-tree)})
+  {:type :Voice
+   :name part-name
+   :measures (->> (part/filter-chords part-name extended-events)
+                  chord-seq/simplify-event-seq
+                  make-rtm-tree)})
 
 ;; TODO: sections with different instrumentation?
 ;; TODO: automatic decoding
+;; TODO: only output selected keys?
 (defn render
   []
   (utils/export-to-json
    "/Users/fred/projects/music/compositions/2015/organ/output/section_1.json"
-   {:title "test"
+   {:type :Score
+    :title "test"
     :author "anonymous"
     :score-template "asdf"
     :parse-fn "qwer"
-    :sections [{:parts part-names
-                :voices (apply merge (map make-part part-names))}]}))
-
+    :sections [
+               {:type :Section
+                :voices (map make-voice part-names)}
+               {:type :Section
+                :voices (map make-voice part-names)}
+               ]
+    }))

@@ -82,9 +82,9 @@ def parse_segment(segment):
     section_name = segment.get('section-name')
     voices = segment.get('voices')
     for part_name in segment.get('parts', []):
-        events = voices.get(part_name)
+        rhythmTreeNodes = voices.get(part_name).get('measures')
         measures = []
-        for node in events:
+        for node in rhythmTreeNodes:
             measure = parse_node(node, is_measure=True)
             measures.append(measure)
         result[part_name] = measures

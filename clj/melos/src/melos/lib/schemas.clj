@@ -43,3 +43,15 @@
                   :children               [(s/maybe (s/recursive #'RhythmTreeNode))]}))
 
 (def DissonanceMapping {s/Num s/Num})
+
+(def Voice {:type s/Keyword
+            :measures s/Any})
+
+(def Staff {:type s/Keyword
+            :voices [Voice]})
+
+(def Section {:type s/Keyword
+              :staves [Staff]})
+
+(def Score {:type s/Keyword
+            :sections [Section]})

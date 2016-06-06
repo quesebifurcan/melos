@@ -2,7 +2,7 @@ from abjad import *
 import itertools
 
 from collections import namedtuple
-ScoreData = namedtuple('ScoreData', ['score', 'staves', 'voices'])
+ScoreData = namedtuple('ScoreData', ['score', 'staves', 'staff_to_voices_mapping'])
 
 #------------------------------------------------------------------------------
 # LAYOUT
@@ -159,38 +159,38 @@ def attach_ties(voice):
     adjust_ties(voice)
 
 def create_score_objects():
-    upper_staff = Staff()
-    lower_staff = Staff()
-    ped_staff = Staff()
+    upper_staff = Staff(name='a')
+    lower_staff = Staff(name='b')
+    ped_staff = Staff(name='c')
 
-    upper_staff.is_simultaneous = True
-    voice_1 = Voice(name='voice-1')
-    voice_2 = Voice(name='voice-2')
+    # upper_staff.is_simultaneous = True
+    # voice_1 = Voice(name='voice-1')
+    # voice_2 = Voice(name='voice-2')
 
-    lower_staff.is_simultaneous = True
-    voice_3 = Voice(name='voice-3')
-    voice_4 = Voice(name='voice-4')
-    voice_5 = Voice(name='voice-5')
+    # lower_staff.is_simultaneous = True
+    # voice_3 = Voice(name='voice-3')
+    # voice_4 = Voice(name='voice-4')
+    # voice_5 = Voice(name='voice-5')
 
-    override(voice_1).stem.direction = 'up'
-    override(voice_2).stem.direction = 'down'
-    override(voice_1).tie.direction = 'up'
-    override(voice_2).tie.direction = 'down'
-    override(voice_1).tuplet_bracket.direction = 'up'
-    override(voice_2).tuplet_bracket.direction = 'down'
+    # override(voice_1).stem.direction = 'up'
+    # override(voice_2).stem.direction = 'down'
+    # override(voice_1).tie.direction = 'up'
+    # override(voice_2).tie.direction = 'down'
+    # override(voice_1).tuplet_bracket.direction = 'up'
+    # override(voice_2).tuplet_bracket.direction = 'down'
 
-    override(voice_3).stem.direction = 'up'
-    override(voice_4).stem.direction = 'down'
-    override(voice_3).tie.direction = 'up'
-    override(voice_4).tie.direction = 'down'
-    override(voice_3).tuplet_bracket.direction = 'up'
-    override(voice_4).tuplet_bracket.direction = 'down'
+    # override(voice_3).stem.direction = 'up'
+    # override(voice_4).stem.direction = 'down'
+    # override(voice_3).tie.direction = 'up'
+    # override(voice_4).tie.direction = 'down'
+    # override(voice_3).tuplet_bracket.direction = 'up'
+    # override(voice_4).tuplet_bracket.direction = 'down'
 
-    upper_staff.append(voice_1)
-    upper_staff.append(voice_2)
-    lower_staff.append(voice_3)
-    lower_staff.append(voice_4)
-    ped_staff.append(voice_5)
+    # upper_staff.append(voice_1)
+    # upper_staff.append(voice_2)
+    # lower_staff.append(voice_3)
+    # lower_staff.append(voice_4)
+    # ped_staff.append(voice_5)
 
     attach(Clef('treble'), upper_staff)
     attach(Clef('treble'), lower_staff)
@@ -211,16 +211,14 @@ def create_score_objects():
     score = Score([manuals_group, ped_staff])
     return ScoreData(
         score=score,
-        voices=[
-            voice_1,
-            voice_2,
-            voice_3,
-            voice_4,
-            voice_5
-        ],
-        staves=[
-            upper_staff,
-            lower_staff,
-            ped_staff
-        ]
+        staves={
+            'a': upper_staff,
+            'b': lower_staff,
+            'c': ped_staff
+        },
+        staff_to_voices_mapping={
+            'voice-1': 'a',
+            'voice-3': 'b',
+            'voice-5': 'c'
+        }
     )
