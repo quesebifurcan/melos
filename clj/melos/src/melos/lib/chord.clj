@@ -16,6 +16,7 @@
   {:duration 1
    :tempo 60
    :phrase-end? false
+   :type :Chord
    :events []})
 
 (defn make-chord-sel

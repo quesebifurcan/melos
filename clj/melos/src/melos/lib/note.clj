@@ -14,7 +14,8 @@
    :merge-right? false
    :notation nil
    :part :none,
-   :pitch 0})
+   :pitch 0
+   :type :Note})
 
 (s/defn make-note
   :- Note

@@ -727,27 +727,34 @@ notes with the same :pitch but different :part"
              {:duration 1,
               :chord nil,
               :sum-of-leaves-duration 1N,
+              :type :RhythmTreeNode
               :children [{:duration 1/2,
                           :chord nil,
                           :sum-of-leaves-duration 1/2,
+                          :type :RhythmTreeNode
                           :children [{:duration 1/4,
                                       :chord nil,
                                       :sum-of-leaves-duration 0,
+                                      :type :RhythmTreeNode
                                       :children []}
                                      {:duration 1/4,
                                       :chord nil,
                                       :sum-of-leaves-duration 0,
+                                      :type :RhythmTreeNode
                                       :children []}]}
                          {:duration 1/2,
                           :chord nil,
                           :sum-of-leaves-duration 1/2,
+                          :type :RhythmTreeNode
                           :children [{:duration 1/4,
                                       :chord nil,
                                       :sum-of-leaves-duration 0,
+                                      :type :RhythmTreeNode
                                       :children []}
                                      {:duration 1/4,
                                       :chord nil,
                                       :sum-of-leaves-duration 0,
+                                      :type :RhythmTreeNode
                                       :children []}]}]})))
 
     (testing "insert chords, multiple nodes"
@@ -765,25 +772,32 @@ notes with the same :pitch but different :part"
                       {:duration 1,
                        :chord nil,
                        :sum-of-leaves-duration 1N,
+                       :type :RhythmTreeNode
                        :children [{:duration 1/2,
                                    :chord nil,
                                    :sum-of-leaves-duration 1/2,
+                                   :type :RhythmTreeNode
                                    :children [{:duration 1/4,
                                                :chord {:duration 1/4 :events #{{:pitch 0}}}
                                                :sum-of-leaves-duration 0,
+                                               :type :RhythmTreeNode
                                                :children []}
                                               {:duration 1/4,
                                                :chord {:duration 2/4 :events #{{:pitch 1}}}
                                                :sum-of-leaves-duration 0,
+                                               :type :RhythmTreeNode
                                                :children []}]}
                                   {:duration 1/2,
                                    :chord nil,
                                    :sum-of-leaves-duration 1/2,
+                                   :type :RhythmTreeNode
                                    :children [{:duration 1/4,
                                                :chord {:duration 1/4 :events #{{:pitch 1}}}
                                                :sum-of-leaves-duration 0,
+                                               :type :RhythmTreeNode
                                                :children []}
                                               {:duration 1/4,
                                                :chord {:rest true}
                                                :sum-of-leaves-duration 0,
+                                               :type :RhythmTreeNode
                                                :children []}]}]})))))))

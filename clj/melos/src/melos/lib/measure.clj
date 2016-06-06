@@ -27,6 +27,7 @@
      :sum-of-leaves-duration (->> (get-summed-durations template node)
                                   flatten
                                   (apply +))
+     :type :RhythmTreeNode
      :children (map (partial make-rtm-tree template) nxt)}))
 
 (defn rtm-tree-zipper

@@ -2,7 +2,8 @@
   (:require [schema.core :as s]))
 
 (s/defrecord Note
-    [count                   :- s/Int
+    [type                    :- s/Keyword
+     count                   :- s/Int
      dissonance-contributor? :- s/Bool
      group                   :- s/Symbol
      is-rest?                :- s/Bool
@@ -14,7 +15,8 @@
      pitch                   :- s/Int])
 
 (s/defrecord Chord
-    [duration    :- s/Num
+    [type        :- s/Keyword
+     duration    :- s/Num
      tempo       :- s/Int
      phrase-end? :- s/Bool
      events      :- [Note]])
@@ -28,15 +30,16 @@
 
 (def RhythmTreeNode
   (s/conditional :event
-                 {:duration               Duration
+                 {:type                   s/Keyword
+                  :duration               Duration
                   :sum-of-leaves-duration Duration
                   :chord                  (s/maybe Note)
                   :children               (s/pred nil?)}
                  :children
-                 {:duration               Duration
+                 {:type                   s/Keyword
+                  :duration               Duration
                   :sum-of-leaves-duration Duration
                   :chord                  (s/pred nil?)
                   :children               [(s/maybe (s/recursive #'RhythmTreeNode))]}))
 
 (def DissonanceMapping {s/Num s/Num})
-
