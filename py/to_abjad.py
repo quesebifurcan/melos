@@ -1,27 +1,31 @@
 import inspect
 
-from abjad.tools.scoretools import (
-    Note as AbjadNote,
-    Rest as AbjadRest,
-    Chord as AbjadChord,
-    Measure as AbjadMeasure,
-    Voice as AbjadVoice,
-    Staff as AbjadStaff,
-    Score as AbjadScore,
+from fractions import Fraction
 
-    Container,
-    FixedDurationTuplet,
-)
-from abjad.tools.durationtools import (
-    Duration as AbjadDuration,
-)
-from abjad.tools.topleveltools import (
-    show,
-)
+from abjad.tools import scoretools
+from abjad.tools import durationtools
+from abjad.tools import topleveltools
+from abjad.tools import indicatortools
+from abjad.tools import spannertools
 
 from layout import (
-    create_score_objects
+    create_score_objects,
+    make_lilypond_file,
 )
+
+def duration_to_duration_tuple(dur):
+    return {
+        0.125: (1, 8),
+        0.25: (1, 4),
+        0.5: (1, 2),
+        0.75: (3, 4),
+        1: (4, 4),
+    }.get(dur)
+
+def templates():
+    return {
+        'asdf': create_score_objects,
+    }
 
 def identity(x): return x
 
@@ -41,27 +45,28 @@ def init(self, data):
 class Converter:
     def __init__(self, data):
         if data:
-            self.asdf = init(self, data)
+            self.converted = init(self, data)
         else:
-            self.asdf = None
+            self.converted = None
     def get_params(self):
         if inspect.ismethod(self.params):
             return self.params().items()
         else:
             return self.params.items()
     def to_abjad(self):
-        return self.asdf
+        return self.converted
 
 class Many(Converter):
     def __init__(self, xs):
         result = []
         for x in xs:
             result.append(self.root(x).to_abjad())
-        self.asdf = result
+        self.converted = result
 
 class Note(Converter):
     params = {
         'pitch': identity,
+        'group': identity,
     }
     def to_abjad(self):
         return self
@@ -71,58 +76,54 @@ class Notes(Many):
 
 class Chord(Converter):
     params = {
-        'duration': identity,
+        'duration': duration_to_duration_tuple,
         'tempo': identity,
         'phrase_end_bool': identity,
         'events': Notes,
     }
     def to_abjad(self):
-        if self.asdf and self.asdf.events:
-            pitches = [x.asdf.pitch for x in self.asdf.events]
-            return AbjadChord(pitches, AbjadDuration(1, 4))
-        elif self.asdf:
-            return AbjadRest(AbjadDuration(1, 4))
+        if self.converted and self.converted.events:
+            pitches = [x.converted.pitch for x in self.converted.events]
+            groups = [x.converted.group for x in self.converted.events]
+            groups_annotation = indicatortools.Annotation('groups', groups)
+            chord = scoretools.Chord(pitches, durationtools.Duration(1, 4))
+            topleveltools.attach(groups_annotation, chord)
+            return chord
+        elif self.converted:
+            return scoretools.Rest(durationtools.Duration(1, 4))
 
 class RhythmTreeNode(Converter):
-    # 1. is top level?
-    # 2. has scaled duration?
     def params(self):
         return {
-            'duration': identity,
+            'duration': duration_to_duration_tuple,
             'children': RhythmTreeNodes,
             'chord': Chord
         }
     def to_abjad(self):
-        if self.asdf.chord:
-            chord = self.asdf.chord
-            chord.written_duration = self.asdf.duration
+        if self.converted.chord:
+            chord = self.converted.chord
+            chord.written_duration = durationtools.Duration(*self.converted.duration)
             return chord
         else:
-            container = FixedDurationTuplet(self.asdf.duration, [])
-            container.extend(self.asdf.children)
+            container = scoretools.FixedDurationTuplet(
+                durationtools.Duration(*self.converted.duration),
+                [])
+            container.extend(self.converted.children)
             return container
-
-        # return (
-        #     self.asdf.duration,
-        #     self.asdf.children,
-        #     self.asdf.chord,
-        # )
 
 class RhythmTreeNodes(Many):
     root = RhythmTreeNode
 
-from fractions import Fraction
-
 class Measure(Converter):
     params = {
-        'duration': identity,
+        'duration': duration_to_duration_tuple,
         'children': RhythmTreeNodes,
     }
     def to_abjad(self):
-        result = AbjadMeasure((1, 1))
-        tuplet = FixedDurationTuplet((1, 1), [])
+        result = scoretools.Measure(self.converted.duration)
+        tuplet = scoretools.FixedDurationTuplet(self.converted.duration, [])
         result.append(tuplet)
-        for node in self.asdf.children:
+        for node in self.converted.children:
             tuplet.append(node)
         return result
 
@@ -135,8 +136,8 @@ class Voice(Converter):
         'measures': Measures,
     }
     def to_abjad(self):
-        result = AbjadVoice(name=self.asdf.name)
-        for measure in self.asdf.measures:
+        result = scoretools.Voice(name=self.converted.name)
+        for measure in self.converted.measures:
             result.append(measure)
         return result
 
@@ -148,15 +149,30 @@ class Section(Converter):
         'voices': Voices
     }
     def to_abjad(self):
-        return self.asdf.voices
+        return self.converted.voices
 
 class Sections(Many):
     root = Section
 
-def templates():
-    return {
-        'asdf': create_score_objects,
-    }
+def is_tied(a, b):
+    a_ = topleveltools.inspect_(a).get_indicators(indicatortools.Annotation)[0].value
+    b_ = topleveltools.inspect_(b).get_indicators(indicatortools.Annotation)[0].value
+    return any([x in b_ for x in a_])
+
+def get_tie_groups(xs):
+    curr = []
+    result = []
+    for x in xs:
+        if not curr:
+            curr.append(x)
+        elif is_tied(x, curr[-1]):
+            curr.append(x)
+        else:
+            result.append(curr)
+            curr = [x]
+    if curr:
+        result.append(curr)
+    return result
 
 class Score(Converter):
     params = {
@@ -165,39 +181,29 @@ class Score(Converter):
         'sections': Sections
     }
     def get_template(self):
-        return templates().get(self.asdf.score_template)()
-
+        return templates().get(self.converted.score_template)()
     def to_abjad(self):
-
         score_data = self.get_template()
-
-        for section in self.asdf.sections:
+        for section in self.converted.sections:
             containers = {}
             for k in score_data.staves.keys():
-                containers[k] = Container(name=k, is_simultaneous=True)
+                containers[k] = scoretools.Container(name=k, is_simultaneous=True)
             for voice in section:
                 staff = score_data.staff_to_voices_mapping[voice.name]
                 containers[staff].append(voice)
-                print(voice)
             for k, v in containers.items():
                 score_data.staves[k].append(v)
-
-            #     # score_data.staves[staff['name']].append(staff['container'])
-            #     # print(voice.name)
-            #     print(voice)
-
-        show(score_data.score)
-        # for staff in score_data.staves:
-        #     print(staff.name)
-        import sys; sys.exit()
-
-        # for section in self.asdf.sections:
-
-        return ('score:', self.asdf.__dict__)
+            for voice in section:
+                chords = list(topleveltools.iterate(voice).by_class(scoretools.Chord))
+                for group_ in (get_tie_groups(chords)):
+                    topleveltools.attach(spannertools.Tie(), group_)
+        for staff in score_data.staves.values():
+            topleveltools.override(staff).time_signature.style = 'numeric'
+        return make_lilypond_file(
+            score_data.score,
+            self.converted.title,
+            'tester',
+        )
 
 def convert(score):
-    print(Score(score).to_abjad())
-    # print(Score(score).result.sections)
-    # print(Score(score).result.title)
-    return 'Score'
-
+    return Score(score).to_abjad()

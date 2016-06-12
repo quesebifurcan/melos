@@ -14,11 +14,12 @@
   (:import [melos.lib.schemas Note Chord]))
 
 (def durations
-  {1 [3/4 1/2]
-   3/4 [1/2 1/4]
-   1/2 [1/4 1/4]
-   1/4 [1/8 1/8]
-   1/8 [1/16 1/16]})
+  {1              [3/4 [1/2 :stretch]]
+   3/4            [[1/2 :stretch] 1/4]
+   [1/2 :stretch] [1/2 1/4]
+   1/2            [1/4 1/4]
+   1/4            [1/8 1/8]
+   1/8            [1/16 1/16]})
 
 (def measure-1
   (measure/make-rtm-tree durations 1))
@@ -54,6 +55,20 @@
    5 1,
    6 5})
 
+;; (defn handle-dissonance-fn
+;;   [limit]
+;;   (fn f
+;;     ([xs]
+;;      (f [] xs))
+;;     ([a b]
+;;      (if (:phrase-end? b)
+;;        (let [pitches (->> (chord-seq/merge-chords a b)
+;;                           (chord/select-chord-key :pitch))]
+;;          (if (chord/consonant? default-mapping limit pitches)
+;;            (chord-seq/merge-chords a b)
+;;            b))
+;;        (chord-seq/merge-chords a b)))))
+
 (defn handle-dissonance-fn
   [limit]
   (fn f
@@ -61,11 +76,9 @@
      (f [] xs))
     ([a b]
      (if (:phrase-end? b)
-       (let [pitches (->> (chord-seq/merge-chords a b)
-                          (chord/select-chord-key :pitch))]
-         (if (chord/consonant? default-mapping limit pitches)
-           (chord-seq/merge-chords a b)
-           b))
+       (chord/reduce-dissonance default-mapping
+                                limit
+                                (chord-seq/merge-chords a b))
        (chord-seq/merge-chords a b)))))
 
 (def extended-events (reductions (handle-dissonance-fn [0 2 4 5]) event-seqs))
