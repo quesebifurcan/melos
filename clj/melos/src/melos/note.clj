@@ -1,7 +1,7 @@
-(ns melos.lib.note
-  (:require [schema.core :as s]
-            [melos.lib.schemas :as ms])
-  (:import [melos.lib.schemas Note]))
+(ns melos.note
+  (:require [melos.schemas :as ms]
+            [schema.core :as s])
+  (:import melos.schemas.Note))
 
 (defn note-default
   []

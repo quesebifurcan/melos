@@ -1,16 +1,16 @@
-(ns melos.lib.chord-seq
-  (:require [clojure.math
+(ns melos.chord-seq
+  (:require [clojure.algo.generic.functor :as functor]
+            [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
             [clojure.set :as set]
-            [clojure.algo.generic.functor :as functor]
-            [melos.lib
-             [note :as note]
+            [melos
              [chord :as chord]
+             [note :as note]
              [schemas :as ms]
-             [utils :refer [rotate distinct-by partition-by-inclusive]]]
+             [utils :refer [distinct-by partition-by-inclusive rotate]]]
             [schema.core :as s])
-  (:import [melos.lib.schemas Chord]))
+  (:import melos.schemas.Chord))
 
 (defn update-events
   [chord k f]

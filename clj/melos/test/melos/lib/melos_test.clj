@@ -1,22 +1,23 @@
 (ns melos.lib.melos-test
-  (:require [melos.lib.note :as note]
-            [melos.lib.chord :as chord]
-            [melos.lib.chord-seq :as chord-seq]
-            [melos.lib.schemas :as ms]
-            [melos.lib.measure :as measure]
-            [melos.lib.part :as part]
-            [melos.lib.utils :as utils]
-            [schema.core :as s]
+  (:require [clojure
+             [data :refer [diff]]
+             [test :refer [are deftest is testing use-fixtures]]
+             [zip :as zip]]
             [clojure.algo.generic.functor :as functor]
-            [clojure.zip :as zip]
             [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
-            [schema.test]
-            [clojure.test :refer [deftest is are testing use-fixtures]]
-            [clojure.data :refer [diff]]
-            [clojure.zip :as zip])
-  (:import [melos.lib.schemas Note Chord]))
+            [melos
+             [chord :as chord]
+             [chord-seq :as chord-seq]
+             [measure :as measure]
+             [note :as note]
+             [part :as part]
+             [schemas :as ms]
+             [utils :as utils]]
+            [schema test
+             [core :as s]])
+  (:import [melos.schemas Chord Note]))
 
 (use-fixtures :once schema.test/validate-schemas)
 

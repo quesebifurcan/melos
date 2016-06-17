@@ -1,4 +1,4 @@
-(ns melos.lib.part)
+(ns melos.part)
 
 (defn filter-events
   [part-name events]

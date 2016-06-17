@@ -1,10 +1,9 @@
-(ns melos.lib.utils
-  (:require [clojure.data.json :as json]
+(ns melos.utils
+  (:require [clojure.algo.generic.functor :as functor]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
-            [clojure.algo.generic.functor :as functor]
-            [melos.lib
-             [schemas :as ms]]
+            [melos.schemas :as ms]
             [schema.core :as s]))
 
 (defn abs [n] (max n (- n)))

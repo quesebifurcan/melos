@@ -1,4 +1,4 @@
-(ns melos.lib.schemas
+(ns melos.schemas
   (:require [schema.core :as s]))
 
 (s/defrecord Note

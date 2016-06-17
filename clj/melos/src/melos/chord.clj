@@ -1,14 +1,14 @@
-(ns melos.lib.chord
+(ns melos.chord
   (:require [clojure.algo.generic.functor :as functor]
             [clojure.math
              [combinatorics :as combinatorics]
              [numeric-tower :as math]]
-            [melos.lib
+            [melos
              [note :as note]
              [schemas :as ms]
              [utils :refer [triangular-n]]]
             [schema.core :as s])
-  (:import [melos.lib.schemas Note Chord]))
+  (:import [melos.schemas Chord Note]))
 
 (defn select-chord-key [k chord] (map k (:events chord)))
 

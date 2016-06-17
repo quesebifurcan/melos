@@ -1,14 +1,14 @@
 (ns example-score.main
   (:require [clojure.java.shell :as shell]
-            [melos.lib
-             [note      :as note]
-             [chord     :as chord]
+            [melos
+             [chord :as chord]
              [chord-seq :as chord-seq]
-             [measure   :as measure]
-             [part      :as part]
-             [schemas   :as ms]
-             [utils     :as utils]])
-  (:import [melos.lib.schemas Note Chord]))
+             [measure :as measure]
+             [note :as note]
+             [part :as part]
+             [schemas :as ms]
+             [utils :as utils]])
+  (:import [melos.schemas Chord Note]))
 
 (def durations
   {1              [3/4 [1/2 :stretch]]

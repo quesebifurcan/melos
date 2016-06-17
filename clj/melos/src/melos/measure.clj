@@ -1,7 +1,7 @@
-(ns melos.lib.measure
-  (:require [melos.lib.utils :as utils]
-            [clojure.zip :as zip])
-  (:import [melos.lib.schemas Chord]))
+(ns melos.measure
+  (:require [clojure.zip :as zip]
+            [melos.utils :as utils])
+  (:import melos.schemas.Chord))
 
 (defn ratio-calc
   [f args]
