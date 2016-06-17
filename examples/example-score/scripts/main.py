@@ -6,18 +6,18 @@ from collections import namedtuple
 from termcolor import colored
 
 from abjad import *
-from abjad.tools.scoretools import FixedDurationTuplet
+# from abjad.tools.scoretools import FixedDurationTuplet
 
-from layout import (
+from melos.layout import (
     create_score_objects,
     attach_ties,
     apply_score_overrides,
     make_lilypond_file,
 )
 
-import to_abjad
+from melos import to_abjad
 
-from build_score import (
+from melos.build_score import (
     parse_node,
     parse_segments,
 )
@@ -40,10 +40,10 @@ def main():
     # TODO: score overrides
     # TODO: extend last note in section
     # apply_score_overrides(score_data.score)
-    abjad_score = to_abjad.convert(score)
-    show(abjad_score)
+    lilypond_file = to_abjad.convert(score)
 
-    # # persist(lilypond_file).as_pdf(args.output)
+    persist(lilypond_file).as_pdf(args.output)
 
 if __name__ == '__main__':
+    print(to_abjad)
     main()

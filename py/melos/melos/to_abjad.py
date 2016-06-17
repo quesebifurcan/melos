@@ -8,7 +8,7 @@ from abjad.tools import topleveltools
 from abjad.tools import indicatortools
 from abjad.tools import spannertools
 
-from layout import (
+from melos.layout import (
     create_score_objects,
     make_lilypond_file,
 )
