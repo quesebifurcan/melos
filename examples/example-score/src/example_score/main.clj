@@ -21,8 +21,9 @@
 (def measure-1
   (measure/make-rtm-tree durations 1))
 
-(def rtm-tree-zipper
-  (measure/rtm-tree-zipper {:root true :children [measure-1 measure-1]}))
+(defn rtm-tree-zipper
+  [measures]
+  (measure/rtm-tree-zipper {:root true :children measures}))
 
 (defn melos
   [part transposition range_ partition_]
@@ -36,12 +37,12 @@
                                      :phrase-end? phrase-end})))
               (range 0 range_)))})
 
-(def voices (apply merge [(melos :voice-1 0 11 3)
+(def voices (apply merge [(melos :voice-1 2 11 3)
                           (melos :voice-3 -2 8 2)
                           (melos :voice-5 -10 5 1)]))
 
 (def event-seqs
-  (chord-seq/cycle-event-seqs (take 10 (cycle [:voice-1 :voice-3 :voice-5])) voices))
+  (chord-seq/cycle-event-seqs (take 16 (cycle [:voice-1 :voice-3 :voice-5])) voices))
 
 (def default-mapping
   {0 0,
@@ -68,10 +69,19 @@
 
 (def part-names [:voice-1 :voice-3 :voice-5])
 
+(defn cycle-measures
+  [dur measures]
+  (if (> dur 0)
+    (cons (first measures)
+          (cycle-measures (- dur (:sum-of-leaves-duration (first measures)))
+                          (utils/rotate measures)))))
+
 (defn make-rtm-tree
   [event-seq]
-  (-> (measure/insert-chords event-seq rtm-tree-zipper)
-      :children))
+  (let [total-duration (apply + (map :duration event-seq))
+        measures (cycle-measures total-duration [measure-1])]
+  (-> (measure/insert-chords event-seq (rtm-tree-zipper measures))
+      :children)))
 
 (def voice->staff
   {:voice-1 :a
@@ -102,8 +112,37 @@
     :parse-fn "qwer"
     :sections [
                {:type :Section
-                :voices (map make-voice part-names)}
+                :staves [
+                         {:type :Staff
+                          :name :a
+                          :notation :soft
+                          :voices [(make-voice :voice-1)]}
+                         {:type :Staff
+                          :name :b
+                          :notation :shrill
+                          :voices [(make-voice :voice-3)]}
+                         {:type :Staff
+                          :name :c
+                          :notation :very-soft
+                          :voices [(make-voice :voice-5)]}
+                         ]}
                {:type :Section
-                :voices (map make-voice part-names)}
-               ]})
+                :staves [
+                         {:type :Staff
+                          :name :a
+                          :notation :asdf
+                          :voices [(make-voice :voice-1)]}
+                         {:type :Staff
+                          :name :b
+                          :notation :asdf
+                          :voices [(make-voice :voice-3)]}
+                         {:type :Staff
+                          :name :c
+                          :notation :asdf
+                          :voices [(make-voice :voice-5)]}
+                         ]}
+               ]
+    })
   (shell/sh "scripts/to_pdf.sh"))
+
+(render)

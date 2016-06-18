@@ -6,9 +6,8 @@ from collections import namedtuple
 from termcolor import colored
 
 from abjad import *
-# from abjad.tools.scoretools import FixedDurationTuplet
 
-from melos.layout import (
+from layout import (
     create_score_objects,
     attach_ties,
     apply_score_overrides,
@@ -16,11 +15,6 @@ from melos.layout import (
 )
 
 from melos import to_abjad
-
-from melos.build_score import (
-    parse_node,
-    parse_segments,
-)
 
 def dict_to_namedtuple(d):
     type_ = d.get('type', 'NoType')
@@ -39,11 +33,29 @@ def main():
 
     # TODO: score overrides
     # TODO: extend last note in section
+    # TODO: phrasing slurs
     # apply_score_overrides(score_data.score)
-    lilypond_file = to_abjad.convert(score)
+    template = create_score_objects()
+    lilypond_file = to_abjad.Score(score).to_abjad(template)
 
-    persist(lilypond_file).as_pdf(args.output)
+    def add_staff_markup(staff):
+        fst = next(topleveltools.iterate(staff).by_class((Chord, Rest)))
+        text = to_abjad.get_named_annotation(staff, 'notation')
+        attach(Markup(text, direction=Up), fst)
+
+    post_process = {
+        'section_container': add_staff_markup
+    }
+
+    for x in iterate(lilypond_file).by_class((Container, Voice)):
+        maybe_ann = to_abjad.get_named_annotation(x, 'score_id')
+        if maybe_ann:
+            proc = post_process.get(maybe_ann)
+            if proc:
+                proc(x)
+
+    topleveltools.override(lilypond_file).time_signature.style = 'numeric'
+    show(lilypond_file)
 
 if __name__ == '__main__':
-    print(to_abjad)
     main()
