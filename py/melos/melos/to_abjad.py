@@ -8,26 +8,47 @@ from abjad.tools import topleveltools
 from abjad.tools import indicatortools
 from abjad.tools import spannertools
 
-from melos.layout import (
-    create_score_objects,
-    make_lilypond_file,
-)
-
 def duration_to_duration_tuple(dur):
     return {
         0.125: (1, 8),
-        0.25: (1, 4),
-        0.5: (1, 2),
-        0.75: (3, 4),
-        1: (4, 4),
+        0.25:  (1, 4),
+        0.5:   (1, 2),
+        0.75:  (3, 4),
+        1:     (4, 4),
     }.get(dur)
 
-def templates():
-    return {
-        'asdf': create_score_objects,
-    }
-
 def identity(x): return x
+
+def annotate(obj, key, value):
+    topleveltools.attach(indicatortools.Annotation(key, value), obj)
+    return obj
+
+def get_named_annotation(obj, name):
+    annotations = topleveltools.inspect_(obj).get_indicators(indicatortools.Annotation)
+    for annotation in annotations:
+        if annotation.name == name:
+            return annotation.value
+    return None
+
+def is_tied(a, b):
+    a_ = get_named_annotation(a, 'groups')
+    b_ = get_named_annotation(b, 'groups')
+    return any([x in b_ for x in a_])
+
+def get_tie_groups(xs):
+    curr = []
+    result = []
+    for x in xs:
+        if not curr:
+            curr.append(x)
+        elif is_tied(x, curr[-1]):
+            curr.append(x)
+        else:
+            result.append(curr)
+            curr = [x]
+    if curr:
+        result.append(curr)
+    return result
 
 def init(self, data):
     result = type('temp', (object,), {})()
@@ -136,43 +157,42 @@ class Voice(Converter):
         'measures': Measures,
     }
     def to_abjad(self):
-        result = scoretools.Voice(name=self.converted.name)
+        result = scoretools.Voice()
         for measure in self.converted.measures:
             result.append(measure)
+        annotate(result, 'score_id', 'Voice')
+        annotate(result, 'name', self.converted.name)
         return result
 
 class Voices(Many):
     root = Voice
 
-class Section(Converter):
+class Staff(Converter):
     params = {
-        'voices': Voices
+        'voices': Voices,
+        'name': identity,
+        'notation': identity,
     }
     def to_abjad(self):
-        return self.converted.voices
+        container = scoretools.Container(is_simultaneous=True)
+        annotate(container, 'score_id', 'section_container')
+        annotate(container, 'name', self.converted.name)
+        annotate(container, 'notation', self.converted.notation)
+        container.extend(self.converted.voices)
+        return container
+
+class Staves(Many):
+    root = Staff
+
+class Section(Converter):
+    params = {
+        'staves': Staves,
+    }
+    def to_abjad(self):
+        return self.converted.staves
 
 class Sections(Many):
     root = Section
-
-def is_tied(a, b):
-    a_ = topleveltools.inspect_(a).get_indicators(indicatortools.Annotation)[0].value
-    b_ = topleveltools.inspect_(b).get_indicators(indicatortools.Annotation)[0].value
-    return any([x in b_ for x in a_])
-
-def get_tie_groups(xs):
-    curr = []
-    result = []
-    for x in xs:
-        if not curr:
-            curr.append(x)
-        elif is_tied(x, curr[-1]):
-            curr.append(x)
-        else:
-            result.append(curr)
-            curr = [x]
-    if curr:
-        result.append(curr)
-    return result
 
 class Score(Converter):
     params = {
@@ -182,28 +202,13 @@ class Score(Converter):
     }
     def get_template(self):
         return templates().get(self.converted.score_template)()
-    def to_abjad(self):
-        score_data = self.get_template()
+    def to_abjad(self, template):
+        score_data = template
         for section in self.converted.sections:
-            containers = {}
-            for k in score_data.staves.keys():
-                containers[k] = scoretools.Container(name=k, is_simultaneous=True)
-            for voice in section:
-                staff = score_data.staff_to_voices_mapping[voice.name]
-                containers[staff].append(voice)
-            for k, v in containers.items():
-                score_data.staves[k].append(v)
-            for voice in section:
-                chords = list(topleveltools.iterate(voice).by_class(scoretools.Chord))
+            for staff_container in section:
+                container_name = get_named_annotation(staff_container, 'name')
+                score_data.staves[container_name].append(staff_container)
+                chords = topleveltools.iterate(staff_container).by_class(scoretools.Chord)
                 for group_ in (get_tie_groups(chords)):
                     topleveltools.attach(spannertools.Tie(), group_)
-        for staff in score_data.staves.values():
-            topleveltools.override(staff).time_signature.style = 'numeric'
-        return make_lilypond_file(
-            score_data.score,
-            self.converted.title,
-            'tester',
-        )
-
-def convert(score):
-    return Score(score).to_abjad()
+        return score_data.score
