@@ -19,6 +19,7 @@
      duration    :- s/Num
      tempo       :- s/Int
      phrase-end? :- s/Bool
+     is-rest?    :- s/Bool
      events      :- [Note]])
 
 (def Phrase (s/both (s/pred (complement empty?))

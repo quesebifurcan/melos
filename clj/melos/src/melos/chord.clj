@@ -16,6 +16,7 @@
   {:duration 1
    :tempo 60
    :phrase-end? false
+   :is-rest? false
    :type :Chord
    :events []})
 
@@ -122,8 +123,7 @@
   [mapping :- ms/DissonanceMapping
    limit   :- [s/Int]
    xs      :- [Note]]
-  (boolean (and (some #(zero? (:count %)) xs)
-                (consonant? mapping limit (map :pitch xs)))))
+  (boolean (some #(zero? (:count %)) xs)))
 
 (s/defn reduce-dissonance'
   :- Chord
@@ -136,8 +136,6 @@
                     (filter (partial valid-events? mapping limit)))]
     (assoc chord :events (first events))))
 
-;; 1. calculate consonant candidates
-;; 2. pick the one candidate with the least sum of :count
 (s/defn reduce-dissonance
   :- Chord
   [mapping :- ms/DissonanceMapping

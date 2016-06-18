@@ -798,7 +798,7 @@ notes with the same :pitch but different :part"
                                                :type :RhythmTreeNode
                                                :children []}
                                               {:duration 1/4,
-                                               :chord {:rest true}
+                                               :chord {:duration 1 :events #{}}
                                                :sum-of-leaves-duration 0,
                                                :type :RhythmTreeNode
                                                :children []}]}]})))))))

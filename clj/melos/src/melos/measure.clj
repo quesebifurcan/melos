@@ -1,5 +1,6 @@
 (ns melos.measure
   (:require [clojure.zip :as zip]
+            [melos.chord :as chord]
             [melos.utils :as utils])
   (:import melos.schemas.Chord))
 
@@ -47,7 +48,10 @@
     (if (map? (zip/node loc))
       (cond (empty? notes)
             (recur []
-                   (zip/next (zip/edit loc #(assoc % :chord {:rest true} :children []))))
+                   (zip/next (zip/edit loc (fn [x]
+                                             (-> x
+                                                 (assoc :chord (chord/make-chord {:is-rest? true}))
+                                                 (assoc :children []))))))
             (:root (zip/node loc))
             (recur notes (zip/next loc))
             (> (:duration (first notes))
