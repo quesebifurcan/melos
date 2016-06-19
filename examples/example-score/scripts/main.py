@@ -54,6 +54,20 @@ def main():
             if proc:
                 proc(x)
 
+    def grouper(x):
+        try:
+            return to_abjad.get_named_annotation(x, 'notations')[0].phrase_id
+        except:
+            return ''
+
+    for k, v in itertools.groupby(iterate(lilypond_file).by_class((Chord, Rest)),
+                                  grouper):
+        group = list(v)
+        if isinstance(group[0], Chord):
+            pitches = set([x.written_pitches for x in group])
+            if len(pitches) > 1:
+                attach(spannertools.Slur(), group)
+
     topleveltools.override(lilypond_file).time_signature.style = 'numeric'
     show(lilypond_file)
 

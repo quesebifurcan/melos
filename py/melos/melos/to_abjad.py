@@ -88,6 +88,7 @@ class Note(Converter):
     params = {
         'pitch': identity,
         'group': identity,
+        'notation': identity,
     }
     def to_abjad(self):
         return self
@@ -107,7 +108,10 @@ class Chord(Converter):
             pitches = [x.converted.pitch for x in self.converted.events]
             groups = [x.converted.group for x in self.converted.events]
             groups_annotation = indicatortools.Annotation('groups', groups)
+            notations = [x.converted.notation for x in self.converted.events]
+            notations_annotation = indicatortools.Annotation('notations', notations)
             chord = scoretools.Chord(pitches, durationtools.Duration(1, 4))
+            topleveltools.attach(notations_annotation, chord)
             topleveltools.attach(groups_annotation, chord)
             return chord
         elif self.converted:

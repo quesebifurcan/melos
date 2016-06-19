@@ -25,22 +25,30 @@
   [measures]
   (measure/rtm-tree-zipper {:root true :children measures}))
 
+(defn make-phrase
+  [part transposition pitches]
+  (let [phrase-end-values (concat (repeat (dec (count pitches)) false) [true])
+        phrase-id (gensym "phrase_id__")]
+    (map (fn [pitch phrase-end?]
+           (chord/make-chord {:events [(note/make-note {:pitch (+ pitch transposition)
+                                                        :part part
+                                                        :notation {:type :Slur
+                                                                   :phrase-id
+                                                                   phrase-id}})]
+                              :duration 1/4
+                              :phrase-end? phrase-end?}))
+         pitches
+         phrase-end-values)))
+
 (defn melos
-  [part transposition range_ partition_]
-  {part (utils/partition-groups
-         :phrase-end?
-         (map (fn [pitch]
-                (let [phrase-end (zero? (rem pitch partition_))]
-                  (chord/make-chord {:pitches [(+ pitch transposition)]
-                                     :part part
-                                     :duration 1/4
-                                     :phrase-end? phrase-end})))
-              (range 0 range_)))})
+  [part transposition pitches]
+  {part (map (partial make-phrase part transposition) pitches)})
 
-(def voices (apply merge [(melos :voice-1 2 11 3)
-                          (melos :voice-3 -2 8 2)
-                          (melos :voice-5 -10 5 1)]))
+(def voices (apply merge [(melos :voice-1 0 [[0] [1 2] [3 4] [5]])
+                          (melos :voice-3 -3 [[0] [1 2] [3 4] [5]])
+                          (melos :voice-5 -8 [[0] [1 2] [3 4] [5]])]))
 
+;; TODO: phrase -- set type?
 (def event-seqs
   (chord-seq/cycle-event-seqs (take 16 (cycle [:voice-1 :voice-3 :voice-5])) voices))
 
@@ -145,4 +153,4 @@
     })
   (shell/sh "scripts/to_pdf.sh"))
 
-(render)
+
