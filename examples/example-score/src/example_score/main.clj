@@ -85,11 +85,9 @@
                           (utils/rotate measures)))))
 
 (defn make-rtm-tree
-  [event-seq]
-  (let [total-duration (apply + (map :duration event-seq))
-        measures (cycle-measures total-duration [measure-1])]
+  [measures event-seq]
   (-> (measure/insert-chords event-seq (rtm-tree-zipper measures))
-      :children)))
+      :children))
 
 (def voice->staff
   {:voice-1 :a
@@ -98,16 +96,21 @@
 
 (defn make-voice
   [part-name]
-  {:type :Voice
-   :name part-name
-   :measures (->> (part/filter-chords part-name extended-events)
-                  chord-seq/simplify-event-seq
-                  make-rtm-tree)})
+  (let [event-seq (part/filter-chords part-name extended-events)
+        total-duration (apply + (map :duration event-seq))
+        measures (cycle-measures total-duration [measure-1])
+        measures-duration (apply + (map :sum-of-leaves-duration measures))
+        diff_ (- measures-duration total-duration)
+        extended (concat (butlast event-seq)
+                         [(update (last event-seq) :duration (fn [x] (+ x diff_)))])]
+    {:type :Voice
+     :name part-name
+     :measures (->> (chord-seq/simplify-event-seq extended)
+                    (make-rtm-tree measures))}))
 
 ;; TODO: sections with different instrumentation?
 ;; TODO: automatic decoding
 ;; TODO: only output selected keys?
-;; TODO: add :Staff in order to be able to add staff-level markup for each section?
 ;; TODO: collect list of all annotations
 (defn render
   []
@@ -120,8 +123,7 @@
     :parse-fn "qwer"
     :sections [
                {:type :Section
-                :staves [
-                         {:type :Staff
+                :staves [{:type :Staff
                           :name :a
                           :notation :soft
                           :voices [(make-voice :voice-1)]}
@@ -132,8 +134,7 @@
                          {:type :Staff
                           :name :c
                           :notation :very-soft
-                          :voices [(make-voice :voice-5)]}
-                         ]}
+                          :voices [(make-voice :voice-5)]}]}
                {:type :Section
                 :staves [
                          {:type :Staff
@@ -152,5 +153,3 @@
                ]
     })
   (shell/sh "scripts/to_pdf.sh"))
-
-

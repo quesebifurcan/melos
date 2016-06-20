@@ -113,3 +113,4 @@
   (update a :duration (fn [x] (+ x (:duration b)))))
 
 (def simplify-event-seq (event-seq-merger same? merge-durations))
+

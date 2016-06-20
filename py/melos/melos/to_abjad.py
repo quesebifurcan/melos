@@ -141,6 +141,7 @@ class RhythmTreeNodes(Many):
 
 class Measure(Converter):
     params = {
+        'chord': Chord,
         'duration': duration_to_duration_tuple,
         'children': RhythmTreeNodes,
     }
@@ -148,8 +149,13 @@ class Measure(Converter):
         result = scoretools.Measure(self.converted.duration)
         tuplet = scoretools.FixedDurationTuplet(self.converted.duration, [])
         result.append(tuplet)
-        for node in self.converted.children:
-            tuplet.append(node)
+        if self.converted.children:
+            for node in self.converted.children:
+                tuplet.append(node)
+        else:
+            chord = self.converted.chord
+            chord.written_duration = durationtools.Duration(*self.converted.duration)
+            tuplet.append(chord)
         return result
 
 class Measures(Many):
