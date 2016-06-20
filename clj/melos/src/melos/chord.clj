@@ -141,6 +141,7 @@
   [mapping :- ms/DissonanceMapping
    limit   :- [s/Int]
    chord   :- Chord]
-  (if (consonant? mapping limit (select-chord-key :pitch chord))
+  (if (or (every? zero? (select-chord-key :count chord))
+          (consonant? mapping limit (select-chord-key :pitch chord)))
     chord
     (reduce-dissonance mapping limit (reduce-dissonance' mapping limit chord))))
