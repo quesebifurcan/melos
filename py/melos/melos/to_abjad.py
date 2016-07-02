@@ -89,6 +89,7 @@ class Note(Converter):
         'pitch': identity,
         'group': identity,
         'notation': identity,
+        'is_rest_bool': identity,
     }
     def to_abjad(self):
         return self
@@ -105,6 +106,9 @@ class Chord(Converter):
     }
     def to_abjad(self):
         if self.converted and self.converted.events:
+            rests = [x.converted.is_rest_bool for x in self.converted.events]
+            if any(rests):
+                return scoretools.Rest(durationtools.Duration(1, 4))
             pitches = [x.converted.pitch for x in self.converted.events]
             groups = [x.converted.group for x in self.converted.events]
             groups_annotation = indicatortools.Annotation('groups', groups)
