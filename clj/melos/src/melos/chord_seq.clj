@@ -91,8 +91,11 @@
 (defn same?
   [a b]
   (let [a-groups (set (chord/select-chord-key :group a))
-        b-groups (set (chord/select-chord-key :group b))]
-    (= a-groups b-groups)))
+        b-groups (set (chord/select-chord-key :group b))
+        a-pitches (set (chord/select-chord-key :pitch a))
+        b-pitches (set (chord/select-chord-key :pitch b))]
+    (and (= a-groups b-groups)
+         (= a-pitches b-pitches))))
 
 (defn event-seq-merger
   [merge-pred merge-fn]
