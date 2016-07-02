@@ -1,6 +1,7 @@
 (ns example-score.main
   (:require [clojure.java.shell :as shell]
             [example-score.chromatic-line :refer [chromatic-line]]
+            [example-score.staccato :refer [staccato]]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -33,10 +34,13 @@
 
 (def voices
   (apply merge [
-                {:a (chromatic-line {:phrases phrases
-                                     :part-name :voice-1
-                                     :transposition -2
-                                     :durations [1/4]})}
+
+                {:a (staccato {:phrases phrases
+                               :part-name :voice-1
+                               :transposition -2
+                               :note-durations [1/8 1/8 1/4]
+                               :durations [1/4 1/4]})}
+
                 {:b1 (chromatic-line {:phrases [[[0] [1]]
                                                 [[2] [3]]
                                                 [[4] [5]]
@@ -57,7 +61,6 @@
                                      :durations [1/4]})}
                 ]))
 
-;; TODO: phrase -- set type?
 (def event-seqs
   (chord-seq/cycle-event-seqs (take 16 (cycle [:a :b1 :b2 :c])) voices))
 
