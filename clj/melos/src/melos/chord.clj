@@ -133,7 +133,8 @@
   (let [events (->> chord
                     :events
                     get-candidates
-                    (filter (partial valid-events? mapping limit)))]
+                    (filter (partial valid-events? mapping limit))
+                    (filter (fn [x] (consonant? mapping limit (map :pitch x)))))]
     (assoc chord :events (first events))))
 
 (s/defn reduce-dissonance
