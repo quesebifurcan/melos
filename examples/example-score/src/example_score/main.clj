@@ -1,5 +1,6 @@
 (ns example-score.main
   (:require [clojure.java.shell :as shell]
+            [example-score.chromatic-line :refer [chromatic-line]]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -25,32 +26,40 @@
   [measures]
   (measure/rtm-tree-zipper {:root true :children measures}))
 
-(defn make-phrase
-  [part transposition pitches]
-  (let [phrase-end-values (concat (repeat (dec (count pitches)) false) [true])
-        phrase-id (gensym "phrase_id__")]
-    (map (fn [pitch phrase-end?]
-           (chord/make-chord {:events [(note/make-note {:pitch (+ pitch transposition)
-                                                        :part part
-                                                        :notation {:type :Slur
-                                                                   :phrase-id
-                                                                   phrase-id}})]
-                              :duration 1/4
-                              :phrase-end? phrase-end?}))
-         pitches
-         phrase-end-values)))
+(def phrases [[[0] [1] [2]]
+              [[3] [4]]
+              [[5] [6] [7]]
+              [[8] [9]]])
 
-(defn melos
-  [part transposition pitches]
-  {part (map (partial make-phrase part transposition) pitches)})
-
-(def voices (apply merge [(melos :voice-1 0 [[0] [1 2] [3 4] [5]])
-                          (melos :voice-3 -3 [[0] [1 2] [3 4] [5]])
-                          (melos :voice-5 -8 [[0] [1 2] [3 4] [5]])]))
+(def voices
+  (apply merge [
+                {:a (chromatic-line {:phrases phrases
+                                     :part-name :voice-1
+                                     :transposition -2
+                                     :durations [1/4]})}
+                {:b1 (chromatic-line {:phrases [[[0] [1]]
+                                                [[2] [3]]
+                                                [[4] [5]]
+                                                [[6] [7]]]
+                                     :part-name :voice-3
+                                     :transposition 12
+                                     :durations [1/4]})}
+                {:b2 (chromatic-line {:phrases [[[-1]]
+                                                [[-2]]
+                                                [[-1]]
+                                                [[-2]]]
+                                     :part-name :voice-4
+                                     :transposition 0
+                                     :durations [1/4]})}
+                {:c (chromatic-line {:phrases phrases
+                                     :part-name :voice-5
+                                     :transposition -20
+                                     :durations [1/4]})}
+                ]))
 
 ;; TODO: phrase -- set type?
 (def event-seqs
-  (chord-seq/cycle-event-seqs (take 16 (cycle [:voice-1 :voice-3 :voice-5])) voices))
+  (chord-seq/cycle-event-seqs (take 16 (cycle [:a :b1 :b2 :c])) voices))
 
 (def default-mapping
   {0 0,
@@ -73,7 +82,9 @@
                                 (chord-seq/merge-chords a b))
        (chord-seq/merge-chords a b)))))
 
-(def extended-events (reductions (handle-dissonance-fn [0 2 4 5]) event-seqs))
+(def extended-events
+  (->> (reductions (handle-dissonance-fn [0 2 4 5]) event-seqs)
+       (chord-seq/merge-horizontally (fn [_ _] true))))
 
 (def part-names [:voice-1 :voice-3 :voice-5])
 
@@ -88,11 +99,6 @@
   [measures event-seq]
   (-> (measure/insert-chords event-seq (rtm-tree-zipper measures))
       :children))
-
-(def voice->staff
-  {:voice-1 :a
-   :voice-3 :b
-   :voice-5 :c})
 
 (defn make-voice
   [part-name]
@@ -130,7 +136,8 @@
                          {:type :Staff
                           :name :b
                           :notation :shrill
-                          :voices [(make-voice :voice-3)]}
+                          :voices [(make-voice :voice-3)
+                                   (make-voice :voice-4)]}
                          {:type :Staff
                           :name :c
                           :notation :very-soft
@@ -153,3 +160,9 @@
                ]
     })
   (shell/sh "scripts/to_pdf.sh"))
+
+;; sections -- tempo, measures, registration etc.
+;; pluggable gestures?
+;; tempi
+;; avoid repeated time signatures
+;; reproducability / versioning?
