@@ -2,6 +2,7 @@
   (:require [clojure.java.shell :as shell]
             [example-score.chromatic-line :refer [chromatic-line]]
             [example-score.staccato :refer [staccato]]
+            [example-score.arpeggio :refer [arpeggio]]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -35,10 +36,16 @@
 (def voices
   (apply merge [
 
-                {:a (staccato {:phrases phrases
+                ;; {:a (staccato {:phrases phrases
+                ;;                :part-name :voice-1
+                ;;                :transposition -2
+                ;;                :note-durations [1/8 1/8 1/4]
+                ;;                :durations [1/4 1/4]})}
+
+                {:a (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
+                                         [[0 2 4] [0 2 4 6]]]
                                :part-name :voice-1
                                :transposition -2
-                               :note-durations [1/8 1/8 1/4]
                                :durations [1/4 1/4]})}
 
                 {:b1 (chromatic-line {:phrases [[[0] [1]]

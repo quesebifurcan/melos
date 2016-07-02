@@ -9,10 +9,15 @@
   (fn [groups]
     (mapcat (fn [count_] (utils/apply-slope count_ a b)) groups)))
 
-(defn add-tie
+(defn apply-notations
   [phrase]
-  (let [group (gensym "G__")]
-    (map (fn [chord] (chord/set-chord-key :group group chord)) phrase)))
+  (let [group (gensym "G__")
+        notation {:type :arpeggio}]
+    (map (fn [chord]
+           (->> chord
+                (chord/set-chord-key :group group)
+                (chord/set-chord-key :notation notation)))
+         phrase)))
 
 (defn arpeggio
   [{:keys [phrases part-name transposition durations]}]
@@ -28,6 +33,6 @@
          (map chord/make-chord)
          (take (count chords))
          (utils/partition-groups :phrase-end?)
-         (map add-tie)
+         (map apply-notations)
          )))
 

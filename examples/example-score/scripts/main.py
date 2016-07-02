@@ -6,6 +6,7 @@ from collections import namedtuple
 from termcolor import colored
 
 from abjad import *
+from abjad.tools.scoretools import FixedDurationTuplet
 
 from layout import (
     create_score_objects,
@@ -20,6 +21,29 @@ def dict_to_namedtuple(d):
     type_ = d.get('type', 'NoType')
     key_replace = lambda k: k.replace('-', '_').replace('?', '_bool')
     return namedtuple(type_, [key_replace(k) for k in d.keys()])(*d.values())
+
+def apply_arpeggio(score):
+    def grouper(x):
+        try:
+            ann = set(to_abjad.get_named_annotation(x, 'groups'))
+            return ann
+        except:
+            return ''
+    for k, v in itertools.groupby(iterate(score).by_class((Chord, Rest)), grouper):
+        group = list(v)
+        if (isinstance(group[0], Chord)):
+            notations = filter(lambda x: x,
+                               to_abjad.get_named_annotation(group[0], 'notations'))
+            notations = set([x.type for x in notations])
+            if 'arpeggio' in notations:
+                if len(group[0].written_pitches) > 1:
+                    sel = select(group[0])
+                    tuplet = FixedDurationTuplet((1, 4), [])
+                    coll = []
+                    for pitch in group[0].written_pitches:
+                        coll.append(pitch)
+                        tuplet.append(Chord(coll, Duration((1,8))))
+                    mutate(sel).replace(tuplet)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -53,19 +77,7 @@ def main():
             if proc:
                 proc(x)
 
-    def grouper(x):
-        try:
-            ann = to_abjad.get_named_annotation(x, 'notations')[0].phrase_id
-            return ann
-        except:
-            return ''
-
-    # for k, v in itertools.groupby(iterate(score).by_class((Chord, Rest)), grouper):
-    #     group = list(v)
-    #     if isinstance(group[0], Chord):
-    #         pitches = set([x.written_pitches for x in group])
-    #         if len(pitches) > 1:
-    #             attach(spannertools.Slur(), group)
+    apply_arpeggio(score)
 
     lilypond_file = make_lilypond_file(score)
     show(lilypond_file)
