@@ -9,15 +9,16 @@ ScoreData = namedtuple('ScoreData', ['score', 'staves', 'staff_to_voices_mapping
 #------------------------------------------------------------------------------
 def apply_score_overrides(score):
     set_(score).tuplet_full_length = True
+    override(score).time_signature.style = 'numeric'
     scheme = schemetools.Scheme('tuplet-number::calc-fraction-text')
     override(score).tuplet_number.text = scheme
     override(score).tuplet_bracket.direction = 'up'
     override(score).tie.minimum_length = 3
-    override(score).spacing_spanner.uniform_stretching = True
-    moment = schemetools.SchemeMoment(1, 12)
-    set_(score).proportional_notation_duration = moment
-    override(score).spacing_spanner.strict_note_spacing = True
-    spacing_vector = schemetools.make_spacing_vector(0, 0, 30, 0)
+    # override(score).spacing_spanner.uniform_stretching = True
+    # moment = schemetools.SchemeMoment(1, 12)
+    # set_(score).proportional_notation_duration = moment
+    # override(score).spacing_spanner.strict_note_spacing = True
+    # spacing_vector = schemetools.make_spacing_vector(0, 0, 30, 0)
     return score
 
 def make_lilypond_file(score, title='', author=''):
