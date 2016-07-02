@@ -12,6 +12,12 @@
 
 (defn select-chord-key [k chord] (map k (:events chord)))
 
+(defn set-chord-key
+  [k v chord]
+  (update chord :events
+          (fn [events]
+            (map (fn [note] (assoc note k v)) events))))
+
 (def chord-default
   {:duration 1
    :tempo 60
@@ -116,7 +122,9 @@
 
 (defn get-candidates
   [events]
-  (combinatorics/combinations events (dec (count events))))
+  (let [groups (partition-by :group events)
+        candidates (combinatorics/combinations groups (dec (count groups)))]
+    (map #(apply concat %) candidates)))
 
 (s/defn valid-events?
   :- s/Bool
@@ -134,7 +142,7 @@
                     :events
                     get-candidates
                     (filter (partial valid-events? mapping limit))
-                    (filter (fn [x] (consonant? mapping limit (map :pitch x)))))]
+                    (sort-by (fn [x] (apply + (map :count x)))))]
     (assoc chord :events (first events))))
 
 (s/defn reduce-dissonance
