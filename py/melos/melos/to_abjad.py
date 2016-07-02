@@ -188,6 +188,13 @@ class Staff(Converter):
         annotate(container, 'score_id', 'section_container')
         annotate(container, 'name', self.converted.name)
         annotate(container, 'notation', self.converted.notation)
+        if len(self.converted.voices) > 1:
+            topleveltools.override(self.converted.voices[0]).stem.direction = 'up'
+            topleveltools.override(self.converted.voices[0]).tuplet_bracket.direction = 'up'
+            topleveltools.override(self.converted.voices[0]).tie.direction = 'up'
+            topleveltools.override(self.converted.voices[1]).stem.direction = 'down'
+            topleveltools.override(self.converted.voices[1]).tuplet_bracket.direction = 'down'
+            topleveltools.override(self.converted.voices[1]).tie.direction = 'down'
         container.extend(self.converted.voices)
         return container
 
