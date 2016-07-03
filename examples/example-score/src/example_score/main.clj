@@ -3,6 +3,7 @@
             [example-score.chromatic-line :refer [chromatic-line]]
             [example-score.staccato :refer [staccato]]
             [example-score.arpeggio :refer [arpeggio]]
+            [example-score.pulse :refer [pulse]]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -42,11 +43,17 @@
                 ;;                :note-durations [1/8 1/8 1/4]
                 ;;                :durations [1/4 1/4]})}
 
-                {:a (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
-                                         [[0 2 4] [0 2 4 6]]]
-                               :part-name :voice-1
-                               :transposition -2
-                               :durations [1/4 1/4]})}
+                ;; {:a (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
+                ;;                          [[0 2 4] [0 2 4 6]]]
+                ;;                :part-name :voice-1
+                ;;                :transposition -2
+                ;;                :durations [1/4 1/4]})}
+
+                {:a (pulse {:phrases [[[0]]
+                                      [[2]]]
+                            :part-name :voice-1
+                            :transposition -2
+                            :durations [1/4 1/4]})}
 
                 {:b1 (chromatic-line {:phrases [[[0] [1]]
                                                 [[2] [3]]

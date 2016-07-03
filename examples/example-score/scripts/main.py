@@ -45,6 +45,45 @@ def apply_arpeggio(score):
                         tuplet.append(Chord(coll, Duration((1,8))))
                     mutate(sel).replace(tuplet)
 
+def create_pulse(pitches, duration):
+    count = int(duration / Duration((1, 4)))
+    result = []
+    for x in range(count):
+        tuplet = FixedDurationTuplet((1, 4), [])
+        for y in range(4):
+            tuplet.append(Chord(pitches, Duration((1, 16))))
+        result.append(tuplet)
+    return result
+
+def apply_pulse(score):
+    def grouper(x):
+        try:
+            ann = set(to_abjad.get_named_annotation(x, 'groups'))
+            return ann
+        except:
+            return ''
+    for k, v in itertools.groupby(iterate(score).by_class((Chord, Rest)), grouper):
+        group = list(v)
+        if (isinstance(group[0], Chord)):
+            notations = filter(lambda x: x,
+                               to_abjad.get_named_annotation(group[0], 'notations'))
+            notations = (x for x in notations)
+            for notation in notations:
+                if notation.__class__.__name__ == 'pulse':
+                    coll = []
+                    for event in group:
+                        total_duration = event.written_duration
+                        pulse = Container(
+                            create_pulse(event.written_pitches, total_duration)
+                        )
+                        coll.append(pulse)
+                        selection = select(event)
+                        mutate(select(event)).replace(pulse)
+                for chord, mask in zip(iterate(coll).by_class((Chord, )),
+                                       itertools.cycle(notation.pattern)):
+                    if mask == 0:
+                        mutate(chord).replace(Rest((1, 16)))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', dest='input')
@@ -77,7 +116,8 @@ def main():
             if proc:
                 proc(x)
 
-    apply_arpeggio(score)
+    # apply_arpeggio(score)
+    apply_pulse(score)
 
     lilypond_file = make_lilypond_file(score)
     show(lilypond_file)
