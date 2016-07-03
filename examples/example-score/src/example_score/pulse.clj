@@ -13,8 +13,8 @@
   [phrase]
   (let [group (gensym "G__")
         notation {:type :pulse
-                  :subdivisions [1 16]
-                  :pattern [0 1 ]}]
+                  :subdivisions 7
+                  :pattern [0 1 0 0]}]
     (map (fn [chord]
            (->> chord
                 (chord/set-chord-key :group group)

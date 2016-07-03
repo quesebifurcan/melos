@@ -45,13 +45,24 @@ def apply_arpeggio(score):
                         tuplet.append(Chord(coll, Duration((1,8))))
                     mutate(sel).replace(tuplet)
 
-def create_pulse(pitches, duration):
+def create_pulse(subdivisions, pattern, pitches, duration):
     count = int(duration / Duration((1, 4)))
-    result = []
+    result = Container()
+    pattern = itertools.cycle(pattern)
     for x in range(count):
         tuplet = FixedDurationTuplet((1, 4), [])
-        for y in range(4):
-            tuplet.append(Chord(pitches, Duration((1, 16))))
+        pending_rest_duration = 0
+        for y in range(subdivisions):
+            mask = next(pattern)
+            if mask == 0:
+                pending_rest_duration += Duration((1, 16))
+            if mask == 1:
+                if pending_rest_duration:
+                    tuplet.append(Rest(pending_rest_duration))
+                tuplet.append(Chord(pitches, Duration((1, 16))))
+                pending_rest_duration = 0
+        if pending_rest_duration:
+            tuplet.append(Rest(pending_rest_duration))
         result.append(tuplet)
     return result
 
@@ -70,19 +81,16 @@ def apply_pulse(score):
             notations = (x for x in notations)
             for notation in notations:
                 if notation.__class__.__name__ == 'pulse':
-                    coll = []
                     for event in group:
                         total_duration = event.written_duration
-                        pulse = Container(
-                            create_pulse(event.written_pitches, total_duration)
+                        pulse = create_pulse(
+                            notation.subdivisions,
+                            notation.pattern,
+                            event.written_pitches,
+                            total_duration,
                         )
-                        coll.append(pulse)
                         selection = select(event)
                         mutate(select(event)).replace(pulse)
-                for chord, mask in zip(iterate(coll).by_class((Chord, )),
-                                       itertools.cycle(notation.pattern)):
-                    if mask == 0:
-                        mutate(chord).replace(Rest((1, 16)))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -109,6 +117,9 @@ def main():
         'section_container': add_staff_markup
     }
 
+    # apply_arpeggio(score)
+    apply_pulse(score)
+
     for x in iterate(score).by_class((Container, Voice)):
         maybe_ann = to_abjad.get_named_annotation(x, 'score_id')
         if maybe_ann:
@@ -116,8 +127,6 @@ def main():
             if proc:
                 proc(x)
 
-    # apply_arpeggio(score)
-    apply_pulse(score)
 
     lilypond_file = make_lilypond_file(score)
     show(lilypond_file)
