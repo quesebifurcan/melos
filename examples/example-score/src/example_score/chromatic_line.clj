@@ -17,12 +17,8 @@
         phrase-end ((slope false true) groups)]
     (->> {:pitches chords
           :part [part-name]
-          ;; :merge-left? [true]
-          ;; :merge-right? [true]
           :duration durations
           :phrase-end? phrase-end}
          (utils/unfold-parameters)
          (map chord/make-chord)
-         (take (count chords))
-         (utils/partition-groups :phrase-end?)
-         )))
+         (utils/cyclic-partition groups))))

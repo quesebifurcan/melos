@@ -35,7 +35,6 @@
          (map chord/make-chord)
          (take (count chords))
          (utils/partition-groups :phrase-end?)
-         (map apply-notations)
-         )))
+         (map apply-notations))))
 
 

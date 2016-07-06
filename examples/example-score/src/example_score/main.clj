@@ -4,6 +4,7 @@
             [example-score.staccato :refer [staccato]]
             [example-score.arpeggio :refer [arpeggio]]
             [example-score.pulse :refer [pulse]]
+            [example-score.multi :refer [multi]]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -73,10 +74,17 @@
                                      :part-name :voice-5
                                      :transposition -20
                                      :durations [1/4]})}
+
+                {:d (multi {:voices [:voice-5 :voice-3 :voice-1]
+                            :duration [1/4 2/4]
+                            :pitches [[[-20 10 0]
+                                       [-19 11 1]]
+                                      [[-18 12 2]]]})}
+
                 ]))
 
 (def event-seqs
-  (chord-seq/cycle-event-seqs (take 16 (cycle [:a :b1 :b2 :c])) voices))
+  (chord-seq/cycle-event-seqs (take 23 (cycle [:a :b1 :d :b2 :d :c])) voices))
 
 (def default-mapping
   {0 0,
@@ -119,13 +127,15 @@
 
 (defn make-voice
   [part-name]
-  (let [event-seq (part/filter-chords part-name extended-events)
-        total-duration (apply + (map :duration event-seq))
+  (let [final-event-min-dur 7/4
+        event-seq (part/filter-chords part-name extended-events)
+        total-duration (+ (apply + (map :duration event-seq))
+                          final-event-min-dur)
         measures (cycle-measures total-duration [measure-1])
         measures-duration (apply + (map :sum-of-leaves-duration measures))
         diff_ (- measures-duration total-duration)
         extended (concat (butlast event-seq)
-                         [(update (last event-seq) :duration (fn [x] (+ x diff_)))])]
+                         [(update (last event-seq) :duration (fn [x] (+ x diff_ final-event-min-dur)))])]
     {:type :Voice
      :name part-name
      :measures (->> (chord-seq/simplify-event-seq extended)
