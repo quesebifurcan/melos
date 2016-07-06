@@ -455,8 +455,12 @@
 
 (deftest reduce-dissonance
   (testing "get candidates"
-    (is (= (into #{} (map set (chord/get-candidates #{1 2 3})))
-           #{#{1 2} #{1 3} #{2 3}})))
+    (is (= (into #{} (map set (chord/get-candidates #{{:group 1}
+                                                      {:group 2}
+                                                      {:group 3}})))
+           #{#{{:group 1} {:group 2}}
+             #{{:group 1} {:group 3}}
+             #{{:group 2} {:group 3}}})))
   (testing "reduce dissonance once"
     (let [chord (chord/make-chord {:events (map note/make-note [{:pitch 0 :count 2}
                                                                 {:pitch 2 :count 0}

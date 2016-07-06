@@ -46,9 +46,11 @@
         m            (merge chord-default m)
         note-params  (select-keys m (keys (note/note-default)))
         chord-params (select-keys m (keys chord-default))
-        group        (gensym "G__")
+        group        (or (:group m) (gensym "G__"))
         events       (map (fn [pitch]
-                            (note/make-note (merge note-params {:group group :pitch pitch})))
+                            (note/make-note (merge note-params {:type :Note
+                                                                :group group
+                                                                :pitch pitch})))
                           pitches)]
     (ms/map->Chord (merge chord-params {:events events}))))
 
