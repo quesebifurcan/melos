@@ -39,11 +39,8 @@
 
 (defn cycle-event-seqs'
   [accessors event-seqs]
-  (let [event-seqs (->> event-seqs
-                        (functor/fmap cycle)
-                        atom)]
-    (mapcat (fn [accessor] (get-and-rotate event-seqs accessor))
-            accessors)))
+  (mapcat (fn [accessor] (get-and-rotate event-seqs accessor))
+          accessors))
 
 (s/defn cycle-event-seqs
   :- ms/Phrase

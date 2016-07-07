@@ -1,5 +1,6 @@
 (ns example-score.main
   (:require [clojure.java.shell :as shell]
+            [clojure.algo.generic.functor :as functor]
             [example-score.chromatic-line :refer [chromatic-line]]
             [example-score.staccato :refer [staccato]]
             [example-score.arpeggio :refer [arpeggio]]
@@ -32,59 +33,60 @@
 
 (def phrases [[[0] [1] [2]]
               [[3] [4]]
+              [[3] [4]]
               [[5] [6] [7]]
               [[8] [9]]])
 
 (def voices
-  (apply merge [
+  (let [event-seqs (apply merge [
 
-                ;; {:a (staccato {:phrases phrases
-                ;;                :part-name :voice-1
-                ;;                :transposition -2
-                ;;                :note-durations [1/8 1/8 1/4]
-                ;;                :durations [1/4 1/4]})}
+                                       ;; {:f (staccato {:phrases phrases
+                                       ;;                :part-name :voice-1
+                                       ;;                :transposition -2
+                                       ;;                :note-durations [1/8 1/8 1/4]
+                                       ;;                :durations [1/4 1/4]})}
 
-                ;; {:a (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
-                ;;                          [[0 2 4] [0 2 4 6]]]
-                ;;                :part-name :voice-1
-                ;;                :transposition -2
-                ;;                :durations [1/4 1/4]})}
+                                       {:f (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
+                                                                [[0 2 4] [0 2 4 6]]]
+                                                      :part-name :voice-1
+                                                      :transposition -2
+                                                      :durations [1/4 1/4]})}
 
-                {:a (pulse {:phrases [[[0]]
-                                      [[2]]]
-                            :part-name :voice-1
-                            :transposition -2
-                            :durations [1/4 1/4]})}
+                                       {:a (pulse {:phrases [[[0]]
+                                                             [[2]]]
+                                                   :part-name :voice-1
+                                                   :transposition -2
+                                                   :durations [1/4 1/4]})}
 
-                {:b1 (chromatic-line {:phrases [[[0] [1]]
-                                                [[2] [3]]
-                                                [[4] [5]]
-                                                [[6] [7]]]
-                                     :part-name :voice-3
-                                     :transposition 12
-                                     :durations [1/4]})}
-                {:b2 (chromatic-line {:phrases [[[-1]]
-                                                [[-2]]
-                                                [[-1]]
-                                                [[-2]]]
-                                     :part-name :voice-4
-                                     :transposition 0
-                                     :durations [1/4]})}
-                {:c (chromatic-line {:phrases phrases
-                                     :part-name :voice-5
-                                     :transposition -20
-                                     :durations [1/4]})}
+                                       {:b1 (chromatic-line {:phrases [[[0] [1]]
+                                                                       [[2] [3]]
+                                                                       [[4] [5]]
+                                                                       [[6] [7]]]
+                                                             :part-name :voice-3
+                                                             :transposition 12
+                                                             :durations [1/4]})}
+                                       {:b2 (chromatic-line {:phrases [[[-1]]
+                                                                       [[-2]]
+                                                                       [[-1]]
+                                                                       [[-2]]]
+                                                             :part-name :voice-4
+                                                             :transposition 0
+                                                             :durations [1/4]})}
+                                       {:c (chromatic-line {:phrases phrases
+                                                            :part-name :voice-5
+                                                            :transposition -20
+                                                            :durations [1/4]})}
 
-                {:d (multi {:voices [:voice-5 :voice-3 :voice-1]
-                            :duration [1/4 2/4]
-                            :pitches [[[-20 10 0]
-                                       [-19 11 1]]
-                                      [[-18 12 2]]]})}
+                                       {:d (multi {:voices [:voice-5 :voice-3 :voice-1]
+                                                   :duration [1/4 2/4]
+                                                   :pitches [[[-20 10 0]
+                                                              [-19 11 1]]
+                                                             [[-18 12 2]]]})}])]
+    (->> event-seqs (functor/fmap cycle) atom)))
 
-                ]))
-
-(def event-seqs
-  (chord-seq/cycle-event-seqs (take 23 (cycle [:a :b1 :d :b2 :d :c])) voices))
+(defn event-seqs
+  []
+  (chord-seq/cycle-event-seqs (take 43 (cycle [:f :b1 :b2 :c])) voices))
 
 (def default-mapping
   {0 0,
@@ -107,8 +109,9 @@
                                 (chord-seq/merge-chords a b))
        (chord-seq/merge-chords a b)))))
 
-(def extended-events
-  (->> (reductions (handle-dissonance-fn [0 2 4 5]) event-seqs)
+(defn extended-events
+  []
+  (->> (reductions (handle-dissonance-fn [0 2 4 5]) (event-seqs))
        (chord-seq/merge-horizontally (fn [_ _] true))))
 
 (def part-names [:voice-1 :voice-3 :voice-5])
@@ -126,7 +129,7 @@
       :children))
 
 (defn make-voice
-  [part-name]
+  [extended-events part-name]
   (let [final-event-min-dur 7/4
         event-seq (part/filter-chords part-name extended-events)
         total-duration (+ (apply + (map :duration event-seq))
@@ -147,6 +150,8 @@
 ;; TODO: collect list of all annotations
 (defn render
   []
+  (let [a (extended-events)
+        b (extended-events)]
   (utils/export-to-json
    "output/example_1.json"
    {:type :Score
@@ -159,34 +164,34 @@
                 :staves [{:type :Staff
                           :name :a
                           :notation :soft
-                          :voices [(make-voice :voice-1)]}
+                          :voices [(make-voice a :voice-1)]}
                          {:type :Staff
                           :name :b
                           :notation :shrill
-                          :voices [(make-voice :voice-3)
-                                   (make-voice :voice-4)]}
+                          :voices [(make-voice a :voice-3)
+                                   (make-voice a :voice-4)]}
                          {:type :Staff
                           :name :c
                           :notation :very-soft
-                          :voices [(make-voice :voice-5)]}]}
+                          :voices [(make-voice a :voice-5)]}]}
                {:type :Section
                 :staves [
                          {:type :Staff
                           :name :a
                           :notation :asdf
-                          :voices [(make-voice :voice-1)]}
+                          :voices [(make-voice b :voice-1)]}
                          {:type :Staff
                           :name :b
                           :notation :asdf
-                          :voices [(make-voice :voice-3)]}
+                          :voices [(make-voice b :voice-3)]}
                          {:type :Staff
                           :name :c
                           :notation :asdf
-                          :voices [(make-voice :voice-5)]}
+                          :voices [(make-voice b :voice-5)]}
                          ]}
                ]
     })
-  (shell/sh "scripts/to_pdf.sh"))
+  (shell/sh "scripts/to_pdf.sh")))
 
 ;; sections -- tempo, measures, registration etc.
 ;; pluggable gestures?

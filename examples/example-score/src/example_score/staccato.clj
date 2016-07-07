@@ -31,6 +31,6 @@
           :note-duration note-durations
           :phrase-end? phrase-end}
          (utils/unfold-parameters)
-         (mapcat make-chord-rest-pair)
          (take (count chords))
+         (mapcat make-chord-rest-pair)
          (utils/partition-groups :phrase-end?))))

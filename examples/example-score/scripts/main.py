@@ -12,6 +12,7 @@ from layout import (
     create_score_objects,
     attach_ties,
     apply_score_overrides,
+    apply_accidentals,
     make_lilypond_file,
 )
 
@@ -118,6 +119,7 @@ def main():
     }
 
     # apply_arpeggio(score)
+    # apply_accidentals(score)
     apply_pulse(score)
 
     for x in iterate(score).by_class((Container, Voice)):
