@@ -18,11 +18,6 @@ from layout import (
 
 from melos import to_abjad
 
-def dict_to_namedtuple(d):
-    type_ = d.get('type', 'NoType')
-    key_replace = lambda k: k.replace('-', '_').replace('?', '_bool')
-    return namedtuple(type_, [key_replace(k) for k in d.keys()])(*d.values())
-
 def apply_arpeggio(score):
     def grouper(x):
         try:
@@ -35,7 +30,7 @@ def apply_arpeggio(score):
         if (isinstance(group[0], Chord)):
             notations = filter(lambda x: x,
                                to_abjad.get_named_annotation(group[0], 'notations'))
-            notations = set([x.type for x in notations])
+            notations = set([x['type'] for x in notations])
             if 'arpeggio' in notations:
                 if len(group[0].written_pitches) > 1:
                     sel = select(group[0])
@@ -81,12 +76,12 @@ def apply_pulse(score):
                                to_abjad.get_named_annotation(group[0], 'notations'))
             notations = (x for x in notations)
             for notation in notations:
-                if notation.__class__.__name__ == 'pulse':
+                if notation['type'] == 'pulse':
                     for event in group:
                         total_duration = event.written_duration
                         pulse = create_pulse(
-                            notation.subdivisions,
-                            notation.pattern,
+                            notation['subdivisions'],
+                            notation['pattern'],
                             event.written_pitches,
                             total_duration,
                         )
@@ -101,7 +96,7 @@ def main():
     args = parser.parse_args()
 
     with open(args.input, 'r') as infile:
-        score = json.load(infile, object_hook=dict_to_namedtuple)
+        score = json.load(infile)
 
     # TODO: score overrides
     template = create_score_objects()
@@ -128,7 +123,6 @@ def main():
             proc = post_process.get(maybe_ann)
             if proc:
                 proc(x)
-
 
     lilypond_file = make_lilypond_file(score)
     show(lilypond_file)

@@ -40,23 +40,23 @@
 (def voices
   (let [event-seqs (apply merge [
 
-                                       ;; {:f (staccato {:phrases phrases
-                                       ;;                :part-name :voice-1
-                                       ;;                :transposition -2
-                                       ;;                :note-durations [1/8 1/8 1/4]
-                                       ;;                :durations [1/4 1/4]})}
-
-                                       {:f (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
-                                                                [[0 2 4] [0 2 4 6]]]
+                                       {:f (staccato {:phrases phrases
                                                       :part-name :voice-1
                                                       :transposition -2
+                                                      :note-durations [1/8 1/8 1/4]
                                                       :durations [1/4 1/4]})}
 
-                                       {:a (pulse {:phrases [[[0]]
-                                                             [[2]]]
-                                                   :part-name :voice-1
-                                                   :transposition -2
-                                                   :durations [1/4 1/4]})}
+                                       ;; {:f (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
+                                       ;;                          [[0 2 4] [0 2 4 6]]]
+                                       ;;                :part-name :voice-1
+                                       ;;                :transposition -2
+                                       ;;                :durations [1/4 1/4]})}
+
+                                       ;; {:f (pulse {:phrases [[[0]]
+                                       ;;                       [[2]]]
+                                       ;;             :part-name :voice-1
+                                       ;;             :transposition -2
+                                       ;;             :durations [1/4 1/4]})}
 
                                        {:b1 (chromatic-line {:phrases [[[0] [1]]
                                                                        [[2] [3]]
@@ -86,7 +86,7 @@
 
 (defn event-seqs
   []
-  (chord-seq/cycle-event-seqs (take 43 (cycle [:f :b1 :b2 :c])) voices))
+  (chord-seq/cycle-event-seqs (take 20 (cycle [:f :b1 :b2 :c])) voices))
 
 (def default-mapping
   {0 0,
@@ -150,8 +150,6 @@
 ;; TODO: collect list of all annotations
 (defn render
   []
-  (let [a (extended-events)
-        b (extended-events)]
   (utils/export-to-json
    "output/example_1.json"
    {:type :Score
@@ -159,39 +157,25 @@
     :author "anonymous"
     :score-template "asdf"
     :parse-fn "qwer"
-    :sections [
-               {:type :Section
-                :staves [{:type :Staff
-                          :name :a
-                          :notation :soft
-                          :voices [(make-voice a :voice-1)]}
-                         {:type :Staff
-                          :name :b
-                          :notation :shrill
-                          :voices [(make-voice a :voice-3)
-                                   (make-voice a :voice-4)]}
-                         {:type :Staff
-                          :name :c
-                          :notation :very-soft
-                          :voices [(make-voice a :voice-5)]}]}
-               {:type :Section
-                :staves [
-                         {:type :Staff
-                          :name :a
-                          :notation :asdf
-                          :voices [(make-voice b :voice-1)]}
-                         {:type :Staff
-                          :name :b
-                          :notation :asdf
-                          :voices [(make-voice b :voice-3)]}
-                         {:type :Staff
-                          :name :c
-                          :notation :asdf
-                          :voices [(make-voice b :voice-5)]}
-                         ]}
-               ]
-    })
-  (shell/sh "scripts/to_pdf.sh")))
+    :sections
+    (mapv (fn [x]
+            (let [a (extended-events)]
+              {:type :Section
+               :staves [{:type :Staff
+                         :name :a
+                         :notation :soft
+                         :voices [(make-voice a :voice-1)]}
+                        {:type :Staff
+                         :name :b
+                         :notation :shrill
+                         :voices [(make-voice a :voice-3)
+                                  (make-voice a :voice-4)]}
+                        {:type :Staff
+                         :name :c
+                         :notation :very-soft
+                         :voices [(make-voice a :voice-5)]}]}))
+          (range 1))})
+  (shell/sh "scripts/to_pdf.sh"))
 
 ;; sections -- tempo, measures, registration etc.
 ;; pluggable gestures?

@@ -8,6 +8,9 @@ from abjad.tools import topleveltools
 from abjad.tools import indicatortools
 from abjad.tools import spannertools
 
+def get(d, k):
+    return d.get(k)
+
 def duration_to_duration_tuple(dur):
     return {
         0.125: (1, 8),
@@ -54,10 +57,10 @@ def init(self, data):
     result = type('temp', (object,), {})()
     for k, v in self.get_params():
         if inspect.isclass(v):
-            converted_value = v(getattr(data, k)).to_abjad()
+            converted_value = v(get(data, k)).to_abjad()
             setattr(result, k, converted_value)
         elif inspect.isfunction(v):
-            converted_value = v(getattr(data, k))
+            converted_value = v(get(data, k))
             setattr(result, k, converted_value)
         else:
             raise Exception("Invalid converter for {}: {}".format(self, v))
@@ -89,7 +92,7 @@ class Note(Converter):
         'pitch': identity,
         'group': identity,
         'notation': identity,
-        'is_rest_bool': identity,
+        'is-rest?': identity,
     }
     def to_abjad(self):
         return self
@@ -101,12 +104,12 @@ class Chord(Converter):
     params = {
         'duration': duration_to_duration_tuple,
         'tempo': identity,
-        'phrase_end_bool': identity,
+        'phrase-end?': identity,
         'events': Notes,
     }
     def to_abjad(self):
         if self.converted and self.converted.events:
-            rests = [x.converted.is_rest_bool for x in self.converted.events]
+            rests = [getattr(x.converted, 'is-rest?') for x in self.converted.events]
             if any(rests):
                 return scoretools.Rest(durationtools.Duration(1, 4))
             pitches = [x.converted.pitch for x in self.converted.events]
