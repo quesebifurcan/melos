@@ -176,9 +176,7 @@
                                                    :final-event-min-dur final-event-min-dur}))))
 
 ;; TODO: sections with different instrumentation?
-;; TODO: automatic decoding
 ;; TODO: only output selected keys?
-;; TODO: collect list of all annotations
 (defn render
   []
   (let [event-seqs (voices)]

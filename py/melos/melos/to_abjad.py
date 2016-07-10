@@ -36,7 +36,9 @@ def get_named_annotation(obj, name):
 def is_tied(a, b):
     a_ = get_named_annotation(a, 'groups')
     b_ = get_named_annotation(b, 'groups')
-    return any([x in b_ for x in a_])
+    if a_ and b_:
+        return any([x in b_ for x in a_])
+    return False
 
 def get_tie_groups(xs):
     curr = []
@@ -243,7 +245,9 @@ class Score(Converter):
             for staff_container in section:
                 container_name = get_named_annotation(staff_container, 'name')
                 score_data.staves[container_name].append(staff_container)
-                chords = topleveltools.iterate(staff_container).by_class(scoretools.Chord)
+                chords = topleveltools.iterate(staff_container).by_class((scoretools.Chord, scoretools.Rest))
                 for group_ in (get_tie_groups(chords)):
-                    topleveltools.attach(spannertools.Tie(), group_)
+                    group__ = list(group_)
+                    if isinstance(group_[0], scoretools.Chord):
+                        topleveltools.attach(spannertools.Tie(), group_)
         return score_data.score

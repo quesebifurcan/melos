@@ -11,17 +11,16 @@
 
 (defn apply-notations
   [phrase]
-  (let [group (gensym "G__")
-        notation {:type :arpeggio}]
+  (let [notation {:type :arpeggio}]
     (map (fn [chord]
            (->> chord
-                (chord/set-chord-key :group group)
                 (chord/set-chord-key :notation notation)))
          phrase)))
 
 (defn arpeggio
   [{:keys [phrases part-name transposition durations]}]
   (let [groups (map count phrases)
+        tie-group (gensym "G__")
         chords (->> (apply concat phrases)
                     (utils/transpose-all transposition))
         phrase-end ((slope false true) groups)]
@@ -31,6 +30,7 @@
           :phrase-end? phrase-end}
          (utils/unfold-parameters)
          (map chord/make-chord)
+         (map #(chord/set-chord-key :group tie-group %))
          (take (count chords))
          (utils/partition-groups :phrase-end?)
          (map apply-notations)
