@@ -100,6 +100,15 @@ class Note(Converter):
 class Notes(Many):
     root = Note
 
+def collect_notations(events):
+    notations = [x.converted.notation for x in events]
+    result = {}
+    for notation in notations:
+        if notation:
+            for k, v in notation.items():
+                result[k] = v
+    return result
+
 class Chord(Converter):
     params = {
         'duration': duration_to_duration_tuple,
@@ -115,8 +124,8 @@ class Chord(Converter):
             pitches = [x.converted.pitch for x in self.converted.events]
             groups = [x.converted.group for x in self.converted.events]
             groups_annotation = indicatortools.Annotation('groups', groups)
-            notations = [x.converted.notation for x in self.converted.events]
-            notations_annotation = indicatortools.Annotation('notations', notations)
+            notations_dict = collect_notations(self.converted.events)
+            notations_annotation = indicatortools.Annotation('notation', notations_dict)
             chord = scoretools.Chord(pitches, durationtools.Duration(1, 4))
             topleveltools.attach(notations_annotation, chord)
             topleveltools.attach(groups_annotation, chord)
@@ -189,12 +198,14 @@ class Staff(Converter):
         'voices': Voices,
         'name': identity,
         'notation': identity,
+        'tempo': identity,
     }
     def to_abjad(self):
         container = scoretools.Container(is_simultaneous=True)
         annotate(container, 'score_id', 'section_container')
         annotate(container, 'name', self.converted.name)
         annotate(container, 'notation', self.converted.notation)
+        annotate(container, 'tempo', self.converted.tempo)
         if len(self.converted.voices) > 1:
             topleveltools.override(self.converted.voices[0]).stem.direction = 'up'
             topleveltools.override(self.converted.voices[0]).tuplet_bracket.direction = 'up'

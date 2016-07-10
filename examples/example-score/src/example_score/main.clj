@@ -40,23 +40,23 @@
   []
   (let [event-seqs (apply merge [
 
-                                 {:f (staccato {:phrases phrases
-                                                :part-name :voice-1
-                                                :transposition -2
-                                                :note-durations [1/8 1/8 1/4]
-                                                :durations [1/4 1/4]})}
-
-                                 ;; {:f (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
-                                 ;;                          [[0 2 4] [0 2 4 6]]]
+                                 ;; {:f (staccato {:phrases phrases
                                  ;;                :part-name :voice-1
                                  ;;                :transposition -2
+                                 ;;                :note-durations [1/8 1/8 1/4]
                                  ;;                :durations [1/4 1/4]})}
 
-                                 ;; {:f (pulse {:phrases [[[0]]
-                                 ;;                       [[2]]]
-                                 ;;             :part-name :voice-1
-                                 ;;             :transposition -2
-                                 ;;             :durations [1/4 1/4]})}
+                                 {:a (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
+                                                          [[0 2 4] [0 2 4 6]]]
+                                                :part-name :voice-1
+                                                :transposition -2
+                                                :durations [1/4 1/4]})}
+
+                                 {:f (pulse {:phrases [[[0]]
+                                                       [[2]]]
+                                             :part-name :voice-1
+                                             :transposition -2
+                                             :durations [1/4 1/4]})}
 
                                  {:b1 (chromatic-line {:phrases [[[0] [1]]
                                                                  [[2] [3]]
@@ -102,17 +102,16 @@
      (f [] xs))
     ([a b]
      (if (:phrase-end? b)
-       (chord/reduce-dissonance default-mapping
-                                limit
-                                (chord-seq/merge-chords a b))
+       (chord/reduce-dissonance default-mapping limit (chord-seq/merge-chords a b))
        (chord-seq/merge-chords a b)))))
 
 (defn cycle-measures
   [dur measures]
   (if (> dur 0)
-    (cons (first measures)
-          (cycle-measures (- dur (:sum-of-leaves-duration (first measures)))
-                          (utils/rotate measures)))))
+    (let [head (first measures)]
+      (cons head
+            (cycle-measures (- dur (:sum-of-leaves-duration head))
+                            (utils/rotate measures))))))
 
 (defn make-rtm-tree
   [measures event-seq]
@@ -132,9 +131,11 @@
      :measures (->> (chord-seq/simplify-event-seq extended)
                     (make-rtm-tree measures))}))
 
-(def template-1
+(defn template-1
+  [tempo]
   {:type :Section
    :staves [{:type :Staff
+             :tempo tempo
              :name :a
              :notation :soft
              :voices [:voice-1]}
@@ -151,9 +152,10 @@
   [template f]
   (clojure.walk/postwalk
    (fn [form]
-     (if (and (vector? form) (= (first form) :voices))
-       [:voices (map f (second form))]
-       form))
+     (cond (and (vector? form) (= (first form) :voices))
+           [:voices (map f (second form))]
+           :else
+           form))
    template))
 
 (defn compose-section
@@ -162,15 +164,16 @@
            dissonance-limit
            final-event-min-dur
            template
+           tempo
            measure-list
            merge-horizontally-fn]}]
   (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
                     (reductions (handle-dissonance-fn dissonance-limit))
                     (chord-seq/merge-horizontally merge-horizontally-fn))]
-    (compose-voices template #(make-voice {:events events
-                                           :part-name %
-                                           :measure-list measure-list
-                                           :final-event-min-dur final-event-min-dur}))))
+    (compose-voices (template tempo) #(make-voice {:events events
+                                                   :part-name %
+                                                   :measure-list measure-list
+                                                   :final-event-min-dur final-event-min-dur}))))
 
 ;; TODO: sections with different instrumentation?
 ;; TODO: automatic decoding
@@ -186,11 +189,22 @@
       :author "anonymous"
       :score-template "asdf"
       :parse-fn "qwer"
-      :sections (mapv compose-section [{:voice-seq (take 40 (cycle [:f :b1 :c :b2 :c]))
+      :sections (mapv compose-section [
+                                       {:voice-seq (take 40 (cycle [:f :b1 :c :b2 :c]))
                                         :dissonance-limit [0 2 4 5]
+                                        :final-event-min-dur 7/4
+                                        :tempo 132
+                                        :template template-1
+                                        :event-seqs event-seqs
+                                        :measure-list [measure-1]
+                                        :merge-horizontally-fn (fn [_ _] true)}
+                                       {:voice-seq (take 40 (cycle [:a :b1 :b2 :a :c]))
+                                        :dissonance-limit [0 2 4 5]
+                                        :tempo 96
                                         :final-event-min-dur 7/4
                                         :template template-1
                                         :event-seqs event-seqs
                                         :measure-list [measure-1]
-                                        :merge-horizontally-fn (fn [_ _] true)}])}))
+                                        :merge-horizontally-fn (fn [_ _] true)}
+                                       ])}))
   (shell/sh "scripts/to_pdf.sh"))

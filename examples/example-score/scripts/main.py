@@ -18,29 +18,6 @@ from layout import (
 
 from melos import to_abjad
 
-def apply_arpeggio(score):
-    def grouper(x):
-        try:
-            ann = set(to_abjad.get_named_annotation(x, 'groups'))
-            return ann
-        except:
-            return ''
-    for k, v in itertools.groupby(iterate(score).by_class((Chord, Rest)), grouper):
-        group = list(v)
-        if (isinstance(group[0], Chord)):
-            notations = filter(lambda x: x,
-                               to_abjad.get_named_annotation(group[0], 'notations'))
-            notations = set([x['type'] for x in notations])
-            if 'arpeggio' in notations:
-                if len(group[0].written_pitches) > 1:
-                    sel = select(group[0])
-                    tuplet = FixedDurationTuplet((1, 4), [])
-                    coll = []
-                    for pitch in group[0].written_pitches:
-                        coll.append(pitch)
-                        tuplet.append(Chord(coll, Duration((1,8))))
-                    mutate(sel).replace(tuplet)
-
 def create_pulse(subdivisions, pattern, pitches, duration):
     count = int(duration / Duration((1, 4)))
     result = Container()
@@ -62,31 +39,76 @@ def create_pulse(subdivisions, pattern, pitches, duration):
         result.append(tuplet)
     return result
 
-def apply_pulse(score):
-    def grouper(x):
-        try:
-            ann = set(to_abjad.get_named_annotation(x, 'groups'))
-            return ann
-        except:
-            return ''
-    for k, v in itertools.groupby(iterate(score).by_class((Chord, Rest)), grouper):
-        group = list(v)
-        if (isinstance(group[0], Chord)):
-            notations = filter(lambda x: x,
-                               to_abjad.get_named_annotation(group[0], 'notations'))
-            notations = (x for x in notations)
-            for notation in notations:
-                if notation['type'] == 'pulse':
-                    for event in group:
-                        total_duration = event.written_duration
-                        pulse = create_pulse(
-                            notation['subdivisions'],
-                            notation['pattern'],
-                            event.written_pitches,
-                            total_duration,
-                        )
-                        selection = select(event)
-                        mutate(select(event)).replace(pulse)
+def apply_pulse(sel):
+    group = list(sel)
+    if (isinstance(group[0], Chord)):
+        notation = to_abjad.get_named_annotation(group[0], 'notation')
+        for event in group:
+            total_duration = event.written_duration
+            pulse = create_pulse(
+                notation['subdivisions'],
+                notation['pattern'],
+                event.written_pitches,
+                total_duration,
+            )
+            selection = select(event)
+            mutate(select(event)).replace(pulse)
+
+def apply_arpeggio(sel):
+    group = list(sel)
+    if len(group[0].written_pitches) > 1:
+        sel = select(group[0])
+        tuplet = FixedDurationTuplet((1, 4), [])
+        coll = []
+        for pitch in group[0].written_pitches:
+            coll.append(pitch)
+            tuplet.append(Chord(coll, Duration((1,8))))
+        mutate(sel).replace(tuplet)
+
+def set_tempi(score):
+    curr_tempo = None
+    for c in iterate(score).by_class((Container,)):
+        tempo = to_abjad.get_named_annotation(c, 'tempo')
+        if tempo and not tempo == curr_tempo:
+            fst = next(topleveltools.iterate(c).by_class((Chord, Rest)))
+            attach(Tempo((1,4), tempo), fst)
+            curr_tempo = tempo
+
+def add_staff_markup(staff):
+    fst = next(topleveltools.iterate(staff).by_class((Chord, Rest)))
+    text = to_abjad.get_named_annotation(staff, 'notation')
+    attach(Markup(text, direction=Up), fst)
+    attach(indicatortools.BarLine('||'), staff[-1])
+
+def notation_grouper(x):
+    try:
+        ann = to_abjad.get_named_annotation(x, 'notation').get('type')
+        return ann
+    except:
+        return None
+
+def apply_notations(score):
+    fns = {
+        'pulse': apply_pulse,
+        'arpeggio': apply_arpeggio,
+    }
+    for k, g in itertools.groupby(iterate(score).by_class((Chord, Rest)), notation_grouper):
+        if k:
+            fn = fns.get(k)
+            if not fn:
+                raise Exception('No processing function implemented for notation "{}"'.format(k))
+            fn(g)
+
+def annotate_containers(score):
+    fns = {
+        'section_container': add_staff_markup
+    }
+    for c in iterate(score).by_class((Container, Voice)):
+        score_id_ann = to_abjad.get_named_annotation(c, 'score_id')
+        if score_id_ann:
+            fn = fns.get(score_id_ann)
+            if fn:
+                fn(c)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -101,28 +123,11 @@ def main():
     # TODO: score overrides
     template = create_score_objects()
     score = to_abjad.Score(score).to_abjad(template)
+
     apply_score_overrides(score)
-
-    def add_staff_markup(staff):
-        fst = next(topleveltools.iterate(staff).by_class((Chord, Rest)))
-        text = to_abjad.get_named_annotation(staff, 'notation')
-        attach(Markup(text, direction=Up), fst)
-        attach(indicatortools.BarLine('||'), staff[-1])
-
-    post_process = {
-        'section_container': add_staff_markup
-    }
-
-    # apply_arpeggio(score)
-    # apply_accidentals(score)
-    apply_pulse(score)
-
-    for x in iterate(score).by_class((Container, Voice)):
-        maybe_ann = to_abjad.get_named_annotation(x, 'score_id')
-        if maybe_ann:
-            proc = post_process.get(maybe_ann)
-            if proc:
-                proc(x)
+    apply_notations(score)
+    annotate_containers(score)
+    set_tempi(score)
 
     lilypond_file = make_lilypond_file(score)
     show(lilypond_file)

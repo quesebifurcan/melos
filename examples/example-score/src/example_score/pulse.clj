@@ -14,7 +14,7 @@
   (let [group (gensym "G__")
         notation {:type :pulse
                   :subdivisions 7
-                  :pattern [0 1 0 0]}]
+                  :pattern [0 0 0 0 1]}]
     (map (fn [chord]
            (->> chord
                 (chord/set-chord-key :group group)

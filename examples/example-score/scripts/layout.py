@@ -14,11 +14,13 @@ def apply_score_overrides(score):
     override(score).tuplet_number.text = scheme
     override(score).tuplet_bracket.direction = 'up'
     override(score).tie.minimum_length = 3
-    # override(score).spacing_spanner.uniform_stretching = True
-    # moment = schemetools.SchemeMoment(1, 12)
-    # set_(score).proportional_notation_duration = moment
-    # override(score).spacing_spanner.strict_note_spacing = True
-    # spacing_vector = schemetools.make_spacing_vector(0, 0, 30, 0)
+
+    # # Uniform stretching
+    override(score).spacing_spanner.uniform_stretching = True
+    moment = schemetools.SchemeMoment(1, 16)
+    set_(score).proportional_notation_duration = moment
+    override(score).spacing_spanner.strict_note_spacing = True
+
     return score
 
 def make_lilypond_file(score, title='', author=''):
