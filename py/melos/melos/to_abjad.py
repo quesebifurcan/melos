@@ -212,9 +212,12 @@ class Staff(Converter):
             topleveltools.override(self.converted.voices[0]).stem.direction = 'up'
             topleveltools.override(self.converted.voices[0]).tuplet_bracket.direction = 'up'
             topleveltools.override(self.converted.voices[0]).tie.direction = 'up'
+            topleveltools.override(self.converted.voices[0]).rest.staff_position = 6
+
             topleveltools.override(self.converted.voices[1]).stem.direction = 'down'
             topleveltools.override(self.converted.voices[1]).tuplet_bracket.direction = 'down'
             topleveltools.override(self.converted.voices[1]).tie.direction = 'down'
+            topleveltools.override(self.converted.voices[1]).rest.staff_position = -8
         container.extend(self.converted.voices)
         return container
 
