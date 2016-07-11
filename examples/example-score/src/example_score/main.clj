@@ -16,16 +16,20 @@
              [utils :as utils]])
   (:import [melos.schemas Chord Note]))
 
-(def durations
-  {1              [3/4 [1/2 :stretch]]
-   3/4            [[1/2 :stretch] 1/4]
-   [1/2 :stretch] [1/2 1/4]
-   1/2            [1/4 1/4]
-   1/4            [1/8 1/8]
-   1/8            [1/16 1/16]})
-
 (def measure-1
-  (measure/make-rtm-tree durations 1))
+  (let [durations {1 [2/4 2/4]
+                   2/4 [1/4 1/4]
+                   1/4 [1/8 1/8]}]
+    (measure/make-rtm-tree durations 1)))
+
+(def measure-2
+  (let [durations {1              [3/4 [1/2 :stretch]]
+                   3/4            [[1/2 :stretch] 1/4]
+                   [1/2 :stretch] [1/2 1/4]
+                   1/2            [1/4 1/4]
+                   1/4            [1/8 1/8]
+                   1/8            [1/16 1/16]}]
+    (measure/make-rtm-tree durations 1)))
 
 (defn rtm-tree-zipper
   [measures]
