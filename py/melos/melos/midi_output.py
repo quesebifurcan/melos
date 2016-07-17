@@ -8,7 +8,7 @@ from termcolor import colored
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
-from main import make_score
+# from main import make_score
 
 Event = namedtuple('Event', [
     'pitch',
@@ -24,11 +24,11 @@ def split_chords(staff):
         agent = inspect_(elt)
         return agent.get_timespan(in_seconds=True)
 
-    def get_annotation(elt, name):
-        annotations = inspect_(elt).get_indicators(indicatortools.Annotation)
-        annotations = filter(lambda x: x.name == name, annotations)
-        if annotations:
-            return annotations[0].value
+    def get_annotation(obj, name):
+        annotations = topleveltools.inspect_(obj).get_indicators(indicatortools.Annotation)
+        for annotation in annotations:
+            if annotation.name == name:
+                return annotation.value
         return None
 
     coll = []
@@ -44,7 +44,7 @@ def split_chords(staff):
         start = timespan.start_offset
         stop = timespan.stop_offset
         if isinstance(abjad_obj, Chord):
-            old_pitches = pending.keys()
+            old_pitches = list(pending.keys())
             new_pitches = abjad_obj.written_pitches
             # Pop "old" pitches if they are not present
             # in the current abjad_obj (Chord).
@@ -90,50 +90,51 @@ def split_chords(staff):
     return coll
 
 def event_to_qlist_item(event, delta):
-    track_name = '-'.join([event.part, event.registration])
+    # print(event)
+    # track_name = '-'.join([event.part])
     result = ' '.join([
         str(int(delta * 1000)),
-        track_name,
+        'temp-track',
         str(event.pitch + 60),
         str(event.velocity),
     ])
     return result + ';'
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--title', default='Test')
-    parser.add_argument('--author', default='Anonymous')
-    parser.add_argument('--score-out', dest='score_out')
-    parser.add_argument('--input-files', nargs='+', dest='input_files')
-    args = parser.parse_args()
+# def main():
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--title', default='Test')
+#     parser.add_argument('--author', default='Anonymous')
+#     parser.add_argument('--score-out', dest='score_out')
+#     parser.add_argument('--input-files', nargs='+', dest='input_files')
+#     args = parser.parse_args()
 
-    score_data = make_score(args)
+#     score_data = make_score(args)
 
-    # TODO: every event is routed using its part- and registration-value.
-    # Example: {:part "voice-1" :registration "A"} -> voice-1-A
-    # Max-receive objects take their settings from the name of a track.
+#     # TODO: every event is routed using its part- and registration-value.
+#     # Example: {:part "voice-1" :registration "A"} -> voice-1-A
+#     # Max-receive objects take their settings from the name of a track.
 
-    all_events = []
-    for staff in score_data.staves:
-        for tie_chain in iterate(staff).by_logical_tie():
-            events = split_chords(tie_chain)
-            all_events.extend(events)
+#     all_events = []
+#     for staff in score_data.staves:
+#         for tie_chain in iterate(staff).by_logical_tie():
+#             events = split_chords(tie_chain)
+#             all_events.extend(events)
 
-    all_events = sorted(all_events, key=lambda x: x.time)
-    curr = 0
-    for event in all_events:
-        delta = event.time - curr
-        print event_to_qlist_item(event, delta)
-        curr = event.time
+#     all_events = sorted(all_events, key=lambda x: x.time)
+#     curr = 0
+#     for event in all_events:
+#         delta = event.time - curr
+#         print event_to_qlist_item(event, delta)
+#         curr = event.time
 
-    # TODO tied groups:
-    # [x] 1. tied notes (groups) in score.
-    # [x] 2. iterate by logical tie in midi_output.py
-    # [x] 3. combine all staves into one file
-    # [x] 4. make sure that all abjad objects can return their offset in seconds
-    # [x] 5. final events in segments (cut off at right time)
-    # [] 6. print qlist to file
-    # [] 7. registration for each segment
+#     # TODO tied groups:
+#     # [x] 1. tied notes (groups) in score.
+#     # [x] 2. iterate by logical tie in midi_output.py
+#     # [x] 3. combine all staves into one file
+#     # [x] 4. make sure that all abjad objects can return their offset in seconds
+#     # [x] 5. final events in segments (cut off at right time)
+#     # [] 6. print qlist to file
+#     # [] 7. registration for each segment
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

@@ -16,13 +16,13 @@
              [utils :as utils]])
   (:import [melos.schemas Chord Note]))
 
-(def measure-1
+(def measure-2
   (let [durations {1 [2/4 2/4]
                    2/4 [1/4 1/4]
                    1/4 [1/8 1/8]}]
     (measure/make-rtm-tree durations 1)))
 
-(def measure-2
+(def measure-1
   (let [durations {1              [3/4 [1/2 :stretch]]
                    3/4            [[1/2 :stretch] 1/4]
                    [1/2 :stretch] [1/2 1/4]
@@ -35,7 +35,7 @@
   [measures]
   (measure/rtm-tree-zipper {:root true :children measures}))
 
-(def phrases [[[0] [1] [2]]
+(def phrases [[[0 2 4] [1] [2]]
               [[3] [4]]
               [[5] [6] [7]]
               [[8] [9]]])

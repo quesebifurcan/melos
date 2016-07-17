@@ -1,4 +1,5 @@
 import argparse
+import collections
 import itertools
 import json
 
@@ -10,13 +11,13 @@ from abjad.tools.scoretools import FixedDurationTuplet
 
 from layout import (
     create_score_objects,
-    attach_ties,
     apply_score_overrides,
     apply_accidentals,
     make_lilypond_file,
 )
 
 from melos import to_abjad
+from melos import midi_output
 
 def create_pulse(subdivisions, pattern, pitches, duration):
     count = int(duration / Duration((1, 4)))
@@ -43,6 +44,7 @@ def apply_pulse(sel):
     group = list(sel)
     if (isinstance(group[0], Chord)):
         notation = to_abjad.get_named_annotation(group[0], 'notation')
+        coll = Container()
         for event in group:
             total_duration = event.written_duration
             pulse = create_pulse(
@@ -51,8 +53,9 @@ def apply_pulse(sel):
                 event.written_pitches,
                 total_duration,
             )
+            detach(Tie, event)
             selection = select(event)
-            mutate(select(event)).replace(pulse)
+            mutate(selection).replace(pulse)
 
 def apply_arpeggio(sel):
     group = list(sel)
@@ -87,17 +90,18 @@ def notation_grouper(x):
     except:
         return None
 
-def apply_notations(score):
+def apply_notations(notation_data, score):
     fns = {
         'pulse': apply_pulse,
         'arpeggio': apply_arpeggio,
     }
-    for k, g in itertools.groupby(iterate(score).by_class((Chord, Rest)), notation_grouper):
-        if k:
-            fn = fns.get(k)
-            if not fn:
-                raise Exception('No processing function implemented for notation "{}"'.format(k))
-            fn(g)
+    fn = fns[notation_data['type']]
+    if not fn:
+        raise Exception('No processing function implemented for notation "{}"'.format(k))
+    fn(score)
+
+def attach_ties(_, selection):
+    attach(Tie(), selection)
 
 def annotate_containers(score):
     fns = {
@@ -109,6 +113,18 @@ def annotate_containers(score):
             fn = fns.get(score_id_ann)
             if fn:
                 fn(c)
+
+def interpret_spanners(score):
+    spanner_groups = collections.OrderedDict(
+        (('groups', [attach_ties]),
+         ('notation', [apply_notations]))
+    )
+    for name, fns in spanner_groups.items():
+        for spanner in iterate(score).by_spanner(to_abjad.NotationSpanner):
+            if spanner.key == name:
+                fns = spanner_groups[spanner.key]
+                for fn in fns:
+                    fn(spanner.value, list(spanner.components))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -125,11 +141,29 @@ def main():
     score = to_abjad.Score(score).to_abjad(template)
 
     apply_score_overrides(score)
-    apply_notations(score)
+
+    interpret_spanners(score)
     annotate_containers(score)
     set_tempi(score)
 
+    # def get_timespan(elt):
+    #     agent = inspect_(elt)
+    #     return agent.get_timespan(in_seconds=True)
+
+        # if spanner.__class__.__name__ == 'Asdf':
+        #     print(spanner.value, spanner.key)
+    # import sys; sys.exit()
+            # all_events = sorted(all_events, key=lambda x: x.time)
+            # curr = 0
+            # for event in all_events:
+            #     delta = event.time - curr
+            #     print(midi_output.event_to_qlist_item(event, delta))
+            #     curr = event.time
+
     lilypond_file = make_lilypond_file(score)
+
+        # events = split_chords(tie_chain)
+        # all_events.extend(events)
     show(lilypond_file)
 
 if __name__ == '__main__':
