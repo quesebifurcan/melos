@@ -91,10 +91,10 @@ def split_chords(staff):
 
 def event_to_qlist_item(event, delta):
     # print(event)
-    # track_name = '-'.join([event.part])
+    track_name = '-'.join([event.part, event.registration])
     result = ' '.join([
         str(int(delta * 1000)),
-        'temp-track',
+        track_name,
         str(event.pitch + 60),
         str(event.velocity),
     ])

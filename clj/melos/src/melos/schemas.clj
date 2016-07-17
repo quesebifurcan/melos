@@ -6,6 +6,7 @@
      count                   :- s/Int
      dissonance-contributor? :- s/Bool
      group                   :- s/Symbol
+     instrument              :- s/Keyword
      is-rest?                :- s/Bool
      max-count               :- s/Int
      merge-left?             :- s/Bool

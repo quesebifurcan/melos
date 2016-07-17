@@ -146,24 +146,28 @@ def main():
     annotate_containers(score)
     set_tempi(score)
 
-    # def get_timespan(elt):
-    #     agent = inspect_(elt)
-    #     return agent.get_timespan(in_seconds=True)
+    # Export as q-list:
+    all_events = []
+    for spanner in iterate(score).by_spanner(to_abjad.NotationSpanner):
+        if spanner.key == 'instrument':
+            part, instrument = spanner.value
+            for tie_chain in iterate(spanner.components).by_logical_tie():
+                events = midi_output.split_chords(tie_chain)
+                coll = []
+                for event in events:
+                    e = event._replace(registration=instrument,
+                                       part=part)
+                    coll.append(e)
+                all_events.extend(coll)
 
-        # if spanner.__class__.__name__ == 'Asdf':
-        #     print(spanner.value, spanner.key)
-    # import sys; sys.exit()
-            # all_events = sorted(all_events, key=lambda x: x.time)
-            # curr = 0
-            # for event in all_events:
-            #     delta = event.time - curr
-            #     print(midi_output.event_to_qlist_item(event, delta))
-            #     curr = event.time
+    all_events = sorted(all_events, key=lambda x: x.time)
+    curr = 0
+    for event in all_events:
+        delta = event.time - curr
+        print(midi_output.event_to_qlist_item(event, delta))
+        curr = event.time
 
     lilypond_file = make_lilypond_file(score)
-
-        # events = split_chords(tie_chain)
-        # all_events.extend(events)
     show(lilypond_file)
 
 if __name__ == '__main__':

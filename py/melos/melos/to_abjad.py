@@ -121,6 +121,7 @@ class Note(Converter):
         'pitch': identity,
         'group': identity,
         'notation': identity,
+        'instrument': identity,
         'is-rest?': identity,
     }
 
@@ -147,6 +148,14 @@ class Chord(Converter):
             groups = [x.group for x in self.events]
             groups_annotation = indicatortools.Annotation('groups', groups)
             topleveltools.attach(groups_annotation, chord)
+            # Parts
+            part = [x.part for x in self.events][0]
+            part_annotation = indicatortools.Annotation('part', part)
+            topleveltools.attach(part_annotation, chord)
+            # Instrument
+            instrument = [x.instrument for x in self.events][0]
+            instrument_annotation = indicatortools.Annotation('instrument', instrument)
+            topleveltools.attach(instrument_annotation, chord)
             # Notations
             notations = [x.notation for x in self.events]
             if all(notations):
@@ -290,14 +299,21 @@ class Score(Converter):
             'notation': group_events(
                 lambda x: get_named_annotation(x, 'notation'),
             ),
+            'instrument': group_events(
+                lambda x: (
+                    get_named_annotation(x, 'part'),
+                    get_named_annotation(x, 'instrument'),
+                )
+            ),
         }
         for spanner_name, group_fn in spanner_groups.items():
             classes = (scoretools.Chord, scoretools.Rest)
             chords_iterator = topleveltools.iterate(score).by_class(classes)
             for k, g in group_fn(chords_iterator):
-                if k:
+                group = list(g)
+                if k and isinstance(group[0], scoretools.Chord):
                     spanner = NotationSpanner(key=spanner_name, value=k)
-                    topleveltools.attach(spanner, list(g))
+                    topleveltools.attach(spanner, group)
     def to_abjad(self, template):
         score_data = template
         # Append sections to staves

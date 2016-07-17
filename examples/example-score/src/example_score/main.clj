@@ -59,7 +59,7 @@
                                  {:f (pulse {:phrases [[[0]]
                                                        [[2]]]
                                              :part-name :voice-1
-                                             :transposition -2
+                                             :transposition 22
                                              :durations [1/4 1/4]})}
 
                                  {:b1 (chromatic-line {:phrases [[[0] [1]]
@@ -195,7 +195,7 @@
                                        {:voice-seq (take 40 (cycle [:f :b1 :c :b2 :c]))
                                         :dissonance-limit [0 2 4 5]
                                         :final-event-min-dur 7/4
-                                        :tempo 132
+                                        :tempo 45
                                         :template template-1
                                         :event-seqs event-seqs
                                         :measure-list [measure-1]

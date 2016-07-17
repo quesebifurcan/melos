@@ -12,6 +12,7 @@
    :max-count 100
    :merge-left? false
    :merge-right? false
+   :instrument :a
    :notation nil
    :part :none,
    :pitch 0
