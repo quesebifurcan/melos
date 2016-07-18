@@ -100,41 +100,25 @@ def event_to_qlist_item(event, delta):
     ])
     return result + ';'
 
-# def main():
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('--title', default='Test')
-#     parser.add_argument('--author', default='Anonymous')
-#     parser.add_argument('--score-out', dest='score_out')
-#     parser.add_argument('--input-files', nargs='+', dest='input_files')
-#     args = parser.parse_args()
-
-#     score_data = make_score(args)
-
-#     # TODO: every event is routed using its part- and registration-value.
-#     # Example: {:part "voice-1" :registration "A"} -> voice-1-A
-#     # Max-receive objects take their settings from the name of a track.
-
-#     all_events = []
-#     for staff in score_data.staves:
-#         for tie_chain in iterate(staff).by_logical_tie():
-#             events = split_chords(tie_chain)
-#             all_events.extend(events)
-
-#     all_events = sorted(all_events, key=lambda x: x.time)
-#     curr = 0
-#     for event in all_events:
-#         delta = event.time - curr
-#         print event_to_qlist_item(event, delta)
-#         curr = event.time
-
-#     # TODO tied groups:
-#     # [x] 1. tied notes (groups) in score.
-#     # [x] 2. iterate by logical tie in midi_output.py
-#     # [x] 3. combine all staves into one file
-#     # [x] 4. make sure that all abjad objects can return their offset in seconds
-#     # [x] 5. final events in segments (cut off at right time)
-#     # [] 6. print qlist to file
-#     # [] 7. registration for each segment
-
-# if __name__ == '__main__':
-#     main()
+def export_as_qlist(score):
+    from melos import to_abjad
+    all_events = []
+    for spanner in iterate(score).by_spanner(to_abjad.NotationSpanner):
+        if spanner.key == 'instrument':
+            part, instrument = spanner.value
+            for tie_chain in iterate(spanner.components).by_logical_tie():
+                events = split_chords(tie_chain)
+                coll = []
+                for event in events:
+                    e = event._replace(registration=instrument,
+                                    part=part)
+                    coll.append(e)
+                all_events.extend(coll)
+    all_events = sorted(all_events, key=lambda x: x.time)
+    curr = 0
+    result = []
+    for event in all_events:
+        delta = event.time - curr
+        result.append(event_to_qlist_item(event, delta))
+        curr = event.time
+    return result

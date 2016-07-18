@@ -191,7 +191,7 @@
       :author "anonymous"
       :score-template "asdf"
       :parse-fn "qwer"
-      :sections (mapv compose-section [
+      :sections (mapv compose-section (take 6 (cycle [
                                        {:voice-seq (take 40 (cycle [:f :b1 :c :b2 :c]))
                                         :dissonance-limit [0 2 4 5]
                                         :final-event-min-dur 7/4
@@ -208,5 +208,6 @@
                                         :event-seqs event-seqs
                                         :measure-list [measure-1]
                                         :merge-horizontally-fn (fn [_ _] true)}
-                                       ])}))
+                                                       ]))
+                      )}))
   (shell/sh "scripts/to_pdf.sh"))

@@ -314,12 +314,7 @@ class Score(Converter):
                 if k and isinstance(group[0], scoretools.Chord):
                     spanner = NotationSpanner(key=spanner_name, value=k)
                     topleveltools.attach(spanner, group)
-    def to_abjad(self, template):
-        score_data = template
-        # Append sections to staves
-        for section in self.sections:
-            for staff_container in section:
-                container_name = get_named_annotation(staff_container, 'name')
-                score_data.staves[container_name].append(staff_container)
-        self.apply_spanners(score_data.score)
-        return score_data.score
+    def to_abjad(self):
+        return self.sections
+        # score_data = template
+        # return score_data.score, score_data.staves, self.sections, self.apply_spanners

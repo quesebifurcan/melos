@@ -40,8 +40,7 @@ def create_pulse(subdivisions, pattern, pitches, duration):
         result.append(tuplet)
     return result
 
-def apply_pulse(sel):
-    group = list(sel)
+def apply_pulse(group):
     if (isinstance(group[0], Chord)):
         notation = to_abjad.get_named_annotation(group[0], 'notation')
         coll = Container()
@@ -57,8 +56,7 @@ def apply_pulse(sel):
             selection = select(event)
             mutate(selection).replace(pulse)
 
-def apply_arpeggio(sel):
-    group = list(sel)
+def apply_arpeggio(group):
     if len(group[0].written_pitches) > 1:
         sel = select(group[0])
         tuplet = FixedDurationTuplet((1, 4), [])
@@ -138,36 +136,24 @@ def main():
 
     # TODO: score overrides
     template = create_score_objects()
-    score = to_abjad.Score(score).to_abjad(template)
+    score = to_abjad.Score(score)
+    sections = score.to_abjad()
 
-    apply_score_overrides(score)
+    apply_score_overrides(template.score)
 
-    interpret_spanners(score)
-    annotate_containers(score)
-    set_tempi(score)
+    for section in sections[:2]:
+        for staff_container in section:
+            score.apply_spanners(staff_container)
+            interpret_spanners(staff_container)
+            annotate_containers(staff_container)
+            set_tempi(staff_container)
 
-    # Export as q-list:
-    all_events = []
-    for spanner in iterate(score).by_spanner(to_abjad.NotationSpanner):
-        if spanner.key == 'instrument':
-            part, instrument = spanner.value
-            for tie_chain in iterate(spanner.components).by_logical_tie():
-                events = midi_output.split_chords(tie_chain)
-                coll = []
-                for event in events:
-                    e = event._replace(registration=instrument,
-                                       part=part)
-                    coll.append(e)
-                all_events.extend(coll)
+    for section in sections:
+        for staff_container in section:
+            container_name = to_abjad.get_named_annotation(staff_container, 'name')
+            template.staves[container_name].append(staff_container)
 
-    all_events = sorted(all_events, key=lambda x: x.time)
-    curr = 0
-    for event in all_events:
-        delta = event.time - curr
-        print(midi_output.event_to_qlist_item(event, delta))
-        curr = event.time
-
-    lilypond_file = make_lilypond_file(score)
+    lilypond_file = make_lilypond_file(template.score)
     show(lilypond_file)
 
 if __name__ == '__main__':
