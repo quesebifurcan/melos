@@ -154,7 +154,7 @@ def main():
             container_name = to_abjad.get_named_annotation(staff_container, 'name')
             template.staves[container_name].append(staff_container)
 
-    lilypond_file = make_lilypond_file(template.score)
+    lilypond_file = make_lilypond_file(template.score, title='Test', author='Anonymous')
     show(lilypond_file)
 
 if __name__ == '__main__':

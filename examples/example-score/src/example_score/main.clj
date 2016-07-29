@@ -123,15 +123,23 @@
   [measures event-seq]
   (-> (measure/insert-chords event-seq (rtm-tree-zipper measures)) :children))
 
+(defn sum-by-key [k xs] (apply + (map k xs)))
+
+(defn extend-last
+  [duration xs]
+  (concat (butlast xs)
+          [(update (last xs) :duration #(+ % duration))]))
+
 (defn make-voice
   [{:keys [events part-name final-event-min-dur measure-list]}]
-  (let [event-seq (part/filter-chords part-name events)
-        total-duration (+ (apply + (map :duration event-seq)) final-event-min-dur)
-        measures (cycle-measures total-duration measure-list)
-        measures-duration (apply + (map :sum-of-leaves-duration measures))
-        diff_ (- measures-duration total-duration)
-        extended (concat (butlast event-seq)
-                         [(update (last event-seq) :duration (fn [x] (+ x diff_ final-event-min-dur)))])]
+  (let [event-seq         (part/filter-chords part-name events)
+        total-duration    (+ (sum-by-key :duration event-seq)
+                             final-event-min-dur)
+        measures          (cycle-measures total-duration measure-list)
+        measures-duration (sum-by-key :sum-of-leaves-duration measures)
+        overhang          (- measures-duration total-duration)
+        extended          (extend-last (+ final-event-min-dur overhang)
+                                       event-seq)]
     {:type :Voice
      :name part-name
      :measures (->> (chord-seq/simplify-event-seq extended)
@@ -154,14 +162,20 @@
              :notation :very-soft
              :voices [:voice-5]}]})
 
+(defn voices-entry?
+  [form]
+  (and (vector? form)
+       (= (first form) :voices)))
+
+(defn compose-voices' [f form] [:voices (map f (second form))])
+
 (defn compose-voices
   [template f]
   (clojure.walk/postwalk
    (fn [form]
-     (cond (and (vector? form) (= (first form) :voices))
-           [:voices (map f (second form))]
-           :else
-           form))
+     (if (voices-entry? form)
+       (compose-voices' f form)
+       form))
    template))
 
 (defn compose-section
