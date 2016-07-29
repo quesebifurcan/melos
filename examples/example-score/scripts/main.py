@@ -22,7 +22,6 @@ from melos import midi_output
 def create_pulse(subdivisions, pattern, pitches, duration):
     count = int(duration / Duration((1, 4)))
     result = Container()
-    pattern = itertools.cycle(pattern)
     for x in range(count):
         tuplet = FixedDurationTuplet((1, 4), [])
         pending_rest_duration = 0
@@ -43,12 +42,14 @@ def create_pulse(subdivisions, pattern, pitches, duration):
 def apply_pulse(group):
     if (isinstance(group[0], Chord)):
         notation = to_abjad.get_named_annotation(group[0], 'notation')
-        coll = Container()
+        # Make an iterator from 'pattern' which can be used for all
+        # groups.
+        pattern = itertools.cycle(notation['pattern'])
         for event in group:
             total_duration = event.written_duration
             pulse = create_pulse(
                 notation['subdivisions'],
-                notation['pattern'],
+                pattern,
                 event.written_pitches,
                 total_duration,
             )

@@ -78,10 +78,12 @@
                                                        :transposition 0
                                                        :durations [1/4]})}
 
-                                 {:c (chromatic-line {:phrases phrases
-                                                      :part-name :voice-5
-                                                      :transposition -20
-                                                      :durations [1/4]})}
+                                 {:c (arpeggio {:phrases [[[0]]
+                                                          [[2]]
+                                                          [[3]]]
+                                                :part-name :voice-5
+                                                :transposition -20
+                                                :durations [1/4]})}
 
                                  {:d (multi {:voices [:voice-5 :voice-3 :voice-1]
                                              :duration [1/4 2/4]
@@ -191,8 +193,8 @@
       :author "anonymous"
       :score-template "asdf"
       :parse-fn "qwer"
-      :sections (mapv compose-section (take 6 (cycle [
-                                       {:voice-seq (take 40 (cycle [:f :b1 :c :b2 :c]))
+      :sections (mapv compose-section (take 2 (cycle [
+                                       {:voice-seq (take 20 (cycle [:f :b1 :c :b2 :c]))
                                         :dissonance-limit [0 2 4 5]
                                         :final-event-min-dur 7/4
                                         :tempo 45
