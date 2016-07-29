@@ -111,7 +111,7 @@ def export_as_qlist(score):
                 coll = []
                 for event in events:
                     e = event._replace(registration=instrument,
-                                    part=part)
+                                        part=part)
                     coll.append(e)
                 all_events.extend(coll)
     all_events = sorted(all_events, key=lambda x: x.time)

@@ -281,6 +281,28 @@ class NotationSpanner(spannertools.Spanner):
         self.key = key
         self.value = value
 
+def is_tied(a, b):
+    a_ = get_named_annotation(a, 'groups')
+    b_ = get_named_annotation(b, 'groups')
+    if a_ and b_:
+        return any([x in b_ for x in a_])
+    return False
+
+def get_tie_groups(xs):
+    curr = []
+    result = []
+    for x in xs:
+        if not curr:
+            curr.append(x)
+        elif is_tied(x, curr[-1]):
+            curr.append(x)
+        else:
+            result.append(curr)
+            curr = [x]
+    if curr:
+        result.append(curr)
+    return result
+
 class Score(Converter):
     params = {
         'title': identity,
@@ -291,11 +313,11 @@ class Score(Converter):
         return templates().get(self.score_template)()
     def apply_spanners(self, score):
         spanner_groups = {
-            'groups': lambda score: groupby(
-                score,
-                key=lambda x: get_named_annotation(x, 'groups'),
-                eqcheck=contains_any,
-            ),
+            # 'groups': lambda score: groupby(
+            #     score,
+            #     key=lambda x: get_named_annotation(x, 'groups'),
+            #     eqcheck=contains_any,
+            # ),
             'notation': group_events(
                 lambda x: get_named_annotation(x, 'notation'),
             ),
@@ -306,6 +328,15 @@ class Score(Converter):
                 )
             ),
         }
+        # groups
+        classes = (scoretools.Chord, scoretools.Rest)
+        chords_iterator = list(topleveltools.iterate(score).by_class(classes))
+        tie_groups = get_tie_groups(list(chords_iterator))
+        for tie_group in tie_groups:
+            if isinstance(tie_group[0], scoretools.Chord):
+                spanner = NotationSpanner(key='groups', value=True)
+                topleveltools.attach(spanner, tie_group)
+        # notation, instrument
         for spanner_name, group_fn in spanner_groups.items():
             classes = (scoretools.Chord, scoretools.Rest)
             chords_iterator = topleveltools.iterate(score).by_class(classes)
