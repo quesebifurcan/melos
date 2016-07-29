@@ -64,8 +64,7 @@
 
                                  {:b1 (chromatic-line {:phrases [[[0] [1]]
                                                                  [[2] [3]]
-                                                                 [[4] [5]]
-                                                                 [[6] [7]]]
+                                                                 [[4] [5]]]
                                                        :part-name :voice-3
                                                        :transposition 5
                                                        :durations [1/4]})}
@@ -195,35 +194,37 @@
                                                    :measure-list measure-list
                                                    :final-event-min-dur final-event-min-dur}))))
 
+(defn sections []
+  (let [event-seqs (voices)]
+    (take 2 (cycle [{:voice-seq (take 20 (cycle [:f :b1 :c :b2 :c]))
+                     :dissonance-limit [0 2 4 5]
+                     :final-event-min-dur 7/4
+                     :tempo 45
+                     :template template-1
+                     :event-seqs event-seqs
+                     :measure-list [measure-1]
+                     :merge-horizontally-fn (fn [_ _] true)}
+                    {:voice-seq (take 40 (cycle [:a :b1 :b2 :a :c]))
+                     :dissonance-limit [0 2 4 5]
+                     :tempo 96
+                     :final-event-min-dur 7/4
+                     :template template-1
+                     :event-seqs event-seqs
+                     :measure-list [measure-1]
+                     :merge-horizontally-fn (fn [_ _] true)}
+                    ]))))
+
+
 ;; TODO: sections with different instrumentation?
 ;; TODO: only output selected keys?
 (defn render
   []
-  (let [event-seqs (voices)]
-    (utils/export-to-json
-     "output/example_1.json"
-     {:type :Score
-      :title "test"
-      :author "anonymous"
-      :score-template "asdf"
-      :parse-fn "qwer"
-      :sections (mapv compose-section (take 2 (cycle [
-                                       {:voice-seq (take 20 (cycle [:f :b1 :c :b2 :c]))
-                                        :dissonance-limit [0 2 4 5]
-                                        :final-event-min-dur 7/4
-                                        :tempo 45
-                                        :template template-1
-                                        :event-seqs event-seqs
-                                        :measure-list [measure-1]
-                                        :merge-horizontally-fn (fn [_ _] true)}
-                                       {:voice-seq (take 40 (cycle [:a :b1 :b2 :a :c]))
-                                        :dissonance-limit [0 2 4 5]
-                                        :tempo 96
-                                        :final-event-min-dur 7/4
-                                        :template template-1
-                                        :event-seqs event-seqs
-                                        :measure-list [measure-1]
-                                        :merge-horizontally-fn (fn [_ _] true)}
-                                                       ]))
-                      )}))
+  (utils/export-to-json
+   "output/example_1.json"
+   {:type :Score
+    :title "test"
+    :author "anonymous"
+    :score-template "asdf"
+    :parse-fn "qwer"
+    :sections (mapv compose-section (sections))})
   (shell/sh "scripts/to_pdf.sh"))

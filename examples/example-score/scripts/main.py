@@ -53,7 +53,6 @@ def apply_pulse(group):
                 event.written_pitches,
                 total_duration,
             )
-            detach(Tie, event)
             selection = select(event)
             mutate(selection).replace(pulse)
 
@@ -99,6 +98,7 @@ def apply_notations(notation_data, score):
         raise Exception('No processing function implemented for notation "{}"'.format(k))
     fn(score)
 
+
 def attach_ties(_, selection):
     attach(Tie(), selection)
 
@@ -142,7 +142,7 @@ def main():
 
     apply_score_overrides(template.score)
 
-    for section in sections[:2]:
+    for section in sections:
         for staff_container in section:
             score.apply_spanners(staff_container)
             interpret_spanners(staff_container)
@@ -153,6 +153,12 @@ def main():
         for staff_container in section:
             container_name = to_abjad.get_named_annotation(staff_container, 'name')
             template.staves[container_name].append(staff_container)
+
+    with open('/Users/fred/Desktop/score.txt', 'w') as outfile:
+        for s in midi_output.export_as_qlist(template.score):
+            print(s)
+            outfile.write(s)
+            outfile.write('\n')
 
     lilypond_file = make_lilypond_file(template.score, title='Test', author='Anonymous')
     show(lilypond_file)
