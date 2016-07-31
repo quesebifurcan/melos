@@ -154,9 +154,8 @@ def main():
             container_name = to_abjad.get_named_annotation(staff_container, 'name')
             template.staves[container_name].append(staff_container)
 
-    with open('/Users/fred/Desktop/score.txt', 'w') as outfile:
+    with open('/tmp/score.txt', 'w') as outfile:
         for s in midi_output.export_as_qlist(template.score):
-            print(s)
             outfile.write(s)
             outfile.write('\n')
 
