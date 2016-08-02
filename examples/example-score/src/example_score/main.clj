@@ -16,6 +16,17 @@
              [utils :as utils]])
   (:import [melos.schemas Chord Note]))
 
+(defn segment-range
+  [filter_ r]
+  (let [[start end] r
+        r' (range start (inc end))]
+    (->> r'
+         (utils/partition-by-inclusive
+          (fn [x] (not (some (fn [x'] (= x' (rem (+ 60 x) 12))) filter_))))
+         (map #(filter identity %))
+         (map (fn [x] (map (fn [y] [y]) x)))
+         )))
+
 (def measure-2
   (let [durations {1 [2/4 2/4]
                    2/4 [1/4 1/4]
@@ -118,40 +129,51 @@
 
    ])
 
+(defn phrase-a
+  [r]
+  (segment-range [0 2 4 5 7 9 11] r))
+  ;; (utils/transpose-all (first r) phrase))
+
+;; TODO: highest pitch?
 (defn voices
   []
   (let [event-seqs (apply merge [
-
                                  {:a (chromatic-line
-                                      {:phrases phrase
+                                      {:phrases (phrase-a [4 9])
                                        :part-name :voice-1
-                                       :transposition 5
+                                       :transposition 0
                                        :durations [1/4 1/4]})}
 
                                  {:b (chromatic-line
-                                      {:phrases phrase
+                                      {:phrases (phrase-a [0 5])
                                        :part-name :voice-2
                                        :transposition 0
                                        :durations [1/4 1/4]})}
 
-                                 {:c (chromatic-line
-                                      {:phrases phrase
+                                 {:c (arpeggio
+                                      {:phrases [[[-1]]
+                                                 [[-1 11]]
+                                                 [[11]]
+                                                 [[11 9]]
+                                                 [[9]]
+                                                 [[9 -3]]
+                                                 [[-3]]
+                                                 [[-3 -1]]]
                                        :part-name :voice-3
-                                       :transposition 3
+                                       :transposition 0
                                        :durations [1/4 1/4]})}
 
                                  {:d (chromatic-line
-                                      {:phrases phrase
+                                      {:phrases (phrase-a [-8 -3])
                                        :part-name :voice-4
-                                       :transposition -7
+                                       :transposition 0
                                        :durations [1/4 1/4]})}
 
                                  {:e (chromatic-line
-                                      {:phrases phrase
+                                      {:phrases (phrase-a [-12 -7])
                                        :part-name :voice-5
-                                       :transposition -17
+                                       :transposition 0
                                        :durations [1/4 1/4]})}
-
 
                                  ;; {:f (staccato {:phrases phrases
                                  ;;                :part-name :voice-1
@@ -238,12 +260,8 @@
                      (chord/select-chord-key :pitch b))
                   (not= (count (chord/select-chord-key :pitch a))
                         1))
-           ;; (println (chord/select-chord-key :pitch a)
-           ;;          (chord/select-chord-key :pitch b))
-           ;; )
            (assoc result :dissonance-drop true)
            result))
-           ;; result))
        (chord-seq/merge-chords a b)))))
 
 (defn cycle-measures
@@ -324,27 +342,27 @@
            merge-horizontally-fn]}]
   (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
                     (reductions (handle-dissonance-fn dissonance-limit))
-                    ((fn [z]
-                       (map (fn [x y] (if (:dissonance-drop y)
-                                        (assoc x :duration 7/4)
-                                        x))
-                            z
-                            (rest z))))
-                    ((fn [z]
-                       (map (fn [x y]
-                              (if (chord/consonant? default-mapping
-                                                    [0 1]
-                                                    (chord/select-chord-key
-                                                     :pitch y))
-                                x
-                                (assoc x :duration 3/4)))
-                            z
-                            (rest z))))
+                    ;; ((fn [z]
+                    ;;    (map (fn [x y] (if (:dissonance-drop y)
+                    ;;                     (assoc x :duration 7/4)
+                    ;;                     x))
+                    ;;         z
+                    ;;         (cycle (rest z)))))
+                    ;; ((fn [z]
+                    ;;    (map (fn [x y]
+                    ;;           (if (chord/consonant? default-mapping
+                    ;;                                 [0 1]
+                    ;;                                 (chord/select-chord-key
+                    ;;                                  :pitch y))
+                    ;;             x
+                    ;;             (assoc x :duration 3/4)))
+                    ;;         z
+                    ;;         (cycle (rest z)))))
                     (map (fn [x]
                            (update x :events
                                    (fn [events]
                                      (map (fn [y]
-                                            (update y :pitch #(- % 4)))
+                                            (update y :pitch #(+ % 0)))
                                           events)))))
                     (chord-seq/merge-horizontally merge-horizontally-fn))]
     (compose-voices (template tempo) #(make-voice {:events events
@@ -353,18 +371,24 @@
                                                    :final-event-min-dur final-event-min-dur}))))
 
 (def pattern
-  [
-   :a :b :c :d :e :a :c :b :a :d
-   :a :b :c :d :e :c :b :d
-   :a :b :d :e :a :b :a :d
-   :b :d :e :b :d
-   :b :d :e :b :d
-   :b :d :e :b :d
-   ])
+  [:e :d :c :b :a :b :c :d :e :a :c :b :c :a :d
+   :a :b :c :a :d :e :c :b :d
+   :a :b :d :c :e :a :b :c :a :d
+   :b :d :c :e :b :d
+   :b :d :e :c :b :d
+   :b :d :c :e :b :d])
+
+(def pattern
+  [:e  :c :b :a :b :c  :e :a :c :b :c :a 
+   :a :b :c :a  :e :c :b 
+   :a :b  :c :e :a :b :c :a 
+   :b  :c :e :b 
+   :b  :e :c :b 
+   :b  :c :e :b ])
 
 (defn sections []
   (let [event-seqs (voices)]
-    (take 6 (cycle [{:voice-seq (take 60 (cycle pattern))
+    (take 5 (cycle [{:voice-seq (take 60 (cycle pattern))
                      :dissonance-limit [0 1]
                      :final-event-min-dur 7/4
                      :tempo 180
@@ -382,7 +406,6 @@
                     ;;  :merge-horizontally-fn (fn [_ _] true)}
                     ]))))
 
-
 ;; TODO: sections with different instrumentation?
 ;; TODO: only output selected keys?
 (defn render
@@ -397,3 +420,24 @@
     :sections (mapv compose-section (sections))})
   (println "Abjad...")
   (shell/sh "scripts/to_pdf.sh"))
+
+
+(def pitches-test-segmentation
+  [4, 5, 6 7,
+   4 5, 6 7,
+   4, 5, 7 ;; <-- ???
+   4 5, 6 7,])
+
+(segment-range [0 2 4 5 7 9 11]
+               [2 7])
+(segment-range [0 2 4 5 7 9 11]
+               [-1 5])
+(segment-range [0 2 4 5 7 8 9 11]
+               [5 9])
+
+;; (contains? [0 2 4 5]
+;;            (rem 3 12))
+
+;; (rem 3 12)
+
+;; (some #(= % 3) [0 2 3 4 5])
