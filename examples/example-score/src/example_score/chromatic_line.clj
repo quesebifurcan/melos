@@ -20,5 +20,14 @@
           :duration durations
           :phrase-end? phrase-end}
          (utils/unfold-parameters)
+         ;; (map (fn [x] (if (= (first (:pitches x)) 23)
+         ;;                (-> x
+         ;;                    (assoc :is-rest? true)
+         ;;                    (assoc :pitch 0)
+         ;;                    ;; ((fn [y] [y]))
+         ;;                    )
+
+         ;;                x)))
          (map chord/make-chord)
-         (utils/cyclic-partition groups))))
+         (utils/cyclic-partition groups)
+         )))

@@ -23,8 +23,10 @@
     (->> r'
          (utils/partition-by-inclusive
           (fn [x] (not (some (fn [x'] (= x' (rem (+ 60 x) 12))) filter_))))
-         (map #(filter identity %))
-         (map (fn [x] (map (fn [y] [y]) x)))
+         (mapv #(filter identity %))
+         (map (fn [x] (reverse (take 3 (reverse x)))))
+         (mapv (fn [x] (map (fn [y] [y]) x)))
+         ;; (#(conj % [[23]]))
          )))
 
 (def measure-2
@@ -131,7 +133,8 @@
 
 (defn phrase-a
   [r]
-  (segment-range [0 2 4 5 7 9 11] r))
+  (let [result (segment-range [2 4 7 9] r)]
+    result))
   ;; (utils/transpose-all (first r) phrase))
 
 ;; TODO: highest pitch?
@@ -145,7 +148,7 @@
                                        :durations [1/4 1/4]})}
 
                                  {:b (chromatic-line
-                                      {:phrases (phrase-a [0 5])
+                                      {:phrases (phrase-a [0 7])
                                        :part-name :voice-2
                                        :transposition 0
                                        :durations [1/4 1/4]})}
@@ -170,7 +173,7 @@
                                        :durations [1/4 1/4]})}
 
                                  {:e (chromatic-line
-                                      {:phrases (phrase-a [-12 -7])
+                                      {:phrases (phrase-a [-15 -5])
                                        :part-name :voice-5
                                        :transposition 0
                                        :durations [1/4 1/4]})}
@@ -379,18 +382,21 @@
    :b :d :c :e :b :d])
 
 (def pattern
-  [:e  :c :b :a :b :c  :e :a :c :b :c :a 
-   :a :b :c :a  :e :c :b 
-   :a :b  :c :e :a :b :c :a 
-   :b  :c :e :b 
-   :b  :e :c :b 
-   :b  :c :e :b ])
+  [:e :c :b
+   :a :c
+   :a :c
+   :a
+   :c :b
+   :c :b
+   :e :b
+   ;; :e :c
+   ])
 
 (defn sections []
   (let [event-seqs (voices)]
-    (take 5 (cycle [{:voice-seq (take 60 (cycle pattern))
+    (take 2 (cycle [{:voice-seq (take 60 (cycle pattern))
                      :dissonance-limit [0 1]
-                     :final-event-min-dur 7/4
+                     :final-event-min-dur 2/4
                      :tempo 180
                      :template template-1
                      :event-seqs event-seqs
@@ -441,3 +447,4 @@
 ;; (rem 3 12)
 
 ;; (some #(= % 3) [0 2 3 4 5])
+
