@@ -24,7 +24,7 @@
          (utils/partition-by-inclusive
           (fn [x] (not (some (fn [x'] (= x' (rem (+ 60 x) 12))) filter_))))
          (mapv #(filter identity %))
-         (map (fn [x] (reverse (take 3 (reverse x)))))
+         (map (fn [x] (reverse (take 1 (reverse x)))))
          (mapv (fn [x] (map (fn [y] [y]) x)))
          ;; (#(conj % [[23]]))
          )))
