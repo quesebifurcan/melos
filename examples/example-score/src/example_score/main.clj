@@ -24,7 +24,7 @@
          (utils/partition-by-inclusive
           (fn [x] (not (some (fn [x'] (= x' (rem (+ 60 x) 12))) filter_))))
          (mapv #(filter identity %))
-         (map (fn [x] (reverse (take 1 (reverse x)))))
+         (map (fn [x] (reverse (take 10 (reverse x)))))
          (mapv (fn [x] (map (fn [y] [y]) x)))
          ;; (#(conj % [[23]]))
          )))
@@ -133,7 +133,7 @@
 
 (defn phrase-a
   [r]
-  (let [result (segment-range [2 4 7 9] r)]
+  (let [result (segment-range [0 2 3 5 6 8 9 10] r)]
     result))
   ;; (utils/transpose-all (first r) phrase))
 
@@ -142,41 +142,47 @@
   []
   (let [event-seqs (apply merge [
                                  {:a (chromatic-line
-                                      {:phrases (phrase-a [4 9])
+                                      {:phrases (phrase-a [0 9])
                                        :part-name :voice-1
                                        :transposition 0
-                                       :durations [1/4 1/4]})}
+                                       :durations [1/4]})}
 
                                  {:b (chromatic-line
-                                      {:phrases (phrase-a [0 7])
+                                      {:phrases (phrase-a [-3 6])
                                        :part-name :voice-2
                                        :transposition 0
-                                       :durations [1/4 1/4]})}
+                                       :durations [1/4]})}
 
-                                 {:c (arpeggio
-                                      {:phrases [[[-1]]
-                                                 [[-1 11]]
-                                                 [[11]]
-                                                 [[11 9]]
-                                                 [[9]]
-                                                 [[9 -3]]
-                                                 [[-3]]
-                                                 [[-3 -1]]]
+                                 ;; {:c (arpeggio
+                                 ;;      {:phrases [[[-1]]
+                                 ;;                 [[-1 11]]
+                                 ;;                 [[11]]
+                                 ;;                 [[11 9]]
+                                 ;;                 [[9]]
+                                 ;;                 [[9 -3]]
+                                 ;;                 [[-3]]
+                                 ;;                 [[-3 -1]]]
+                                 ;;       :part-name :voice-3
+                                 ;;       :transposition 0
+                                 ;;       :durations [1/4]})}
+                                 {:c (chromatic-line
+                                      {:phrases (phrase-a [0 6])
                                        :part-name :voice-3
                                        :transposition 0
-                                       :durations [1/4 1/4]})}
+                                       :durations [1/4]})}
+
 
                                  {:d (chromatic-line
-                                      {:phrases (phrase-a [-8 -3])
+                                      {:phrases (phrase-a [-6 3])
                                        :part-name :voice-4
                                        :transposition 0
-                                       :durations [1/4 1/4]})}
+                                       :durations [1/4]})}
 
                                  {:e (chromatic-line
-                                      {:phrases (phrase-a [-15 -5])
+                                      {:phrases (phrase-a [-21 -1])
                                        :part-name :voice-5
                                        :transposition 0
-                                       :durations [1/4 1/4]})}
+                                       :durations [1/4]})}
 
                                  ;; {:f (staccato {:phrases phrases
                                  ;;                :part-name :voice-1
@@ -307,15 +313,15 @@
    :staves [{:type :Staff
              :tempo tempo
              :name :a
-             :notation :soft
+             ;; :notation :soft
              :voices [:voice-1 :voice-2]}
             {:type :Staff
              :name :b
-             :notation :shrill
+             ;; :notation :shrill
              :voices [:voice-3 :voice-4]}
             {:type :Staff
              :name :c
-             :notation :very-soft
+             ;; :notation :very-soft
              :voices [:voice-5]}]})
 
 (defn voices-entry?
@@ -334,6 +340,25 @@
        form))
    template))
 
+(defn filter-out-dissonant
+  [xs]
+  (let [part-count (fn [chord] (count (set (chord/select-chord-key :part chord))))
+        groups (partition-by (fn [x] (= (part-count x) 1)) xs)
+        one-counts (mapv (fn [x] (= (part-count (first x)) 1)) groups)]
+    (->> (map (fn [group one-count? next-one-count?]
+                (cond one-count?
+                      [(last group)]
+                      next-one-count?
+                      (concat (butlast group)
+                              [(assoc (last group) :duration 1)])
+                      :else
+                      group
+                  ))
+              groups
+              one-counts
+              (cycle (rest one-counts)))
+         (apply concat))))
+
 (defn compose-section
   [{:keys [event-seqs
            voice-seq
@@ -345,6 +370,7 @@
            merge-horizontally-fn]}]
   (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
                     (reductions (handle-dissonance-fn dissonance-limit))
+                    (filter-out-dissonant)
                     ;; ((fn [z]
                     ;;    (map (fn [x y] (if (:dissonance-drop y)
                     ;;                     (assoc x :duration 7/4)
@@ -382,20 +408,22 @@
    :b :d :c :e :b :d])
 
 (def pattern
-  [:e :c :b
+  [:e :c :b :d
    :a :c
-   :a :c
+   :a :c :d
    :a
+   :c :b :d
    :c :b
-   :c :b
-   :e :b
+   :e :b :d
    ;; :e :c
    ])
 
+(def pattern [:e :d :c :b :a])
+
 (defn sections []
   (let [event-seqs (voices)]
-    (take 2 (cycle [{:voice-seq (take 60 (cycle pattern))
-                     :dissonance-limit [0 1]
+    (take 5 (cycle [{:voice-seq (take 60 (cycle pattern))
+                     :dissonance-limit [0 2 4 5]
                      :final-event-min-dur 2/4
                      :tempo 180
                      :template template-1
@@ -427,24 +455,23 @@
   (println "Abjad...")
   (shell/sh "scripts/to_pdf.sh"))
 
+;; ;; Remove consecutive "empty chords"
+;; ;; Numbers represent "parts count"
+;; (let [a [1 2 3 2 1 1 2 1 4 5 3 2 3 1 3 2 2 2 2 1 2 3 1 2 1 2 3 4]
+;;       b [[1 2 3 2]
+;;          [1 2 3]
+;;          [1 2]]]
+;;   (->> a
+;;        (partition-by (fn [x] (> x 1)))
+;;        (map-indexed (fn [i x]
+;;                       (if (even? i)
+;;                         (take 1 x)
+;;                         x)))
+;;        (partition 2)
+;;        (map #(apply concat %))))
 
-(def pitches-test-segmentation
-  [4, 5, 6 7,
-   4 5, 6 7,
-   4, 5, 7 ;; <-- ???
-   4 5, 6 7,])
 
-(segment-range [0 2 4 5 7 9 11]
-               [2 7])
-(segment-range [0 2 4 5 7 9 11]
-               [-1 5])
-(segment-range [0 2 4 5 7 8 9 11]
-               [5 9])
 
-;; (contains? [0 2 4 5]
-;;            (rem 3 12))
+;; ((1 2 3 2) (1 2) (1 4 5 3 2 3) (1 3 2 2 2 2) (1 2 3) (1 2) (1 2 3 4))
 
-;; (rem 3 12)
-
-;; (some #(= % 3) [0 2 3 4 5])
 
