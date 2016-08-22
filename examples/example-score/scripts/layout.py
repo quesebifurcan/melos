@@ -29,7 +29,7 @@ def make_lilypond_file(score, title='', author=''):
     lilypond_file = new(
         lilypond_file,
         global_staff_size=14,
-        default_paper_size=('a4', 'portrait'),
+        default_paper_size=('a4', 'landscape'),
     )
     # HEADER BLOCK
     lilypond_file.header_block.title = Markup(title)
@@ -38,8 +38,8 @@ def make_lilypond_file(score, title='', author=''):
     # PAPER BLOCK
     lilypond_file.paper_block.ragged_bottom = True
     lilypond_file.paper_block.left_margin = 12
-    vertical_distance = 4
-    spacing_vector = schemetools.make_spacing_vector(0, 0, 8, 0)
+    vertical_distance = 1
+    spacing_vector = schemetools.make_spacing_vector(0, 0, 6, 0)
     lilypond_file.paper_block.system_system_spacing = spacing_vector
     spacing_vector = schemetools.make_spacing_vector(0, 0, 8, 0)
     lilypond_file.paper_block.top_markup_spacing = spacing_vector
@@ -162,9 +162,11 @@ def attach_ties(voice):
     adjust_ties(voice)
 
 def create_score_objects():
-    upper_staff = Staff(name='a')
-    lower_staff = Staff(name='b')
-    ped_staff = Staff(name='c')
+    staff_1 = Staff(name='1')
+    staff_2 = Staff(name='2')
+    staff_3 = Staff(name='3')
+    staff_4 = Staff(name='4')
+    staff_5 = Staff(name='5')
 
     # upper_staff.is_simultaneous = True
     # voice_1 = Voice(name='voice-1')
@@ -195,30 +197,51 @@ def create_score_objects():
     # lower_staff.append(voice_4)
     # ped_staff.append(voice_5)
 
-    attach(Clef('treble'), upper_staff)
-    attach(Clef('treble'), lower_staff)
-    attach(Clef('bass'), ped_staff)
+    attach(Clef('treble'), staff_1)
+    attach(Clef('treble'), staff_2)
+    attach(Clef('treble'), staff_3)
+    attach(Clef('treble'), staff_4)
+    attach(Clef('bass'), staff_5)
 
-    manuals_instrument = instrumenttools.Harp(
-        instrument_name=r'Manuals',
-        short_instrument_name='Man.',
-    )
-    pedals_instrument = instrumenttools.Instrument(
-        instrument_name=r'Pedals',
-        short_instrument_name='Ped.',
-    )
-    manuals_group = scoretools.StaffGroup([upper_staff, lower_staff])
-    manuals_group.context_name = 'PianoStaff'
-    attach(manuals_instrument, manuals_group)
-    attach(pedals_instrument, ped_staff)
-    score = Score([manuals_group, ped_staff])
+    # manuals_instrument = instrumenttools.Harp(
+    #     instrument_name=r'Manuals',
+    #     short_instrument_name='Man.',
+    # )
+    # pedals_instrument = instrumenttools.Instrument(
+    #     instrument_name=r'Pedals',
+    #     short_instrument_name='Ped.',
+    # )
+    # manuals_group = scoretools.StaffGroup([upper_staff, lower_staff])
+    # manuals_group.context_name = 'PianoStaff'
+    # attach(manuals_instrument, manuals_group)
+    # attach(pedals_instrument, ped_staff)
+
+    import collections
+
+    staff_data = collections.OrderedDict((
+        ('a', {'clef': 'treble'}),
+        ('b', {'clef': 'treble'}),
+        ('c', {'clef': 'treble'}),
+        ('d', {'clef': 'treble'}),
+        ('e', {'clef': 'bass'}),
+    ))
+
+    staves = collections.OrderedDict()
+    for k, v in staff_data.items():
+        staff = Staff(name=k)
+        attach(Clef(v['clef']), staff)
+        instrument = instrumenttools.Instrument(
+            instrument_name=k.upper(),
+            short_instrument_name=k.upper(),
+        )
+        attach(instrument, staff)
+        staves[k] = staff
+
+    group = scoretools.StaffGroup(staves.values())
+    score = Score([group])
     return ScoreData(
         score=score,
-        staves={
-            'a': upper_staff,
-            'b': lower_staff,
-            'c': ped_staff
-        },
+        staves=staves,
         staff_to_voices_mapping={
             'voice-1': 'a',
             'voice-3': 'b',

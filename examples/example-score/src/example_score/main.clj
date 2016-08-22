@@ -24,7 +24,7 @@
          (utils/partition-by-inclusive
           (fn [x] (not (some (fn [x'] (= x' (rem (+ 60 x) 12))) filter_))))
          (mapv #(filter identity %))
-         (map (fn [x] (reverse (take 10 (reverse x)))))
+         (map (fn [x] (reverse (take 1 (reverse x)))))
          (mapv (fn [x] (map (fn [y] [y]) x)))
          ;; (#(conj % [[23]]))
          )))
@@ -52,6 +52,57 @@
               [[3] [4]]
               [[5] [6] [7]]
               [[8] [9]]])
+
+(def phrases [
+              [[0]]
+              [[1]]
+              [[2]]
+              [[1] [0]]
+              [[1] [2]]
+              [[1]]
+              [[0]]
+              [[1] [2]]
+              [[1] [0]]
+              [[1] [2]]
+              [[1]]
+              [[0]]
+              ;; [[1] [2]]
+              ;; [[3]]
+              ;; [[4]]
+              ;; [[5]]
+              ;; [[4]]
+              ;; [[3]]
+              ;; [[2]]
+              ;; [[1]]
+              ;; [[0]]
+              [[1] [2]]
+              [[1]]
+              [[0]]
+              [[1]]
+              [[0]]
+              [[1] [2]]
+              [[1]]
+              ])
+
+;; (def phrases [
+;;               [[0]]
+;;               [[7]]
+;;               [[0]]
+;;               [[7]]
+;;               [[12]]
+;;               [[0]]
+;;               [[7]]
+;;               [[12]]
+;;               [[7]]
+;;               [[0]]
+;;               [[12]]
+;;               [[0]]
+;;               [[12]]
+;;               [[0]]
+;;               [[12]]
+;;               [[0]]
+;;               [[12]]
+;;               ])
 
 (def phrase
   [[[0] [2]]
@@ -133,22 +184,43 @@
 
 (defn phrase-a
   [r]
-  (let [result (segment-range [0 2 3 5 6 8 9 10] r)]
+  (let [result (segment-range [0 2 4 0 2 4 5 0 2 4 5 7 0 2 4 5 7 9] r)]
     result))
   ;; (utils/transpose-all (first r) phrase))
+
+(def components
+  {:melodies {:a [1 2 3]
+              :b [4 5 6]}
+   :sequences {:x [:a :b]
+               :y [:a :a :b]}
+   :measures {:a [measure-1]
+              :b [measure-2 measure-1]}})
+
+(defn phrases
+  [n]
+  (take n [[[-3]]
+           [[-2] [-1]]
+           [[0]]
+           [[1] [2]]
+           [[3] [4]]
+           [[5]]
+           [[6] [7]]
+           [[8] [9]]
+           ]
+        ))
 
 ;; TODO: highest pitch?
 (defn voices
   []
   (let [event-seqs (apply merge [
                                  {:a (chromatic-line
-                                      {:phrases (phrase-a [0 9])
+                                      {:phrases (phrases 8)
                                        :part-name :voice-1
                                        :transposition 0
                                        :durations [1/4]})}
 
                                  {:b (chromatic-line
-                                      {:phrases (phrase-a [-3 6])
+                                      {:phrases (phrases 7)
                                        :part-name :voice-2
                                        :transposition 0
                                        :durations [1/4]})}
@@ -165,23 +237,23 @@
                                  ;;       :part-name :voice-3
                                  ;;       :transposition 0
                                  ;;       :durations [1/4]})}
+
                                  {:c (chromatic-line
-                                      {:phrases (phrase-a [0 6])
+                                      {:phrases (phrases 6)
                                        :part-name :voice-3
                                        :transposition 0
                                        :durations [1/4]})}
 
-
                                  {:d (chromatic-line
-                                      {:phrases (phrase-a [-6 3])
+                                      {:phrases (phrases 5)
                                        :part-name :voice-4
                                        :transposition 0
                                        :durations [1/4]})}
 
                                  {:e (chromatic-line
-                                      {:phrases (phrase-a [-21 -1])
+                                      {:phrases (phrases 4)
                                        :part-name :voice-5
-                                       :transposition 0
+                                       :transposition -12
                                        :durations [1/4]})}
 
                                  ;; {:f (staccato {:phrases phrases
@@ -248,12 +320,12 @@
 
 (def default-mapping
   {0 0,
-   1 10,
-   2 4,
+   1 21,
+   2 5,
    3 3,
    4 2,
    5 1,
-   6 5})
+   6 8})
 
 (defn handle-dissonance-fn
   [limit]
@@ -310,19 +382,47 @@
 (defn template-1
   [tempo]
   {:type :Section
-   :staves [{:type :Staff
+   :staves [
+            {:type :Staff
              :tempo tempo
              :name :a
              ;; :notation :soft
-             :voices [:voice-1 :voice-2]}
+             :voices [:voice-1]}
             {:type :Staff
              :name :b
-             ;; :notation :shrill
-             :voices [:voice-3 :voice-4]}
+             ;; :notation :soft
+             :voices [:voice-2]}
             {:type :Staff
              :name :c
+             ;; :notation :soft
+             :voices [:voice-3]}
+            {:type :Staff
+             :name :d
+             ;; :notation :shrill
+             :voices [:voice-4]}
+            {:type :Staff
+             :name :e
              ;; :notation :very-soft
              :voices [:voice-5]}]})
+
+(defn template-2
+  [tempo]
+  {:type :Section
+   :staves [
+            {:type :Staff
+             :tempo tempo
+             :name :a
+             ;; :notation :soft
+             :voices [:voice-1]}
+            {:type :Staff
+             :name :c
+             ;; :notation :soft
+             :voices [:voice-3]}
+            {:type :Staff
+             :name :e
+             ;; :notation :very-soft
+             :voices [:voice-5]}]})
+
 
 (defn voices-entry?
   [form]
@@ -350,7 +450,7 @@
                       [(last group)]
                       next-one-count?
                       (concat (butlast group)
-                              [(assoc (last group) :duration 1)])
+                              [(assoc (last group) :duration 2/4)])
                       :else
                       group
                   ))
@@ -418,15 +518,25 @@
    ;; :e :c
    ])
 
-(def pattern [:e :d :c :b :a])
+;; (def pattern [:e :d :c :b :a])
+;; Can every "problematic" set of voices be "resolved" through a particular _sequence_ of voice events?
 
 (defn sections []
   (let [event-seqs (voices)]
-    (take 5 (cycle [{:voice-seq (take 60 (cycle pattern))
-                     :dissonance-limit [0 2 4 5]
+    (take 2 (cycle [
+                    {:voice-seq (take 60 (cycle pattern))
+                     :dissonance-limit [0 1 2 3]
                      :final-event-min-dur 2/4
-                     :tempo 180
+                     :tempo 163
                      :template template-1
+                     :event-seqs event-seqs
+                     :measure-list [measure-2]
+                     :merge-horizontally-fn (fn [_ _] true)}
+                    {:voice-seq (take 60 (cycle pattern))
+                     :dissonance-limit [0 1 2 3]
+                     :final-event-min-dur 2/4
+                     :tempo 163
+                     :template template-2
                      :event-seqs event-seqs
                      :measure-list [measure-2]
                      :merge-horizontally-fn (fn [_ _] true)}
@@ -470,8 +580,10 @@
 ;;        (partition 2)
 ;;        (map #(apply concat %))))
 
+;; (println (float (chord/scaled-dissonance-value default-mapping [0 2 4])))
+;; (println (float (chord/scaled-dissonance-value default-mapping [0 4 7])))
+;; (println (float (chord/scaled-dissonance-value default-mapping [0 4 7 11])))
+;; (println (float (chord/scaled-dissonance-value default-mapping [0 1 4 7 11])))
 
 
 ;; ((1 2 3 2) (1 2) (1 4 5 3 2 3) (1 3 2 2 2 2) (1 2 3) (1 2) (1 2 3 4))
-
-
