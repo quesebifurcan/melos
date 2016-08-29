@@ -20,10 +20,11 @@
                          (select-keys (keys chord/chord-default))
                          utils/unfold-parameters)]
     (->> (map (fn [params chord]
-                (let [events (map (make-note* (gensym "G__")) voices chord)]
+                (let [group (gensym "G__")
+                      events (map (make-note* group) voices chord)]
                   (-> (chord/make-chord params)
                       (assoc :events events))))
               chord-params
-              chords)
+              (cycle chords))
          (utils/cyclic-partition groups)
          cycle)))
