@@ -63,10 +63,22 @@
   [part-names events]
   (remove (contains-part? part-names) events))
 
-(s/defn remove-parts
-  [part-names :- [s/Keyword]
-   chord :- Chord]
-  (update-in chord [:events] (fn [x] (remove-parts* (set part-names) x))))
+;; (s/defn remove-parts
+;;   [part-names :- [s/Keyword]
+;;    chord :- Chord]
+;;   (update-in chord [:events] (fn [x] (remove-parts* (set part-names) x))))
+
+(defn remove-parts
+  [part-names chord]
+  (let [grouped-events (partition-by :group (sort-by :group (:events chord)))
+        events
+        (filter (fn [group]
+                  (empty? (clojure.set/intersection (set (map :part group))
+                                                    (set part-names))))
+                grouped-events)]
+    (assoc chord :events (apply concat events))))
+
+
 
 (defn get-melodic-events
   [chord]
@@ -124,7 +136,7 @@
 
 (defn get-candidates
   [events]
-  (let [groups (partition-by :group events)
+  (let [groups (partition-by :group (sort-by :group events))
         candidates (combinatorics/combinations groups (dec (count groups)))]
     (map #(apply concat %) candidates)))
 

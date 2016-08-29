@@ -42,10 +42,12 @@
   (mapcat (fn [accessor] (get-and-rotate event-seqs accessor))
           accessors))
 
+(defn atom? [x] (instance? clojure.lang.Atom x))
+
 (s/defn cycle-event-seqs
   :- ms/Phrase
   [accessors  :- [s/Keyword]
-   event-seqs :- {s/Keyword [ms/Phrase]}]
+   event-seqs :- (s/pred atom?)]
   (cycle-event-seqs' accessors event-seqs))
 
 (defn maybe-extend
@@ -113,4 +115,3 @@
   (update a :duration (fn [x] (+ x (:duration b)))))
 
 (def simplify-event-seq (event-seq-merger same? merge-durations))
-
