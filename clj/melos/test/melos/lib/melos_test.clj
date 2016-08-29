@@ -276,6 +276,26 @@
       (is (= (chord/scaled-dissonance-value mapping-b [0 5 10])
              (chord/scaled-dissonance-value mapping-b [0 7 14]))))))
 
+(deftest rotate-values-sequentially
+  (let [m {:a [1 2 3]
+           :b [4 5 6 7]
+           :c [8 9 10]}
+        ks [:a :b :a :c]]
+    (is (= (utils/rotate-values-sequentially m ks)
+           [{:a 1 :b 4 :c 8}
+            {:a 2 :b 4 :c 8}
+            {:a 2 :b 5 :c 8}
+            {:a 3 :b 5 :c 8}
+            {:a 3 :b 5 :c 9}])))
+  (let [m {:a [1 2 3]
+           :b [4 5 6 7]
+           :c [8 9 10]}
+        ks [[:a :b] :c]]
+    (is (= (utils/rotate-values-sequentially m ks)
+           [{:a 1 :b 4 :c 8}
+            {:a 2 :b 5 :c 8}
+            {:a 2 :b 5 :c 9}]))))
+
 (deftest consonant?
   (let [mapping {0 0,
                  1 6,
@@ -314,11 +334,9 @@
                            [{:pitches [0 1] :part :a :duration 4 :phrase-end? true}]]
                        :b [[{:pitches [10 20] :part :b :duration 5 :phrase-end? true}
                             {:pitches [11 21] :part :b :duration 6 :phrase-end? true}]]}
-          event-seqs (map->chord' phrase-data)
+          event-seqs (functor/fmap cycle (map->chord' phrase-data))
           accessors [:a :b :a :b]
-          result (chord-seq/cycle-event-seqs accessors event-seqs)]
-      (is (s/validate [ms/Phrase] (:a event-seqs)))
-      (is (s/validate [ms/Phrase] (:b event-seqs)))
+          result (chord-seq/cycle-event-seqs accessors (atom event-seqs))]
       (is (s/validate ms/Phrase result))
       (is (= empty-diff
              (diff_
@@ -331,6 +349,7 @@
                {:duration 4 :events #{{:pitch 0 :part :a} {:pitch 1 :part :a}}}
                {:duration 5 :events #{{:pitch 10 :part :b} {:pitch 20 :part :b}}}
                {:duration 6 :events #{{:pitch 11 :part :b} {:pitch 21 :part :b}}}]))))))
+
 
 (deftest partition-phrases
   (testing "partition-groups segments phrases correctly"
