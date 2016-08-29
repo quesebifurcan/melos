@@ -209,24 +209,69 @@
            ]
         ))
 
+;; (defn phrases
+;;   [n]
+;;   [
+;;    [[-3]]
+;;    [[-2] [-1] [0]]
+;;    [[1] [2]]
+;;    [[-3]]
+;;    [[-2] [-1] [0]]
+;;    [[1] [2]]
+;;    [[3] [4]]
+;;    [[-3]]
+;;    [[-2] [-1] [0]]
+;;    [[1] [2]]
+;;    [[3] [4]]
+;;    [[5]]
+;;    [[6] [7]]
+;;    [[-3]]
+;;    [[-2] [-1] [0]]
+;;    [[1] [2]]
+;;    [[3] [4]]
+;;    [[5]]
+;;    [[6] [7]]
+;;    [[8] [9]]]
+;;   )
+
 ;; TODO: highest pitch?
 (defn voices
   []
   (let [event-seqs (apply merge [
                                  {:a (chromatic-line
-                                      {:phrases (phrases 8)
+                                      {:phrases (phrases 7)
                                        :part-name :voice-1
                                        :transposition 0
                                        :durations [1/4]})}
 
-                                 {:b (chromatic-line
-                                      {:phrases (phrases 7)
+                                 ;; {:b (chromatic-line
+                                 ;;      {:phrases (phrases 6)
+                                 ;;       :part-name :voice-2
+                                 ;;       :transposition 0
+                                 ;;       :durations [1/4]})}
+
+                                 {:b (arpeggio
+                                      {:phrases [
+                                                 [[-3]]
+                                                 [[-3 -1]]
+                                                 [[-3 -1 0]]
+                                                 [[-1 0]]
+                                                 [[0]]
+                                                 [[-3 0]]
+                                                 ]
                                        :part-name :voice-2
-                                       :transposition 0
+                                       :transposition 12
                                        :durations [1/4]})}
 
-                                 ;; {:c (arpeggio
-                                 ;;      {:phrases [[[-1]]
+                                 ;; {:b (multi {:voices [:voice-2 :voice-3 :voice-4]
+                                 ;;             :duration [2/4 2/4]
+                                 ;;             :phrase-end? [false true true true]
+                                 ;;             :pitches [[[0 2 4]
+                                 ;;                        [2 4 5]]
+                                 ;;                       [[4 5 7]]
+                                 ;;                       [[5 7 9]]
+                                 ;;                       ]})}
+
                                  ;;                 [[-1 11]]
                                  ;;                 [[11]]
                                  ;;                 [[11 9]]
@@ -239,19 +284,29 @@
                                  ;;       :durations [1/4]})}
 
                                  {:c (chromatic-line
-                                      {:phrases (phrases 6)
+                                      {:phrases [
+                                                 [[0]]
+                                                 [[1]]
+                                                 [[2]]
+                                                 [[3]]
+                                                 [[4]]
+                                                 [[5]]
+                                                 [[6]]
+                                                 [[7]]
+                                                 [[8]]
+                                                 ]
                                        :part-name :voice-3
-                                       :transposition 0
+                                       :transposition -3
                                        :durations [1/4]})}
 
                                  {:d (chromatic-line
-                                      {:phrases (phrases 5)
+                                      {:phrases (phrases 4)
                                        :part-name :voice-4
                                        :transposition 0
                                        :durations [1/4]})}
 
                                  {:e (chromatic-line
-                                      {:phrases (phrases 4)
+                                      {:phrases (phrases 3)
                                        :part-name :voice-5
                                        :transposition -12
                                        :durations [1/4]})}
@@ -450,7 +505,7 @@
                       [(last group)]
                       next-one-count?
                       (concat (butlast group)
-                              [(assoc (last group) :duration 2/4)])
+                              [(assoc (last group) :duration 3/4)])
                       :else
                       group
                   ))
@@ -470,7 +525,7 @@
            merge-horizontally-fn]}]
   (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
                     (reductions (handle-dissonance-fn dissonance-limit))
-                    (filter-out-dissonant)
+                    ;; (filter-out-dissonant)
                     ;; ((fn [z]
                     ;;    (map (fn [x y] (if (:dissonance-drop y)
                     ;;                     (assoc x :duration 7/4)
@@ -500,14 +555,6 @@
                                                    :final-event-min-dur final-event-min-dur}))))
 
 (def pattern
-  [:e :d :c :b :a :b :c :d :e :a :c :b :c :a :d
-   :a :b :c :a :d :e :c :b :d
-   :a :b :d :c :e :a :b :c :a :d
-   :b :d :c :e :b :d
-   :b :d :e :c :b :d
-   :b :d :c :e :b :d])
-
-(def pattern
   [:e :c :b :d
    :a :c
    :a :c :d
@@ -518,37 +565,23 @@
    ;; :e :c
    ])
 
-;; (def pattern [:e :d :c :b :a])
 ;; Can every "problematic" set of voices be "resolved" through a particular _sequence_ of voice events?
 
-(defn sections []
+(defn sections
+  []
   (let [event-seqs (voices)]
-    (take 2 (cycle [
-                    {:voice-seq (take 60 (cycle pattern))
-                     :dissonance-limit [0 1 2 3]
-                     :final-event-min-dur 2/4
-                     :tempo 163
-                     :template template-1
-                     :event-seqs event-seqs
-                     :measure-list [measure-2]
-                     :merge-horizontally-fn (fn [_ _] true)}
-                    {:voice-seq (take 60 (cycle pattern))
-                     :dissonance-limit [0 1 2 3]
-                     :final-event-min-dur 2/4
-                     :tempo 163
-                     :template template-2
-                     :event-seqs event-seqs
-                     :measure-list [measure-2]
-                     :merge-horizontally-fn (fn [_ _] true)}
-                    ;; {:voice-seq (take 40 (cycle [:a :b1 :b2 :a :c]))
-                    ;;  :dissonance-limit [0 2 4 5]
-                    ;;  :tempo 96
-                    ;;  :final-event-min-dur 7/4
-                    ;;  :template template-1
-                    ;;  :event-seqs event-seqs
-                    ;;  :measure-list [measure-1]
-                    ;;  :merge-horizontally-fn (fn [_ _] true)}
-                    ]))))
+    (utils/rotate-values-sequentially
+     {:voice-seq [(take 60 (cycle pattern))
+                  (take 30 (cycle [:a :c :e]))]
+      :dissonance-limit [[0 1]]
+      :final-event-min-dur [5/4]
+      :tempo [172 132]
+      :template [template-1 template-2]
+      :event-seqs [event-seqs]
+      :measure-list [[measure-2] [measure-1]]
+      :merge-horizontally-fn [(fn [_ _] true)]}
+     ;; "link" two or more params. can be useful for :template/:voice-seq
+     [[:tempo :measure-list :voice-seq :template] :tempo :voice-seq])))
 
 ;; TODO: sections with different instrumentation?
 ;; TODO: only output selected keys?
@@ -565,25 +598,15 @@
   (println "Abjad...")
   (shell/sh "scripts/to_pdf.sh"))
 
-;; ;; Remove consecutive "empty chords"
-;; ;; Numbers represent "parts count"
-;; (let [a [1 2 3 2 1 1 2 1 4 5 3 2 3 1 3 2 2 2 2 1 2 3 1 2 1 2 3 4]
-;;       b [[1 2 3 2]
-;;          [1 2 3]
-;;          [1 2]]]
-;;   (->> a
-;;        (partition-by (fn [x] (> x 1)))
-;;        (map-indexed (fn [i x]
-;;                       (if (even? i)
-;;                         (take 1 x)
-;;                         x)))
-;;        (partition 2)
-;;        (map #(apply concat %))))
-
-;; (println (float (chord/scaled-dissonance-value default-mapping [0 2 4])))
-;; (println (float (chord/scaled-dissonance-value default-mapping [0 4 7])))
-;; (println (float (chord/scaled-dissonance-value default-mapping [0 4 7 11])))
-;; (println (float (chord/scaled-dissonance-value default-mapping [0 1 4 7 11])))
-
-
-;; ((1 2 3 2) (1 2) (1 4 5 3 2 3) (1 3 2 2 2 2) (1 2 3) (1 2) (1 2 3 4))
+;; TODO test spec:
+;; (require '[clojure.spec :as spec])
+;; (defn asdf [note] [note note])
+;; (spec/def ::pitch (spec/and int? #(< % 100)))
+;; (spec/def ::note (spec/keys :req [::pitch]))
+;; (spec/fdef asdf
+;;            :args (spec/cat :note ::note))
+;; (require '[clojure.spec.test :as stest])
+;; (stest/instrument `asdf)
+;; (spec/valid? ::note {::pitch 23})
+;; (spec/valid? asdf {::pitch 23})
+;; (asdf {:example-score.main/pitch 102})
