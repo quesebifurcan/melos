@@ -57,15 +57,14 @@ def apply_pulse(group):
             mutate(selection).replace(pulse)
 
 def apply_arpeggio(group):
-    # if len(group[0].written_pitches) > 1:
-    #     sel = select(group[0])
-    #     tuplet = FixedDurationTuplet((1, 4), [])
-    #     coll = []
-    #     for pitch in group[0].written_pitches:
-    #         coll.append(pitch)
-    #         tuplet.append(Chord(coll, Duration((1,8))))
-    #     mutate(sel).replace(tuplet)
-    pass
+    if len(group[0].written_pitches) > 1:
+        sel = select(group[0])
+        tuplet = FixedDurationTuplet((1, 4), [])
+        coll = []
+        for pitch in group[0].written_pitches:
+            coll.append(pitch)
+            tuplet.append(Chord(coll, Duration((1,8))))
+        mutate(sel).replace(tuplet)
 
 def set_tempi(score):
     curr_tempo = None
@@ -74,6 +73,7 @@ def set_tempi(score):
         if tempo and not tempo == curr_tempo:
             fst = next(topleveltools.iterate(c).by_class((Chord, Rest)))
             attach(Tempo((1,4), tempo), fst)
+        if tempo:
             curr_tempo = tempo
 
 def add_staff_markup(staff):
@@ -126,6 +126,13 @@ def interpret_spanners(score):
                 for fn in fns:
                     fn(spanner.value, list(spanner.components))
 
+def hide_superfluous_time_signatures(staves):
+    curr = None
+    for measure in iterate(next(iter(staves.values()))).by_class((Measure,)):
+        if curr and curr.time_signature == measure.time_signature:
+            override(measure).score.time_signature.stencil = False
+        curr = measure
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', dest='input')
@@ -148,19 +155,21 @@ def main():
             score.apply_spanners(staff_container)
             interpret_spanners(staff_container)
             annotate_containers(staff_container)
-            set_tempi(staff_container)
 
     for section in sections:
         for staff_container in section:
             container_name = to_abjad.get_named_annotation(staff_container, 'name')
             template.staves[container_name].append(staff_container)
 
+    set_tempi(template.score)
+    hide_superfluous_time_signatures(template.staves)
+
+    # apply_accidentals(template.score)
+
     with open('/tmp/score.txt', 'w') as outfile:
         for s in midi_output.export_as_qlist(template.score):
             outfile.write(s)
             outfile.write('\n')
-
-    # apply_accidentals(template.score)
 
     lilypond_file = make_lilypond_file(template.score, title='Test', author='Anonymous')
     show(lilypond_file)
