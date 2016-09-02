@@ -10,7 +10,7 @@
     (mapcat (fn [count_] (utils/apply-slope count_ a b)) groups)))
 
 (defn chromatic-line
-  [{:keys [phrases part-name transposition durations]}]
+  [{:keys [phrases part-name transposition durations check-dissonance]}]
   (let [groups (map count phrases)
         chords (->> (apply concat phrases)
                     (utils/transpose-all transposition))
@@ -18,6 +18,9 @@
     (->> {:pitches chords
           :part [part-name]
           :duration durations
+          :check-dissonance check-dissonance
+          ;; :merge-left? [true]
+          ;; :merge-right? [true]
           :phrase-end? phrase-end}
          (utils/unfold-parameters)
          ;; (map (fn [x] (if (= (first (:pitches x)) 23)

@@ -23,6 +23,7 @@
    :tempo 60
    :phrase-end? false
    :is-rest? false
+   :check-dissonance true
    :type :Chord
    :events []})
 
@@ -158,6 +159,11 @@
                     (filter (partial valid-events? mapping limit))
                     (sort-by (fn [x] (apply + (map :count x)))))]
     (assoc chord :events (first events))))
+
+;; (defn get-dissonance-contributor
+;;   [chord]
+;;   (update chord :events (fn [events]
+;;                           (filter :dissonance-contributor? events))))
 
 (s/defn reduce-dissonance
   :- Chord

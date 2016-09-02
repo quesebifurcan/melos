@@ -59,12 +59,17 @@ def apply_pulse(group):
 def apply_arpeggio(group):
     if len(group[0].written_pitches) > 1:
         sel = select(group[0])
-        tuplet = FixedDurationTuplet((1, 4), [])
+        c = Container()
+        overhang = sel[0].written_duration - Duration(1,4)
+        tuplet = FixedDurationTuplet((1,4), [])
         coll = []
         for pitch in group[0].written_pitches:
             coll.append(pitch)
             tuplet.append(Chord(coll, Duration((1,8))))
-        mutate(sel).replace(tuplet)
+        c.append(tuplet)
+        if overhang > 0:
+            c.append(Chord(group[0].written_pitches, overhang))
+        mutate(sel).replace(c)
 
 def set_tempi(score):
     curr_tempo = None

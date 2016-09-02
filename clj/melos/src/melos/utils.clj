@@ -170,12 +170,15 @@
 ;; (1 1 1 1 1 4 4 4 4 9)
 
 (defn rotate-in' [m k] (update m k rotate))
+
 (defn rotate-in
   [m k]
   (if (vector? k)
     (reduce rotate-in' m k)
     (rotate-in' m k)))
+
 (def first-value (partial functor/fmap first))
+
 (defn rotate-values-sequentially
   [m ks]
   (->> (reductions rotate-in m ks)

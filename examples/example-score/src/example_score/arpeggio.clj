@@ -27,6 +27,7 @@
     (->> {:pitches chords
           :part [part-name]
           :duration durations
+          :check-dissonance [true]
           :phrase-end? phrase-end}
          (utils/unfold-parameters)
          (map chord/make-chord)

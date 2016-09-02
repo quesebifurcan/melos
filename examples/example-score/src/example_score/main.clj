@@ -242,6 +242,7 @@
                                       {:phrases (phrases 7)
                                        :part-name :voice-1
                                        :transposition 0
+                                       :check-dissonance [false]
                                        :durations [1/4]})}
 
                                  ;; {:b (chromatic-line
@@ -297,18 +298,21 @@
                                                  ]
                                        :part-name :voice-3
                                        :transposition -3
+                                       :check-dissonance [false]
                                        :durations [1/4]})}
 
                                  {:d (chromatic-line
                                       {:phrases (phrases 4)
                                        :part-name :voice-4
                                        :transposition 0
+                                       :check-dissonance [false]
                                        :durations [1/4]})}
 
                                  {:e (chromatic-line
                                       {:phrases (phrases 3)
                                        :part-name :voice-5
                                        :transposition -12
+                                       :check-dissonance [false]
                                        :durations [1/4]})}
 
                                  ;; {:f (staccato {:phrases phrases
@@ -388,7 +392,8 @@
     ([xs]
      (f [] xs))
     ([a b]
-     (if (:phrase-end? b)
+     (if (and (:phrase-end? b)
+              (:check-dissonance b))
        (let [result (chord/reduce-dissonance default-mapping
                                              limit
                                              (chord-seq/merge-chords a b))]
@@ -399,6 +404,14 @@
            (assoc result :dissonance-drop true)
            result))
        (chord-seq/merge-chords a b)))))
+
+(defn merge-horizontally-fn
+  [limit]
+  (fn [a b]
+    (chord/consonant? default-mapping
+                      limit
+                      (chord/select-chord-key :pitch
+                                              (chord-seq/merge-chords a b)))))
 
 (defn cycle-measures
   [dur measures]
@@ -505,7 +518,7 @@
                       [(last group)]
                       next-one-count?
                       (concat (butlast group)
-                              [(assoc (last group) :duration 3/4)])
+                              [(assoc (last group) :duration 2/4)])
                       :else
                       group
                   ))
@@ -525,7 +538,7 @@
            merge-horizontally-fn]}]
   (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
                     (reductions (handle-dissonance-fn dissonance-limit))
-                    ;; (filter-out-dissonant)
+                    (filter-out-dissonant)
                     ;; ((fn [z]
                     ;;    (map (fn [x y] (if (:dissonance-drop y)
                     ;;                     (assoc x :duration 7/4)
@@ -554,34 +567,33 @@
                                                    :measure-list measure-list
                                                    :final-event-min-dur final-event-min-dur}))))
 
-(def pattern
-  [:e :c :b :d
-   :a :c
-   :a :c :d
-   :a
-   :c :b :d
-   :c :b
-   :e :b :d
-   ;; :e :c
-   ])
-
 ;; Can every "problematic" set of voices be "resolved" through a particular _sequence_ of voice events?
+
+(defn p1 [a b c d e] [e c b d a c a c d a c b d c b e b d])
 
 (defn sections
   []
   (let [event-seqs (voices)]
     (utils/rotate-values-sequentially
-     {:voice-seq [(take 60 (cycle pattern))
-                  (take 30 (cycle [:a :c :e]))]
-      :dissonance-limit [[0 1]]
+     {
+      :voice-seq [
+                  (take 60 (cycle [:e :d :c :b :a]))
+                  ;; (take 30 (cycle [:a :c :e]))
+                  ]
+      :dissonance-limit [[0 2 3]]
       :final-event-min-dur [5/4]
-      :tempo [172 132]
-      :template [template-1 template-2]
+      :tempo [163]
+      :template [template-1]
       :event-seqs [event-seqs]
       :measure-list [[measure-2] [measure-1]]
-      :merge-horizontally-fn [(fn [_ _] true)]}
+      ;; :merge-horizontally-fn [(fn [_ _] true)]}
+      :merge-horizontally-fn [(merge-horizontally-fn [0 2 4 5])]}
      ;; "link" two or more params. can be useful for :template/:voice-seq
-     [[:tempo :measure-list :voice-seq :template] :tempo :voice-seq])))
+     [
+      [:voice-seq]
+      [:voice-seq]
+      [:voice-seq]
+      ])))
 
 ;; TODO: sections with different instrumentation?
 ;; TODO: only output selected keys?
@@ -597,16 +609,3 @@
     :sections (mapv compose-section (sections))})
   (println "Abjad...")
   (shell/sh "scripts/to_pdf.sh"))
-
-;; TODO test spec:
-;; (require '[clojure.spec :as spec])
-;; (defn asdf [note] [note note])
-;; (spec/def ::pitch (spec/and int? #(< % 100)))
-;; (spec/def ::note (spec/keys :req [::pitch]))
-;; (spec/fdef asdf
-;;            :args (spec/cat :note ::note))
-;; (require '[clojure.spec.test :as stest])
-;; (stest/instrument `asdf)
-;; (spec/valid? ::note {::pitch 23})
-;; (spec/valid? asdf {::pitch 23})
-;; (asdf {:example-score.main/pitch 102})
