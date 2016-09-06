@@ -56,10 +56,10 @@
   (fn [a b]
     (if (pred a b) (merge-fn a b) b)))
 
-(defn partition-phrases
-  [xs]
-  (filter identity
-          (partition-by-inclusive (complement :phrase-end) xs)))
+;; (defn partition-phrases
+;;   [xs]
+;;   (filter identity
+;;           (partition-by-inclusive (complement :phrase-end) xs)))
 
 (defn merge-adjacent?
   ([a b]

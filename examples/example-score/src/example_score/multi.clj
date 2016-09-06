@@ -6,25 +6,32 @@
              [utils :as utils]
              [schemas :as ms]]))
 
-(defn make-note*
-  [group]
-  (fn [voice pitch]
-    (note/make-note {:part voice :group group :pitch pitch})))
+(defn slope [a b]
+  (fn [groups]
+    (mapcat (fn [count_] (utils/apply-slope count_ a b)) groups)))
 
 (defn multi
-  [{:keys [tempo duration phrase-end? voices pitches] :as m}]
-  (let [parts (set voices)
-        groups (map count pitches)
-        chords (apply concat pitches)
-        chord-params (-> m
-                         (select-keys (keys chord/chord-default))
-                         utils/unfold-parameters)]
-    (->> (map (fn [params chord]
-                (let [group (gensym "G__")
-                      events (map (make-note* group) voices chord)]
-                  (-> (chord/make-chord params)
-                      (assoc :events events))))
-              chord-params
-              (cycle chords))
-         (utils/cyclic-partition groups)
-         cycle)))
+  [{:keys [parts phrases] :as m}]
+  (let [params (merge (select-keys m (keys chord/chord-default))
+                      (select-keys m (keys (note/note-default)))
+                      {:phrase-end?
+                       ((slope false true)
+                        (map count (cycle phrases)))})]
+    (map (fn [phrase]
+           (let [phrase-group (gensym "G__")]
+           (map (fn [chords params]
+                  (let [group (gensym "G__")]
+                    (reduce
+                     chord-seq/merge-chords
+                     (map (fn [part chord]
+                            (chord/make-chord
+                             (merge {:part part
+                                     :group phrase-group
+                                     :pitches chord}
+                                    params)))
+                          parts
+                          chords))))
+                phrase
+                (utils/unfold-parameters params)
+                )))
+         (cycle phrases))))
