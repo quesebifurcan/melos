@@ -18,7 +18,8 @@
           (fn [events]
             (map (fn [note] (assoc note k v)) events))))
 
-(def chord-default
+(defn chord-default
+  []
   {:duration 1
    :tempo 60
    :phrase-end? false
@@ -38,15 +39,15 @@
 
 (s/defmethod make-chord :default
   [m]
-  (ms/map->Chord (merge chord-default m)))
+  (ms/map->Chord (merge (chord-default) m)))
 
 (s/defmethod make-chord :from-pitch-list
   :- Chord
   [m :- s/Any]
   (let [pitches      (:pitches m)
-        m            (merge chord-default m)
+        m            (merge (chord-default) m)
         note-params  (select-keys m (keys (note/note-default)))
-        chord-params (select-keys m (keys chord-default))
+        chord-params (select-keys m (keys (chord-default)))
         group        (or (:group m) (gensym "G__"))
         events       (map (fn [pitch]
                             (note/make-note (merge note-params {:type :Note

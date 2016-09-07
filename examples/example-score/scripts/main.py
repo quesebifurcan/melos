@@ -176,7 +176,11 @@ def main():
             outfile.write(s)
             outfile.write('\n')
 
-    lilypond_file = make_lilypond_file(template.score, title='Test', author='Anonymous')
+    lilypond_file = make_lilypond_file(
+        template.score,
+        title='Test',
+        author='Anonymous',
+    )
     show(lilypond_file)
 
 if __name__ == '__main__':

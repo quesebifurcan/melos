@@ -1,11 +1,6 @@
 (ns example-score.main
   (:require [clojure.java.shell :as shell]
             [clojure.algo.generic.functor :as functor]
-            [example-score.chromatic-line :refer [chromatic-line]]
-            [example-score.staccato :refer [staccato]]
-            [example-score.arpeggio :refer [arpeggio]]
-            [example-score.pulse :refer [pulse]]
-            [example-score.multi :refer [multi]]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -15,6 +10,45 @@
              [schemas :as ms]
              [utils :as utils]])
   (:import [melos.schemas Chord Note]))
+
+(defn slope [a b]
+  (fn [groups]
+    (mapcat (fn [count_] (utils/apply-slope count_ a b)) groups)))
+
+(defn compose-phrases
+  [{:keys [parts phrases group-level transposition] :as m}]
+  (let [params (merge (select-keys m (keys (chord/chord-default)))
+                      (select-keys m (keys (note/note-default)))
+                      {:phrase-end?
+                       ((slope false true)
+                        (map count (cycle phrases)))})]
+    (let [phrases-group (gensym "G__")]
+      (map (fn [phrase]
+             (let [phrase-group (gensym "G__")]
+               (map (fn [chords params]
+                      (let [chord-group (gensym "G__")]
+                        (reduce
+                         chord-seq/merge-chords
+                         (map (fn [part chord]
+                                (let [g (group-level {:phrases phrases-group
+                                                      :phrase phrase-group
+                                                      :chord chord-group})]
+                                  (chord/make-chord
+                                   (merge {:part part
+                                           :group g
+                                           :is-rest? (= chord :rest)
+                                           :pitches
+                                           (if (= chord :rest)
+                                             [0]
+                                             (map (partial + transposition)
+                                                  chord))}
+                                          params))))
+                              parts
+                              chords))))
+                    phrase
+                    (utils/unfold-parameters params)
+                    )))
+           (cycle phrases)))))
 
 (def measure-2
   (let [durations {1 [2/4 2/4]
@@ -107,146 +141,87 @@
 
 (defn phrases
   [n]
-  (take n [
-           [[-3]]
-           [[-2] [-1]]
-           [[0]]
-           [[1] [2]]
-           [[3] [4]]
-           [[5]]
-           [[6] [7]]
-           [[8] [9]]
-           ]
-        ))
+  (take n [[[[-3]]]
+           [[[-2]] [[-1]]]
+           [[[0]]]
+           [[[1]] [[2]]]
+           [[[3]] [[4]]]
+           [[[5]]]
+           [[[6]] [[7]]]
+           [[[8]] [[9]]]]))
 
 ;; TODO: highest pitch?
 (defn voices
   []
   (let [event-seqs (apply merge [
 
-                                 {:a (chromatic-line
-                                      {:phrases (phrases 7)
-                                       :part-name :voice-1
-                                       :transposition 0
-                                       :check-dissonance [false]
-                                       :durations [1/4]})}
-
-                                 ;; {:b (chromatic-line
-                                 ;;      {:phrases (phrases 6)
-                                 ;;       :part-name :voice-2
-                                 ;;       :transposition 0
-                                 ;;       :durations [1/4]})}
-
-                                 {:b (arpeggio
-                                      {:phrases [
-                                                 [[-3]]
-                                                 [[-3 -1]]
-                                                 [[-3 -1 0]]
-                                                 [[-1 0]]
-                                                 [[0]]
-                                                 [[-3 0]]
-                                                 ]
-                                       :part-name :voice-2
-                                       :transposition 12
-                                       :durations [1/4]})}
-
-                                 ;; {:b (multi {:voices [:voice-2 :voice-3 :voice-4]
-                                 ;;             :duration [2/4 2/4]
-                                 ;;             :phrase-end? [false true true true]
-                                 ;;             :pitches [[[0 2 4]
-                                 ;;                        [2 4 5]]
-                                 ;;                       [[4 5 7]]
-                                 ;;                       [[5 7 9]]
-                                 ;;                       ]})}
-
-                                 ;;                 [[-1 11]]
-                                 ;;                 [[11]]
-                                 ;;                 [[11 9]]
-                                 ;;                 [[9]]
-                                 ;;                 [[9 -3]]
-                                 ;;                 [[-3]]
-                                 ;;                 [[-3 -1]]]
-                                 ;;       :part-name :voice-3
-                                 ;;       :transposition 0
-                                 ;;       :durations [1/4]})}
-
-                                 {:c (chromatic-line
-                                      {:phrases [
-                                                 [[0]]
-                                                 [[1]]
-                                                 [[2]]
-                                                 [[3]]
-                                                 [[4]]
-                                                 [[5]]
-                                                 [[6]]
-                                                 [[7]]
-                                                 [[8]]
-                                                 ]
-                                       :part-name :voice-3
-                                       :transposition -3
-                                       :check-dissonance [false]
-                                       :durations [1/4]})}
-
-                                 {:d (chromatic-line
-                                      {:phrases (phrases 4)
-                                       :part-name :voice-4
-                                       :transposition 0
-                                       :check-dissonance [false]
-                                       :durations [1/4]})}
-
-                                 {:e (chromatic-line
-                                      {:phrases (phrases 3)
-                                       :part-name :voice-5
-                                       :transposition -12
-                                       :check-dissonance [false]
-                                       :durations [1/4]})}
-
-                                 {:f (staccato {:phrases (phrases 5)
-                                                :part-name :voice-1
-                                                :transposition -2
-                                                :note-durations [1/8 1/8 1/4]
-                                                :durations [1/4 1/4]})}
-
-                                 ;; {:a (arpeggio {:phrases [[[0] [0 2] [0 2 4]]
-                                 ;;                          [[0 2 4] [0 2 4 6]]]
-                                 ;;                :part-name :voice-1
-                                 ;;                :transposition -2
-                                 ;;                :durations [1/4 1/4]})}
-
-                                 {:f (pulse {:phrases [[[9]]
-                                                       [[4]]]
-                                             :part-name :voice-1
+                                 {:a (compose-phrases {:parts [:voice-1]
+                                             :duration [1/4]
                                              :transposition 0
-                                             :durations [1/4 1/4]})}
-
-                                 ;; {:c (arpeggio {:phrases [[[0]]
-                                 ;;                          [[1]]
-                                 ;;                          [[2]]
-                                 ;;                          [[3]]
-                                 ;;                          [[4]]]
-                                 ;;                :part-name :voice-5
-                                 ;;                :transposition -20
-                                 ;;                :durations [1/4]})}
-
-                                 {:g (multi {:parts [:voice-5 :voice-3 :voice-1]
-                                             :duration [2/4 1/4 2/4 3/4 4/4]
-                                             :is-rest? [true
-                                                        true
-                                                        false
-                                                        false
-                                                        false]
+                                             :group-level :chord
                                              :check-dissonance [false]
-                                             :phrases [
-                                                       [[[] [] []]
-                                                        [[0] [0] [0]]
+                                             :phrases (phrases 7)})}
+
+                                 {:b (compose-phrases {:phrases [[[[]] [[-3]]]
+                                                       [[[]] [[-3 -1]]]
+                                                       [[[]] [[-3 -1 0]]]
+                                                       [[[]] [[-1 0]]]
+                                                       [[[]] [[0]]]
+                                                       [[[]] [[-3 0]]]]
+                                             :parts [:voice-2]
+                                             :notation [{:type :arpeggio}]
+                                             :check-dissonance [true]
+                                             :group-level :phrases
+                                             :transposition 12
+                                             :duration [1/4]})}
+
+                                 {:c (compose-phrases {:phrases [[[[0]]]
+                                                       [[[1]]]
+                                                       [[[2]]]
+                                                       [[[3]]]
+                                                       [[[4]]]
+                                                       [[[5]]]
+                                                       [[[6]]]
+                                                       [[[7]]]
+                                                       [[[8]]]]
+                                             :parts [:voice-3]
+                                             :transposition -3
+                                             :group-level :chord
+                                             :check-dissonance [false]
+                                             :duration [1/4]})}
+
+                                 {:d (compose-phrases {:parts [:voice-4]
+                                             :duration [1/4]
+                                             :transposition 0
+                                             :group-level :chord
+                                             :check-dissonance [false]
+                                             :phrases (phrases 4)})}
+
+                                 {:e (compose-phrases {:parts [:voice-5]
+                                             :duration [1/4]
+                                             :transposition -12
+                                             ;; :notation [{:type :pulse
+                                             ;;             :subdivisions 5
+                                             ;;             :pattern [0 0 1]}]
+                                             :group-level :chord
+                                             :check-dissonance [false]
+                                             :phrases (phrases 3)})}
+
+                                 {:g (compose-phrases {:parts [:voice-5 :voice-3 :voice-1]
+                                             :duration [2/4 1/4 2/4 3/4 4/4]
+                                             :group-level :phrase
+                                             :transposition 0
+                                             :check-dissonance [true]
+                                             :phrases [[[[] [] []]
+                                                        [:rest :rest :rest]
                                                         [[-19] [] []]
                                                         [[] [-7] []]
-                                                        [[] [] [17]]]
-                                                       ]})}
-
+                                                        [[] [] [17]]]]})}
 
                                  ])]
-    (->> event-seqs (functor/fmap cycle) atom)))
+    (->> event-seqs
+         (functor/fmap cycle)
+         atom)))
 
 (def default-mapping
   {0 0,
@@ -257,24 +232,24 @@
    5 1,
    6 8})
 
-(defn filter-out-dissonant
-  [xs]
-  (let [part-count (fn [chord] (count (set (chord/select-chord-key :part chord))))
-        groups (partition-by (fn [x] (= (part-count x) 1)) xs)
-        one-counts (mapv (fn [x] (= (part-count (first x)) 1)) groups)]
-    (->> (map (fn [group one-count? next-one-count?]
-                (cond one-count?
-                      [(last group)]
-                      next-one-count?
-                      (concat (butlast group)
-                              [(assoc (last group) :duration 2/4)])
-                      :else
-                      group
-                      ))
-              groups
-              one-counts
-              (cycle (rest one-counts)))
-         (apply concat))))
+;; (defn filter-out-dissonant
+;;   [xs]
+;;   (let [part-count (fn [chord] (count (set (chord/select-chord-key :part chord))))
+;;         groups (partition-by (fn [x] (= (part-count x) 1)) xs)
+;;         one-counts (mapv (fn [x] (= (part-count (first x)) 1)) groups)]
+;;     (->> (map (fn [group one-count? next-one-count?]
+;;                 (cond one-count?
+;;                       [(last group)]
+;;                       next-one-count?
+;;                       (concat (butlast group)
+;;                               [(assoc (last group) :duration 2/4)])
+;;                       :else
+;;                       group
+;;                       ))
+;;               groups
+;;               one-counts
+;;               (cycle (rest one-counts)))
+;;          (apply concat))))
 
 (defn apply-dissonance-filter?
   [chord]
@@ -296,45 +271,36 @@
 (defn handle-dissonance-fn
   [dissonance-limit]
   (fn [events]
-    (->> events
-         (reductions (handle-dissonance-fn' dissonance-limit))
-         filter-out-dissonant)))
+    (reductions (handle-dissonance-fn' dissonance-limit) events)))
 
 (defn merge-horizontally-fn
-  [limit]
+  [mapping limit]
   (fn [a b]
-    (chord/consonant? default-mapping
-                      limit
-                      (chord/select-chord-key :pitch
-                                              (chord-seq/merge-chords a b)))))
+    (->> [a b]
+         chord-seq/merge-chords
+         (chord/select-chord-key :pitch)
+         (chord/consonant? mapping limit))))
 
 (defn template-1
   [tempo]
   {:type :Section
-   :staves [
-            {:type :Staff
+   :staves [{:type :Staff
              :tempo tempo
              :name :a
-             ;; :notation :soft
              :voices [:voice-1]}
             {:type :Staff
              :name :b
-             ;; :notation :soft
              :voices [:voice-2]}
             {:type :Staff
              :name :c
-             ;; :notation :soft
              :voices [:voice-3]}
             {:type :Staff
              :name :d
-             ;; :notation :shrill
              :voices [:voice-4]}
             {:type :Staff
              :name :e
-             ;; :notation :very-soft
              :voices [:voice-5]}]})
 
-;; Can every "problematic" set of voices be "resolved" through a particular _sequence_ of voice events?
 (defn p1 [a b c d e] [e c b d a c a c d a c b d c b e b d])
 
 (defn sections
@@ -342,16 +308,16 @@
   (let [event-seqs (voices)]
     (utils/rotate-values-sequentially
      {
-      :voice-seq [(take 60 (cycle [:e :d :c :b :a :e :d :c :b :a :g]))
-                  (take 60 (cycle [:e :d :c :b :a :g]))]
-      :handle-dissonance-fn [(handle-dissonance-fn [0 2 3])]
+      :voice-seq [(take 60 (cycle [:e :d :c :b :a :e :d :c :b :a]))
+                  (take 60 (cycle [:e :d :c :b :a]))]
+      :handle-dissonance-fn [(handle-dissonance-fn [0 2 4 5])]
       :final-event-min-dur [5/4]
       :tempo [163]
       :template [template-1]
       :event-seqs [event-seqs]
       :measure-list [[measure-2] [measure-1]]
       :merge-horizontally-fn [(fn [_ _] false)]}
-      ;; :merge-horizontally-fn [(merge-horizontally-fn [0 2 4 5])]}
+     ;; :merge-horizontally-fn [(merge-horizontally-fn default-mapping [0 2 4 5])]}
      ;; "link" two or more params. can be useful for :template/:voice-seq
      [
       [:voice-seq]
