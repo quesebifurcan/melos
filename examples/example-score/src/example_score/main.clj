@@ -21,12 +21,15 @@
                       (select-keys m (keys (note/note-default)))
                       {:phrase-end?
                        ((slope false true)
-                        (map count (cycle phrases)))})]
+                        (map count (cycle phrases)))})
+        params' (atom (utils/unfold-parameters params))]
     (let [phrases-group (gensym "G__")]
       (map (fn [phrase]
              (let [phrase-group (gensym "G__")]
-               (map (fn [chords params]
-                      (let [chord-group (gensym "G__")]
+               (map (fn [chords]
+                      (let [chord-group (gensym "G__")
+                            curr-params (first @params')]
+                        (do (swap! params' #(drop 1 %))
                         (reduce
                          chord-seq/merge-chords
                          (map (fn [part chord]
@@ -42,12 +45,11 @@
                                              [0]
                                              (map (partial + transposition)
                                                   chord))}
-                                          params))))
+                                          curr-params
+                                          ))))
                               parts
-                              chords))))
-                    phrase
-                    (utils/unfold-parameters params)
-                    )))
+                              chords)))))
+                    phrase)))
            (cycle phrases)))))
 
 (def measure-2
@@ -144,6 +146,8 @@
   (take n [[[[-3]]]
            [[[-2]] [[-1]]]
            [[[0]]]
+           [[[0]]]
+           [[[0]]]
            [[[1]] [[2]]]
            [[[3]] [[4]]]
            [[[5]]]
@@ -218,6 +222,57 @@
                                                         [[] [-7] []]
                                                         [[] [] [17]]]]})}
 
+                                 {:h (compose-phrases {:parts [:voice-5]
+                                                       :duration [
+                                                                  2/4
+                                                                  3/4
+                                                                  4/4
+                                                                  5/4
+                                                                  6/4
+                                                                  ]
+                                                       :transposition 0
+                                                       :group-level :chord
+                                                       :check-dissonance [false]
+                                                       :phrases
+                                                       [[[[-9 -7]]]
+                                                        [[[-10 -6]]]
+                                                        [[[-12 -6]]]
+                                                        [[[-14 -6]]]]})}
+
+
+                                 {:i (compose-phrases {:parts [:voice-3]
+                                                       :duration [
+                                                                  2/4
+                                                                  3/4
+                                                                  4/4
+                                                                  5/4
+                                                                  ]
+                                                       :transposition 0
+                                                       :group-level :chord
+                                                       :check-dissonance [false]
+                                                       :phrases
+                                                       [[[[2]]]
+                                                        [[[3]]]
+                                                        [[[4]]]
+                                                        [[[5]]]
+                                                        [[[6]]]]})}
+
+                                 {:j (compose-phrases {:parts [:voice-1]
+                                                       :duration [
+                                                                  2/4
+                                                                  3/4
+                                                                  4/4
+                                                                  ]
+                                                       :transposition 0
+                                                       :group-level :chord
+                                                       :check-dissonance [false]
+                                                       :phrases
+                                                       [[[[12]]]
+                                                        [[[11]]]
+                                                        [[[12]]]
+                                                        [[[12]]]
+                                                        [[[11]]]
+                                                        [[[11]]]]})}
                                  ])]
     (->> event-seqs
          (functor/fmap cycle)
@@ -308,8 +363,11 @@
   (let [event-seqs (voices)]
     (utils/rotate-values-sequentially
      {
-      :voice-seq [(take 60 (cycle [:e :d :c :b :a :e :d :c :b :a]))
-                  (take 60 (cycle [:e :d :c :b :a]))]
+      :voice-seq [
+                  ;; (take 60 (cycle [:e :d :c :b :a :e :d :c :b :a]))
+                  ;; (take 60 (cycle [:e :d :c :b :a]))
+                  (take 60 (cycle [:h :i :j]))
+                  ]
       :handle-dissonance-fn [(handle-dissonance-fn [0 2 4 5])]
       :final-event-min-dur [5/4]
       :tempo [163]
