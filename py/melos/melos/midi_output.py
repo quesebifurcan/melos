@@ -52,7 +52,7 @@ def split_chords(staff):
             for pitch in old_pitches:
                 if not pitch in new_pitches:
                     start_event = pending.get(pitch)
-                    stop_event = start_event._replace(time=start - 0.1, velocity=0)
+                    stop_event = start_event._replace(time=start - 0.001, velocity=0)
                     coll.append(start_event)
                     coll.append(stop_event)
                     pending.pop(pitch, None)
