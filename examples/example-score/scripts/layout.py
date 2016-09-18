@@ -44,6 +44,14 @@ def make_lilypond_file(score, title='', author=''):
     spacing_vector = schemetools.make_spacing_vector(0, 0, 8, 0)
     lilypond_file.paper_block.top_markup_spacing = spacing_vector
     # LAYOUT BLOCK
+
+    # Remove empty staves
+    context_block = lilypondfiletools.ContextBlock(
+        source_context_name=r'Staff \RemoveEmptyStaves',
+    )
+    override(context_block).vertical_axis_group.remove_first = True
+    lilypond_file.layout_block.items.append(context_block)
+
     lilypond_file.layout_block.left_margin = 10
     spacing_vector = schemetools.make_spacing_vector(0, 0, vertical_distance, 0)
     override(score).staff_grouper.staff_staff_spacing = spacing_vector
