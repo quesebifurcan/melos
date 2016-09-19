@@ -17,6 +17,7 @@
 
 (s/defrecord Chord
     [type        :- s/Keyword
+     check-dissonance :- s/Bool
      duration    :- s/Num
      tempo       :- s/Int
      phrase-end? :- s/Bool

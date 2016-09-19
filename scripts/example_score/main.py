@@ -4,12 +4,11 @@ import itertools
 import json
 
 from collections import namedtuple
-from termcolor import colored
 
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
 
-from layout import (
+from example_score.layout import (
     create_score_objects,
     apply_score_overrides,
     apply_accidentals,
@@ -107,7 +106,10 @@ def apply_notations(notation_data, score):
 
 
 def attach_ties(_, selection):
-    attach(Tie(), selection)
+    try:
+        attach(Tie(), selection)
+    except:
+        pass
 
 def annotate_containers(score):
     fns = {
@@ -172,10 +174,10 @@ def main():
 
     # apply_accidentals(template.score)
 
-    with open('/tmp/score.txt', 'w') as outfile:
-        for s in midi_output.export_as_qlist(template.score):
-            outfile.write(s)
-            outfile.write('\n')
+    # with open('/tmp/score.txt', 'w') as outfile:
+    #     for s in midi_output.export_as_qlist(template.score):
+    #         outfile.write(s)
+    #         outfile.write('\n')
 
     lilypond_file = make_lilypond_file(
         template.score,

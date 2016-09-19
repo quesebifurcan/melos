@@ -3,7 +3,6 @@ import itertools
 import json
 
 from collections import namedtuple
-from termcolor import colored
 
 from abjad import *
 from abjad.tools.scoretools import FixedDurationTuplet
