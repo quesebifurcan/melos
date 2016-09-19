@@ -174,15 +174,16 @@
    ])
 
 (defn phrases-3
-  [n]
-  (take n [[[[-3]]]
-           [[[-2]] [[-1]]]
-           [[[0]]]
-           [[[1]] [[2]]]
-           [[[3]] [[4]]]
-           [[[5]]]
-           [[[6]] [[7]]]
-           [[[8]] [[9]]]]))
+  [drop-n take-n]
+  (take take-n (drop drop-n
+                     [[[[-3]]]
+                      [[[-2]] [[-1]]]
+                      [[[0]]]
+                      [[[1]] [[2]]]
+                      [[[3]] [[4]]]
+                      [[[5]]]
+                      [[[6]] [[7]]]
+                      [[[8]] [[9]]]])))
 
 (defn phrases-4
   [n]
@@ -247,7 +248,7 @@
                                        :notation [{:type :arpeggio}]
                                        :group-level :phrases
                                        :check-dissonance [true]
-                                       :phrases (phrases-3 7)})}
+                                       :phrases (phrases-3 0 8)})}
 
                                  {:b (compose-phrases
                                       {:phrases
@@ -288,7 +289,7 @@
                                        :notation [{:type :arpeggio}]
                                        :group-level :phrases
                                        :check-dissonance [true]
-                                       :phrases (phrases-3 5)})}
+                                       :phrases (phrases-3 1 6)})}
 
                                  {:c2 (compose-phrases
                                        {:parts [:voice-3]
@@ -322,7 +323,7 @@
                                        :notation [{:type :arpeggio}]
                                        :group-level :phrases
                                        :check-dissonance [true]
-                                       :phrases (phrases 50)})}
+                                       :phrases (phrases-3 2 4)})}
 
                                  {:g (compose-phrases
                                       {:parts [:voice-5 :voice-3 :voice-1]
@@ -532,8 +533,6 @@
    {:type :Score
     :title "test"
     :author "anonymous"
-    :score-template "asdf"
-    :parse-fn "qwer"
     :sections (mapv compose-section (sections))})
   (println "Abjad...")
   (shell/sh "scripts/to_pdf.sh"))
