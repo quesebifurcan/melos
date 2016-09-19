@@ -1,13 +1,9 @@
-(ns melos.lib.utils
-  (:require [clojure.data.json :as json]
+(ns melos.utils
+  (:require [clojure.algo.generic.functor :as functor]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
-            [clojure.math.combinatorics :as combinatorics]
-
-            [clojure.algo.generic.functor :as functor]
-            [melos.lib
-             [note :refer [make-note]]
-             [schemas :as ms]]
+            [melos.schemas :as ms]
             [schema.core :as s]))
 
 (defn abs [n] (max n (- n)))
@@ -34,27 +30,15 @@
 
 (def triangular (triangular*))
 
-(defn triangular-n
-  "Get the nth triangular number."
-  [n]
-  (last (take n triangular)))
+(defn triangular-n [n] (last (take n triangular)))
 
-(defn export-to-json [path data]
-  (spit path (json/write-str data)))
+(defn export-to-json [path data] (spit path (json/write-str data)))
 
 (defn segment-melody
   [xs]
   (->> xs
        (partition-by #(= % :end))
        (take-nth 2)))
-
-(defn make-chord-from-pitch-vector-params
-  [{:keys [pitch] :as m}]
-  (let [group (gensym "G__")]
-    (map (fn [p]
-           (make-note (merge {:pitch p :group group}
-                             (dissoc m :pitch))))
-         pitch)))
 
 (defn cyclic-partition
   [splits xs]
@@ -69,9 +53,7 @@
             (lazy-seq (cyclic-repeats (rotate repeats)
                                       (rotate xs))))))
 
-(defn transpose
-  [step coll]
-  (map (partial + step) coll))
+(defn transpose [step coll] (map (partial + step) coll))
 
 (defn transpose-all
   [step forms]
@@ -113,23 +95,45 @@
 ;; => [1 1]
 
 (defn partition-groups
-  [f curr coll l]
-  (if (empty? l)
-    (if (empty? curr)
-      coll
-      (concat coll [curr]))
-    (let [nxt (first l)]
-      (if (f nxt)
-        (partition-groups f
-                          []
-                          (concat coll
-                                  [(concat curr
-                                           [nxt])])
-                          (rest l))
-        (partition-groups f
-                          (concat curr [nxt])
-                          coll
-                          (rest l))))))
+  ([pred xs]
+   (partition-groups pred [] [] xs))
+  ([pred curr accum xs]
+   (if (empty? xs)
+     (if (empty? curr)
+       accum
+       (concat accum [curr]))
+     (let [nxt (first xs)]
+       (if (pred nxt)
+         (partition-groups pred
+                           []
+                           (concat accum [(concat curr [nxt])])
+                           (rest xs))
+         (partition-groups pred
+                           (concat curr [nxt])
+                           accum
+                           (rest xs)))))))
+
+(defn partition-by-inclusive
+  "like partition-by, but also puts the first non-matching element
+  in the split, and only groups results that return true in the pred f
+
+  Taken from here: https://github.com/mgaare/clojure-polyline/blob/master/src/clojure-polyline/core.clj
+  "
+  [f coll]
+  (lazy-seq
+   (when-let [s (seq coll)]
+     (let [run (take-while #(f %) s)
+           rem (seq (drop (count run) s))
+           included (first rem)
+           run-inc (concat run (vector included))]
+       (cons run-inc (partition-by-inclusive f (rest rem)))))))
+
+(defn take-realized
+  [coll]
+  (if-not (instance? clojure.lang.IPending coll)
+    (cons (first coll) (take-realized (rest coll)))
+    (when (realized? coll)
+             (cons (first coll) (take-realized (rest coll))))))
 
 (defn unfold-parameters
   [m]
@@ -164,3 +168,18 @@
 ;; => [1 1 1 1 4]
 ;; (apply-slope 10 1 4 9)
 ;; (1 1 1 1 1 4 4 4 4 9)
+
+(defn rotate-in' [m k] (update m k rotate))
+
+(defn rotate-in
+  [m k]
+  (if (vector? k)
+    (reduce rotate-in' m k)
+    (rotate-in' m k)))
+
+(def first-value (partial functor/fmap first))
+
+(defn rotate-values-sequentially
+  [m ks]
+  (->> (reductions rotate-in m ks)
+       (map first-value)))

@@ -36,9 +36,9 @@ $ git clone git@github.com:quesebifurcan/melos.git
 Install python dependencies...
 ```
 $ cd melos
-$ virtualenv env
-$ source env/bin/activate
-$ pip install -r requirements.txt
+$ virtualenv -p $(which python3) scripts/env
+$ source scripts/env/bin/activate
+$ pip install -r scripts/requirements.txt
 ```
 ...and make a directory for the files we are about to create:
 ```
@@ -46,18 +46,12 @@ $ mkdir output
 ```
 After that, we should be able to start a Clojure REPL:
 ```
-$ cd clj/melos
 $ lein repl
 ```
 This will trigger the installation of all Clojure dependencies (this might take a while).
 
 In the `melos.score.main` namespace, there is a function `render` which allows us to inspect the results. Once the REPL has started, we can render an example:
 ```
-user=> (require '[melos.score.main :refer [render]])
+user=> (require '[example-score.main :refer [render]])
 user=> (render)
-Rendered PDF to ../../output/score.pdf
-nil
 ```
-The `render` function is quite limited in scope; it only renders the output of `melos.score.main/make-score`.
-
-If you are interested in e.g. concatenating several score files, take a look at `scripts/run.sh`. This file includes an example of a different workflow, using [grench](http://leiningen.org/grench.html) to get around the slow startup times of the Clojure REPL. Running a script like this will also give you proper python tracebacks (which is hard to get when shelling out from Clojure, like `render` does).
