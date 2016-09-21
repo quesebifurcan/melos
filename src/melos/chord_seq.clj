@@ -34,9 +34,10 @@
 
 (defn get-and-rotate
   [melody-sources accessor]
-  (let [event (first (get-in @melody-sources [accessor]))]
-    (swap! melody-sources update-in [accessor] rest)
-    event))
+  (if-let [event (first (get-in @melody-sources [accessor]))]
+    (do (swap! melody-sources update-in [accessor] rest)
+        event)
+    (throw (Exception. (format "No key found for accessor %s" accessor)))))
 
 (defn cycle-event-seqs'
   [accessors event-seqs]
