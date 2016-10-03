@@ -184,7 +184,7 @@ def main():
         title='Test',
         author='Anonymous',
     )
-    show(lilypond_file)
+    persist(lilypond_file).as_ly(args.output)
 
 if __name__ == '__main__':
     main()

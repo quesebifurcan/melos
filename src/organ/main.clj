@@ -512,34 +512,20 @@
 (defn sections
   []
   (let [event-seqs (voices)]
-    (concat
-     (utils/rotate-values-sequentially
-      {:voice-seq [(take 30 (cycle (get-ordering {:a 5 :b 4 :c 4 :d 2 :e 1})))]
-       :handle-dissonance-fn [(handle-dissonance-fn [0 1])
-                              (handle-dissonance-fn [0 2 3])
-                              (handle-dissonance-fn [0 2 4 5])]
-       :final-event-min-dur [5/4]
-       :tempo [178]
-       :template [template-1]
-       :event-seqs [event-seqs]
-       :measure-list [[measure-2] [measure-1]]
-       :merge-horizontally-fn [(fn [_ _] false)]}
-      [[:handle-dissonance-fn]
-       [:handle-dissonance-fn]
-       [:handle-dissonance-fn]])
-     (utils/rotate-values-sequentially
-      {:voice-seq [(take 30 (cycle (get-ordering {:a 5 :b 4 :c 4 :d 2 :e 1})))]
-       :handle-dissonance-fn [(handle-dissonance-fn [0 1])
-                              (handle-dissonance-fn [0 2 3])]
-       :final-event-min-dur [5/4]
-       :tempo [84]
-       :template [template-1]
-       :event-seqs [event-seqs]
-       :measure-list [[measure-2] [measure-1]]
-       :merge-horizontally-fn [(fn [_ _] false)]}
-      [[:handle-dissonance-fn]
-       [:handle-dissonance-fn]
-       [:handle-dissonance-fn]]))))
+    (utils/rotate-values-sequentially
+     {:voice-seq [(take 30 (cycle (get-ordering {:a 5 :c 4 :b 4 :d 2 :e 1})))]
+      :handle-dissonance-fn [(handle-dissonance-fn [0 1])
+                             (handle-dissonance-fn [0 2 3])
+                             (handle-dissonance-fn [0 2 4 5])]
+      :final-event-min-dur [5/4]
+      :tempo [178]
+      :template [template-1]
+      :event-seqs [event-seqs]
+      :measure-list [[measure-2] [measure-1]]
+      :merge-horizontally-fn [(fn [_ _] false)]}
+     [[:handle-dissonance-fn]
+      [:handle-dissonance-fn]
+      [:handle-dissonance-fn]])))
 
 ;; TODO: sections with different instrumentation?
 ;; TODO: only output selected keys?
@@ -553,4 +539,4 @@
       :author "anonymous"
       :sections (mapv compose-section (sections))})
     (println "Abjad...")
-    (shell/sh "scripts/to_pdf.sh" filename)))
+    (shell/sh "scripts/show.sh" filename)))

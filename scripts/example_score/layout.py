@@ -39,7 +39,7 @@ def make_lilypond_file(score, title='', author=''):
     lilypond_file.paper_block.ragged_bottom = True
     lilypond_file.paper_block.left_margin = 12
     vertical_distance = 1
-    spacing_vector = schemetools.make_spacing_vector(0, 0, 6, 0)
+    spacing_vector = schemetools.make_spacing_vector(0, 0, 10, 0)
     lilypond_file.paper_block.system_system_spacing = spacing_vector
     spacing_vector = schemetools.make_spacing_vector(0, 0, 8, 0)
     lilypond_file.paper_block.top_markup_spacing = spacing_vector
