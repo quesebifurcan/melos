@@ -172,12 +172,12 @@ def main():
     set_tempi(template.score)
     hide_superfluous_time_signatures(template.staves)
 
-    # apply_accidentals(template.score)
+    apply_accidentals(template.score)
 
-    # with open('/tmp/score.txt', 'w') as outfile:
-    #     for s in midi_output.export_as_qlist(template.score):
-    #         outfile.write(s)
-    #         outfile.write('\n')
+    with open('/tmp/score.txt', 'w') as outfile:
+        for s in midi_output.export_as_qlist(template.score):
+            outfile.write(s)
+            outfile.write('\n')
 
     lilypond_file = make_lilypond_file(
         template.score,

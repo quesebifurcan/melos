@@ -218,13 +218,11 @@
            ]))
 
 (defn durs
-  [ph]
-  (let [slopes (map (fn [end] (slope 1/4 end))
-                    [2/4 3/4 4/4 6/4])]
-    (mapcat (fn [s cnt]
-              (s [cnt]))
+  [phrases dur end-durs]
+  (let [slopes (map (fn [end] (slope dur end)) end-durs)]
+    (mapcat (fn [s cnt] (s [cnt]))
             slopes
-            (map count ph))))
+            (map count phrases))))
 
 ;; TODO: highest pitch?
 (defn voices
@@ -270,14 +268,23 @@
                                        :check-dissonance [true]
                                        :phrases (phrases-3 0 8)})}
 
+                                 ;; {:a (compose-phrases
+                                 ;;      {:parts [:voice-1]
+                                 ;;       :duration [1/4]
+                                 ;;       :transposition 0
+                                 ;;       :notation [{:type :arpeggio}]
+                                 ;;       :group-level :phrases
+                                 ;;       :check-dissonance [false]
+                                 ;;       :phrases [[[[2]]]]})}
+
                                  {:b (compose-phrases
                                       {:phrases
                                        [[[[]] [[-3]]]
-                                        [[[]] [[-3 -1]]]
-                                        [[[]] [[-3 -1 0]]]
-                                        [[[]] [[-1 0]]]
+                                        [[[]] [[-3]] [[-3 -1]]]
+                                        [[[]] [[-3]] [[-3 -1]] [[-3 -1 0]]]
+                                        [[[]] [[-1]] [[-1 0]]]
                                         [[[]] [[0]]]
-                                        [[[]] [[-3 0]]]]
+                                        [[[]] [[-3]] [[-3 0]]]]
                                        :parts [:voice-2]
                                        :notation [{:type :arpeggio}]
                                        :check-dissonance [true]
@@ -343,7 +350,10 @@
                                        :notation [{:type :arpeggio}]
                                        :group-level :phrases
                                        :check-dissonance [true]
-                                       :phrases (phrases-3 2 4)})}
+                                       ;; :phrases (phrases-3 2 4)})}
+                                       :phrases [[[[0]]]
+                                                 [[[-3]]]
+                                                 [[[-6]]]]})}
 
                                  {:g (compose-phrases
                                       {:parts [:voice-5 :voice-3 :voice-1]
@@ -450,6 +460,27 @@
   (and (:phrase-end? chord)
        (:check-dissonance chord)))
 
+;; TODO: generalize to work with :dissonance-contributor?
+(defn handle-dissonance-fn-keep-voice-1
+  [limit]
+  (fn f
+    ([xs]
+     (f [] xs))
+    ([a b]
+     (let [voice-1 (filter #(= (:part %) :voice-1) (:events a))
+           a (update a :events (fn [y] (filter (fn [x] (not (= (:part x) :voice-1))) y)))]
+       (if (apply-dissonance-filter? b)
+         (update
+          (chord/reduce-dissonance default-mapping
+                                   limit
+                                   (chord-seq/merge-chords a b))
+          :events
+          (fn [events] (concat events voice-1)))
+         (update
+          (chord-seq/merge-chords a b)
+          :events
+          (fn [events] (concat events voice-1))))))))
+
 (defn handle-dissonance-fn'
   [limit]
   (fn f
@@ -513,12 +544,10 @@
   []
   (let [event-seqs (voices)]
     (utils/rotate-values-sequentially
-     {:voice-seq [(take 30 (cycle (get-ordering {:a 5 :c 4 :b 4 :d 2 :e 1})))]
-      :handle-dissonance-fn [(handle-dissonance-fn [0 1])
-                             (handle-dissonance-fn [0 2 3])
-                             (handle-dissonance-fn [0 2 4 5])]
+     {:voice-seq [(take 30 (cycle (get-ordering {:a 5 :c2 4 :b 4 :d 2 :e 1})))]
+      :handle-dissonance-fn [(handle-dissonance-fn [0 1])]
       :final-event-min-dur [5/4]
-      :tempo [178]
+      :tempo [195]
       :template [template-1]
       :event-seqs [event-seqs]
       :measure-list [[measure-2] [measure-1]]
