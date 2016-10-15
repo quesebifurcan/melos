@@ -282,7 +282,7 @@
                                             {:parts [:voice-3]
                                              ;; :duration [1/4 2/4 1/4 2/4 3/4 1/4 2/4 3/4 4/4]
                                              :duration [1/4]
-                                             :transposition 5
+                                             :transposition 4
                                              :notation [{:type :arpeggio}]
                                              :group-level :phrase
                                              :check-dissonance [true]
@@ -592,7 +592,7 @@
      {:voice-seq [(take 30 (cycle (get-ordering {:a 5 :c2 4 :b 4 :d 2 :e 1})))]
       :handle-dissonance-fn [(handle-dissonance-fn [0 1])]
       :final-event-min-dur [5/4]
-      :tempo [195]
+      :tempo [132]
       :template [template-1]
       :event-seqs [event-seqs]
       :measure-list [[measure-2] [measure-1]]
@@ -612,10 +612,10 @@
                   ]
       :handle-dissonance-fn [(handle-dissonance-fn [0 2 4 5])]
       :final-event-min-dur [5/4]
-      :tempo [195]
+      :tempo [162]
       :template [template-1]
       :event-seqs [event-seqs]
-      :measure-list [[measure-2] [measure-1]]
+      :measure-list [[measure-1 measure-2] [measure-1]]
       :merge-horizontally-fn [(fn [_ _] false)]}
      [[:voice-seq]
       [:voice-seq]
