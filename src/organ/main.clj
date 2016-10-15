@@ -263,32 +263,34 @@
                                  {:chord-a (compose-phrases
                                             {:parts [:voice-1]
                                              :duration [1/4]
-                                             :transposition -5
+                                             :transposition -2
                                              :notation [{:type :arpeggio}]
                                              :group-level :phrase
                                              :check-dissonance [true]
                                              :phrases [
-                                                       [[[0 2 7]]]
-                                                       [[[2 7 9]]]
-                                                       [[[7 9 12]]]
+                                                       ;; [[[0 2 7]]]
+                                                       ;; [[[2 7 9]]]
+                                                       ;; [[[7 9 12]]]
                                                        [[[0]] [[0 2]] [[0 2 7]]]
                                                        [[[2]] [[2 7]] [[2 7 9]]]
                                                        [[[7]] [[7 9]] [[7 9 12]]]
+                                                       [[[7]] [[7 9]]]
+                                                       [[[7]] [[7 9]] [[7 9 12]] [[7 9 12 14]]]
                                                        ]})}
 
                                  {:chord-b (compose-phrases
                                             {:parts [:voice-3]
-                                             :duration [1/4 2/4 1/4 2/4 3/4 1/4 2/4 3/4 4/4]
-                                             :transposition 0
+                                             ;; :duration [1/4 2/4 1/4 2/4 3/4 1/4 2/4 3/4 4/4]
+                                             :duration [1/4]
+                                             :transposition 5
                                              :notation [{:type :arpeggio}]
-                                             :group-level :chord
+                                             :group-level :phrase
                                              :check-dissonance [true]
                                              :phrases [
-                                                       [[[-3 -1 0]]]
-                                                       [[[-3 -2 0]]]
-                                                       [[[-3 -2 1]]]
-                                                       [[[-3 -1 1]]]
-                                                       [[[-3 -1 1]]]
+                                                       [[[-3]] [[-3 -1]] [[-3 -1 0]]]
+                                                       [[[-3]] [[-3 -2]] [[-3 -2 0]]]
+                                                       [[[-4]] [[-4 -2]] [[-4 -2 0]]]
+                                                       [[[-3]] [[-3 -2]] [[-3 -2 0]]]
                                                        ]})}
 
                                  {:a (compose-phrases
@@ -608,7 +610,7 @@
                   (take 20 (cycle (get-ordering {:chord-a 3 :chord-b 5 :e 2})))
                   (take 20 (cycle (get-ordering {:chord-a 2 :chord-b 3 :e 5})))
                   ]
-      :handle-dissonance-fn [(handle-dissonance-fn [0 2 3])]
+      :handle-dissonance-fn [(handle-dissonance-fn [0 2 4 5])]
       :final-event-min-dur [5/4]
       :tempo [195]
       :template [template-1]
