@@ -67,6 +67,13 @@
                    1/8            [1/16 1/16]}]
     (measure/make-rtm-tree durations 1)))
 
+(def measure-3
+  (let [durations {1 [2/4 2/4]
+                   2/4 [[2/4 :a] 1/4]
+                   [2/4 :a] [1/4 1/4]
+                   1/4 [1/8 1/8]}]
+    (measure/make-rtm-tree durations 1)))
+
 (defn rtm-tree-zipper
   [measures]
   (measure/rtm-tree-zipper {:root true :children measures}))
@@ -302,29 +309,51 @@
                                        :check-dissonance [true]
                                        :phrases (phrases-3 0 8)})}
 
+                                 ;; {:b (compose-phrases
+                                 ;;      {:parts [:voice-2]
+                                 ;;       :duration [1/4]
+                                 ;;       :transposition 0
+                                 ;;       :notation [{:type :arpeggio}]
+                                 ;;       :group-level :phrases
+                                 ;;       :check-dissonance [false]
+                                 ;;       :phrases [[[[2]]]]})}
+
                                  {:b (compose-phrases
-                                      {:parts [:voice-2]
+                                      {:phrases
+                                       [
+                                        ;; [[[]] [[-3]]]
+                                        ;; [[[]] [[-3]] [[-3 -1]]]
+                                        [[[]] [[-3]] [[-3 -1]] [[-3 -1 1]]]
+                                        [[[]] [[-1]] [[-1 1]] [[-1 1 9]]]
+                                        [[[]] [[1]] [[1 9]] [[1 9 11]]]
+                                        ;; [[[]] [[-1]] [[-1 0]]]
+                                        ;; [[[]] [[0]]]
+                                        ;; [[[]] [[-3]] [[-3 0]]]]
+                                        ]
+                                       :parts [:voice-2]
+                                       :notation [{:type :arpeggio}]
+                                       :check-dissonance [true]
+                                       :group-level :phrases
+                                       :transposition -3
+                                       :duration [1/4]})}
+
+                                 {:chromatic-mid (compose-phrases
+                                      {:parts [:voice-3]
                                        :duration [1/4]
                                        :transposition 0
                                        :notation [{:type :arpeggio}]
                                        :group-level :phrases
-                                       :check-dissonance [false]
-                                       :phrases [[[[2]]]]})}
+                                       :check-dissonance [true]
+                                       :phrases (phrases-3 1 6)})}
 
-                                 ;; {:b (compose-phrases
-                                 ;;      {:phrases
-                                 ;;       [[[[]] [[-3]]]
-                                 ;;        [[[]] [[-3]] [[-3 -1]]]
-                                 ;;        [[[]] [[-3]] [[-3 -1]] [[-3 -1 0]]]
-                                 ;;        [[[]] [[-1]] [[-1 0]]]
-                                 ;;        [[[]] [[0]]]
-                                 ;;        [[[]] [[-3]] [[-3 0]]]]
-                                 ;;       :parts [:voice-2]
-                                 ;;       :notation [{:type :arpeggio}]
-                                 ;;       :check-dissonance [true]
-                                 ;;       :group-level :phrases
-                                 ;;       :transposition 12
-                                 ;;       :duration [1/4]})}
+                                 {:chromatic-mid-2 (compose-phrases
+                                                    {:parts [:voice-4]
+                                                     :duration [1/4]
+                                                     :transposition -2
+                                                     :notation [{:type :arpeggio}]
+                                                     :group-level :phrases
+                                                     :check-dissonance [true]
+                                                     :phrases (phrases-3 1 5)})}
 
                                  ;; {:c (compose-phrases
                                  ;;      {:phrases [[[[0]]]
@@ -471,7 +500,7 @@
 
 (def default-mapping
   {0 0,
-   1 21,
+   1 11,
    2 5,
    3 3,
    4 2,
@@ -501,8 +530,9 @@
 
 (defn apply-dissonance-filter?
   [chord]
-  (and (:phrase-end? chord)
-       (:check-dissonance chord)))
+  ;; (and (:phrase-end? chord)
+  ;;      (:check-dissonance chord)))
+  (:check-dissonance chord))
 
 ;; ;; TODO: generalize to work with :dissonance-contributor?
 ;; (defn handle-dissonance-fn'
@@ -539,17 +569,16 @@
 
 (defn sustain-if-short
   [xs]
-  ;; (map (fn [a b]
-  ;;        (let [prev-mel (filter #(zero? (:count %)) (:events a))
-  ;;              prev-mel (map (juxt :part :pitch) prev-mel)
-  ;;              new-mel (map (juxt :part :pitch) (:events b))]
-  ;;          (if (and (:phrase-end? a)
-  ;;                   (not (some (set prev-mel) (set new-mel))))
-  ;;            (assoc a :duration 3/4)
-  ;;            a)))
-  ;;      xs
-  ;;      (cycle (rest xs))))
-  xs)
+  (map (fn [a b]
+         (let [prev-mel (filter #(zero? (:count %)) (:events a))
+               prev-mel (map (juxt :part :pitch) prev-mel)
+               new-mel (map (juxt :part :pitch) (:events b))]
+           (if (and (:phrase-end? a)
+                    (not (some (set prev-mel) (set new-mel))))
+             (assoc a :duration 3/4)
+             a)))
+       xs
+       (cycle (rest xs))))
 
 (defn handle-dissonance-fn
   [dissonance-limit]
@@ -606,16 +635,27 @@
   (let [event-seqs (voices)]
     (utils/rotate-values-sequentially
      {:voice-seq [
-                  (take 30 (cycle (get-ordering {:chord-a 5 :chord-b 3 :e 2})))
-                  (take 20 (cycle (get-ordering {:chord-a 3 :chord-b 5 :e 2})))
-                  (take 20 (cycle (get-ordering {:chord-a 2 :chord-b 3 :e 5})))
+                  ;; (take 30 (cycle (get-ordering {:chord-a 5 :chord-b 3 :e 2})))
+                  (take 20 (cycle (get-ordering {:chord-a 3
+                                                 ;; :chromatic-mid-2 3
+                                                 :b 4
+                                                 :e 2})))
+                  ;; (take 20 (cycle (get-ordering {:chord-a 5
+                  ;;                                :chromatic-mid-2 2
+                  ;;                                :chromatic-mid 3
+                  ;;                                :e 4})))
+                  ;; (take 20 (cycle (get-ordering {:chord-a 3
+                  ;;                                :chromatic-mid-2 2
+                  ;;                                :chromatic-mid 3
+                  ;;                                :e 5})))
+                  ;; (take 20 (cycle (get-ordering {:chord-a 2 :chord-b 3 :e 5})))
                   ]
       :handle-dissonance-fn [(handle-dissonance-fn [0 2 4 5])]
-      :final-event-min-dur [5/4]
-      :tempo [162]
+      :final-event-min-dur [2/4]
+      :tempo [172]
       :template [template-1]
       :event-seqs [event-seqs]
-      :measure-list [[measure-1 measure-2] [measure-1]]
+      :measure-list [[measure-2 measure-3] [measure-1]]
       :merge-horizontally-fn [(fn [_ _] false)]}
      [[:voice-seq]
       [:voice-seq]
