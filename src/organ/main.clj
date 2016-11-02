@@ -655,10 +655,9 @@
       :tempo [172]
       :template [template-1]
       :event-seqs [event-seqs]
-      :measure-list [[measure-2 measure-3] [measure-1]]
+      :measure-list [[measure-2] [measure-1]]
       :merge-horizontally-fn [(fn [_ _] false)]}
      [[:voice-seq]
-      [:voice-seq]
       [:voice-seq]])))
 
 ;; TODO: sections with different instrumentation?
@@ -674,3 +673,4 @@
       :sections (mapv compose-section (chord-sections))})
     (println "Abjad...")
     (shell/sh "scripts/show.sh" filename)))
+
