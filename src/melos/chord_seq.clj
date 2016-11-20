@@ -9,8 +9,7 @@
              [note :as note]
              [schemas :as ms]
              [utils :refer [distinct-by partition-by-inclusive rotate]]]
-            [schema.core :as s]
-            [clojure.spec :as spec])
+            [schema.core :as s])
   (:import melos.schemas.Chord))
 
 (defn update-events

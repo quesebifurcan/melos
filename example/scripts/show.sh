@@ -6,7 +6,7 @@ source $SCRIPT_DIR/env/bin/activate
 
 rm $SCRIPT_DIR/../output/example_1.ly
 
-python $SCRIPT_DIR/run.py \
+scripts/env/bin/python $SCRIPT_DIR/main.py \
        --input $SCRIPT_DIR/../$1 \
        --output $SCRIPT_DIR/../output/example_1.ly
 
