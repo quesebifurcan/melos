@@ -51,7 +51,7 @@
         extended          (extend-last overhang event-seq)]
     {:type :Voice
      :name part-name
-     :measures (->> (chord-seq/simplify-event-seq extended)
+     :measures (->> ((chord-seq/simplify-event-seq) extended)
                     (make-rtm-tree measures))}))
 
 (defn voices-entry?
@@ -79,7 +79,7 @@
            tempo
            measure-list
            merge-horizontally-fn]}]
-  (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
+  (let [events (->> (utils/cycle-event-seqs voice-seq event-seqs)
                     handle-dissonance-fn
                     (chord-seq/merge-horizontally merge-horizontally-fn))]
     (compose-voices (template tempo) #(make-voice {:events events

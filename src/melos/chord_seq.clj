@@ -32,26 +32,6 @@
 ;;-----------------------------------------------------------------------------
 ;; Collect events in segment.
 
-(defn get-and-rotate
-  [melody-sources accessor]
-  (if-let [event (first (get-in @melody-sources [accessor]))]
-    (do (swap! melody-sources update-in [accessor] rest)
-        event)
-    (throw (Exception. (format "No key found for accessor %s" accessor)))))
-
-(defn cycle-event-seqs'
-  [accessors event-seqs]
-  (mapcat (fn [accessor] (get-and-rotate event-seqs accessor))
-          accessors))
-
-(defn atom? [x] (instance? clojure.lang.Atom x))
-
-(s/defn cycle-event-seqs
-  :- ms/Phrase
-  [accessors  :- [s/Keyword]
-   event-seqs :- (s/pred atom?)]
-  (cycle-event-seqs' accessors event-seqs))
-
 (defn maybe-extend
   [pred merge-fn]
   (fn [a b]
@@ -89,6 +69,7 @@
          :else
          (cons head (merge-horizontally consonance-pred events)))))
 
+;; TODO: move to utils
 (defn same?
   [a b]
   (let [a-groups (set (chord/select-chord-key :group a))
@@ -116,4 +97,8 @@
   [a b]
   (update a :duration (fn [x] (+ x (:duration b)))))
 
-(def simplify-event-seq (event-seq-merger same? merge-durations))
+(defn simplify-event-seq
+  ([]
+   (event-seq-merger same? merge-durations))
+  ([eq-fn]
+   (event-seq-merger eq-fn merge-durations)))
