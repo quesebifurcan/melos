@@ -1,0 +1,35 @@
+%% lilypond-book --pdf preamble.lytex && pdflatex preamble.tex && open preamble.pdf
+\documentclass{article}
+\usepackage[a4paper,margin=1in,landscape]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[pangram]{blindtext}
+\pagenumbering{gobble}
+
+\usepackage{multicol}
+\setlength{\columnsep}{1cm}
+
+\begin{document}
+\title{Performance Instructions}
+\begin{multicols*}{3}
+  \section{Registration}
+  \Blindtext[5][3]
+  \begin{lilypond}[quote,fragment,staffsize=14]
+    c' d' e' f'
+  \end{lilypond}
+  \Blindtext[1][3]
+  \section{Tempi}
+  \Blindtext[3][2]
+  \begin{lilypond}[quote,fragment,staffsize=14]
+    c' d' e' f' g'2 g'2
+  \end{lilypond}
+  \Blindtext[3][2]
+  \section{Form}
+  \Blindtext[7][4]
+  \begin{lilypond}[quote,fragment,staffsize=14]
+    a'' a' a'' a' a'' a' g'
+  \end{lilypond}
+  \Blindtext[5][4]
+\end{multicols*}
+
+\end{document}

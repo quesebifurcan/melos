@@ -10,6 +10,8 @@
             [schema.core :as s])
   (:import [melos.schemas Chord Note]))
 
+(def pitch-type (atom :pitchclass))
+
 (defn select-chord-key [k chord] (map k (:events chord)))
 
 (defn set-chord-key
@@ -108,12 +110,33 @@
       (combinatorics/combinations 2)
       set))
 
+(defn normalize-ratio [ratio]
+  (cond (< ratio 1)
+        (normalize-ratio (* ratio 2))
+        (> ratio 2)
+        (normalize-ratio (/ ratio 2))
+        :else
+        ratio))
+
+(defn rationalize' [n] (clojure.lang.Numbers/toRatio (rationalize n)))
+
+(defn ratio-dissonance-score
+  [ratio]
+  (let [ratio' (normalize-ratio ratio)]
+    (+ (numerator (rationalize' ratio'))
+       (denominator (rationalize' ratio')))))
+
 (defn dissonance-value
   [mapping intervals]
-  (->> intervals
-       inversion-equivalent-pitchclasses
-       (map mapping)
-       (apply +)))
+  (cond (= @pitch-type :pitchclass)
+        (->> intervals
+             inversion-equivalent-pitchclasses
+             (map mapping)
+             (apply +))
+        (= @pitch-type :ratio)
+        (->> intervals
+             (map ratio-dissonance-score)
+             (apply +))))
 
 (defn interval->num [[a b]] (math/abs (- a b)))
 

@@ -1,6 +1,5 @@
-(ns example-score.main
+(ns example.main
   (:require [clojure.java.shell :as shell]
-            [clojure.algo.generic.functor :as functor]
             [melos
              [chord :as chord]
              [chord-seq :as chord-seq]
@@ -10,6 +9,12 @@
              [schemas :as ms]
              [utils :as utils]])
   (:import [melos.schemas Chord Note]))
+
+(def melody
+  (let [chords [{:pitches [0] :part :voice-1}
+                {:pitches [1] :part :voice-2}
+                {:pitches [2] :part :voice-3}]]
+    (map chord/make-chord chords)))
 
 (def measure-1
   (let [durations {1              [3/4 [1/2 :stretch]]
@@ -51,75 +56,49 @@
         extended          (extend-last overhang event-seq)]
     {:type :Voice
      :name part-name
-     :measures (->> (chord-seq/simplify-event-seq extended)
+     :measures (->> ((chord-seq/simplify-event-seq) extended)
                     (make-rtm-tree measures))}))
 
-(defn voices-entry?
-  [form]
-  (and (vector? form)
-       (= (first form) :voices)))
-
-(defn compose-voices' [f form] [:voices (map f (second form))])
-
-(defn compose-voices
-  [template f]
-  (clojure.walk/postwalk
-   (fn [form]
-     (if (voices-entry? form)
-       (compose-voices' f form)
-       form))
-   template))
-
 (defn compose-section
-  [{:keys [event-seqs
-           voice-seq
-           dissonance-limit
+  [{:keys [melody
            handle-dissonance-fn
-           template
            tempo
            measure-list
            merge-horizontally-fn]}]
-  (let [events (->> (chord-seq/cycle-event-seqs voice-seq event-seqs)
+  (let [events (->> melody
                     handle-dissonance-fn
-                    (chord-seq/merge-horizontally merge-horizontally-fn))]
-    (compose-voices (template tempo) #(make-voice {:events events
-                                                   :part-name %
-                                                   :measure-list measure-list}))))
-
-(defn compose-phrase
-  [params chords]
-  (map (fn [chord] (chord/make-chord (merge params {:pitches chord})))
-       chords))
-
-(defn compose-phrases
-  [params phrases]
-  (map (partial compose-phrase params) phrases))
-
-(def phrase
-  [[[0]]
-   [[2] [4]]
-   [[5]]
-   [[7] [9]]
-   [[11]]
-   [[12]]])
-
-(defn voices
-  []
-  (->> [{:a (compose-phrases {:part :voice-1 :duration 1/4} phrase)}
-        {:b (compose-phrases {:part :voice-2 :duration 1/4} phrase)}
-        {:c (compose-phrases {:part :voice-3 :duration 1/4} phrase)}]
-       (apply merge)
-       (functor/fmap cycle)
-       atom))
+                    (chord-seq/merge-horizontally merge-horizontally-fn))
+        voices (map make-voice [{:part-name :voice-1
+                                 :events events
+                                 :measure-list measure-list}
+                                {:part-name :voice-2
+                                 :events events
+                                 :measure-list measure-list}
+                                {:part-name :voice-3
+                                 :events events
+                                 :measure-list measure-list}])
+        template' (fn [tempo [voice-1 voice-2 voice-3]]
+                    {:type :Section
+                     :staves [{:type :Staff
+                               :tempo tempo
+                               :name :a
+                               :voices [voice-1]}
+                              {:type :Staff
+                               :name :b
+                               :voices [voice-2]}
+                              {:type :Staff
+                               :name :c
+                               :voices [voice-3]}]})]
+    (template' tempo voices)))
 
 (def dissonance-map
   {0 0,
-   1 21,
+   1 6,
    2 5,
    3 3,
    4 2,
    5 1,
-   6 8})
+   6 4})
 
 (defn apply-dissonance-filter?
   [chord]
@@ -145,24 +124,11 @@
 
 (defn sections
   []
-  (let [event-seqs (voices)]
-    [{:voice-seq (take 42 (cycle [:a :b :c :b :a :b]))
-      :handle-dissonance-fn (handle-dissonance-fn [0 2 4 5])
-      :tempo 144
-      :template (fn [tempo] {:type :Section
-                             :staves [{:type :Staff
-                                       :tempo tempo
-                                       :name :a
-                                       :voices [:voice-1]}
-                                      {:type :Staff
-                                       :name :b
-                                       :voices [:voice-2]}
-                                      {:type :Staff
-                                       :name :c
-                                       :voices [:voice-3]}]})
-      :event-seqs event-seqs
-      :measure-list [measure-1]
-      :merge-horizontally-fn (fn [_ _] false)}]))
+  [{:handle-dissonance-fn (handle-dissonance-fn [0 1 2])
+    :tempo 144
+    :melody melody
+    :measure-list [measure-1]
+    :merge-horizontally-fn (fn [_ _] false)}])
 
 (defn render
   []
@@ -173,4 +139,4 @@
       :title "test"
       :author "anonymous"
       :sections (mapv compose-section (sections))})
-    (shell/sh "scripts/to_pdf.sh" filename)))
+    (shell/sh "scripts/show.sh" filename)))

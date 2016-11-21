@@ -183,3 +183,23 @@
   [m ks]
   (->> (reductions rotate-in m ks)
        (map first-value)))
+
+(defn get-and-rotate
+  [melody-sources accessor]
+  (if-let [event (first (get-in @melody-sources [accessor]))]
+    (do (swap! melody-sources update-in [accessor] rest)
+        event)
+    (throw (Exception. (format "No key found for accessor %s" accessor)))))
+
+(defn cycle-event-seqs'
+  [accessors event-seqs]
+  (mapcat (fn [accessor] (get-and-rotate event-seqs accessor))
+          accessors))
+
+(defn atom? [x] (instance? clojure.lang.Atom x))
+
+(s/defn cycle-event-seqs
+  :- ms/Phrase
+  [accessors  :- [s/Keyword]
+   event-seqs :- (s/pred atom?)]
+  (cycle-event-seqs' accessors event-seqs))

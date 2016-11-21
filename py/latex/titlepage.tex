@@ -1,0 +1,29 @@
+\documentclass{report}
+\usepackage{tikz}
+\usepackage[a4paper,margin=1in,landscape]{geometry}
+\usetikzlibrary{calc}
+\newcommand\HRule{\rule{\textwidth}{1pt}}
+\newcommand*\separator[1][.25\textwidth]{%
+  \tikz {\path [fill, draw] (0,0) [out=0, in=180] to +(.5*#1,1pt) [out=0, in=180] to +(.5*#1,-1pt) [out=180, in=0] to +(-.5*#1,-1pt) [out=180, in=0] to cycle;}}
+\begin{document}
+
+
+\begin{titlepage}
+  \begin{tikzpicture}[remember picture, overlay]
+    \draw[color = {rgb:red,200;green,8;blue,21}, line width = 4pt] ($(current page.north west) + (1in,-1in)$) rectangle ($(current page.south east) + (-1in,1in)$);
+  \end{tikzpicture}
+  \begin{center}
+    \vspace{0.75cm}
+    \textsc{\LARGE fredrik wallberg}\\[0.25cm]
+    \separator[0.25\textwidth]\\
+    \vspace{4.75cm}
+           {\Huge \textsc {map}}\\[0.4cm]
+           {\Large \emph {for Organ}}\\[0.4cm]
+           \vfill
+           \separator[0.15\textwidth]\\[0.25cm]
+           {\large \today}\\[0.75cm]
+
+  \end{center}
+\end{titlepage}
+
+\end{document}

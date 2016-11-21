@@ -336,7 +336,7 @@
                             {:pitches [11 21] :part :b :duration 6 :phrase-end? true}]]}
           event-seqs (functor/fmap cycle (map->chord' phrase-data))
           accessors [:a :b :a :b]
-          result (chord-seq/cycle-event-seqs accessors (atom event-seqs))]
+          result (utils/cycle-event-seqs accessors (atom event-seqs))]
       (is (s/validate ms/Phrase result))
       (is (= empty-diff
              (diff_
