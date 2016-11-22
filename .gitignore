@@ -9,6 +9,7 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
-/output
-/scripts/env
+/example/output
+/example/scripts/env
+env
 __pycache__

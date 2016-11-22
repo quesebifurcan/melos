@@ -10,8 +10,6 @@
             [schema.core :as s])
   (:import [melos.schemas Chord Note]))
 
-(def pitch-type (atom :pitchclass))
-
 (defn select-chord-key [k chord] (map k (:events chord)))
 
 (defn set-chord-key
@@ -27,6 +25,7 @@
    :phrase-end? false
    :is-rest? false
    :check-dissonance true
+   :pitchtype :pitchclass
    :type :Chord
    :events []})
 
@@ -126,17 +125,7 @@
     (+ (numerator (rationalize' ratio'))
        (denominator (rationalize' ratio')))))
 
-(defn dissonance-value
-  [mapping intervals]
-  (cond (= @pitch-type :pitchclass)
-        (->> intervals
-             inversion-equivalent-pitchclasses
-             (map mapping)
-             (apply +))
-        (= @pitch-type :ratio)
-        (->> intervals
-             (map ratio-dissonance-score)
-             (apply +))))
+(declare dissonance-value)
 
 (defn interval->num [[a b]] (math/abs (- a b)))
 
@@ -145,7 +134,7 @@
   (let [intervals (map interval->num (all-intervals pitches))]
     (if (< (count intervals) 1)
       0
-      (/ (dissonance-value mapping intervals)
+      (/ (mapping intervals)
          (count intervals)))))
 
 (defn consonant?
@@ -167,20 +156,18 @@
 
 (s/defn valid-events?
   :- s/Bool
-  [mapping :- ms/DissonanceMapping
-   limit   :- [s/Int]
+  [limit   :- [s/Int]
    xs      :- [Note]]
   (boolean (some #(zero? (:count %)) xs)))
 
 (s/defn reduce-dissonance'
   :- Chord
-  [mapping :- ms/DissonanceMapping
-   limit   :- [s/Int]
+  [limit   :- [s/Int]
    chord   :- Chord]
   (let [events (->> chord
                     :events
                     get-candidates
-                    (filter (partial valid-events? mapping limit))
+                    (filter (partial valid-events? limit))
                     (sort-by (fn [x] (apply + (map :count x)))))]
     (assoc chord :events (first events))))
 
@@ -197,4 +184,4 @@
   (if (or (every? zero? (select-chord-key :count chord))
           (consonant? mapping limit (select-chord-key :pitch chord)))
     chord
-    (reduce-dissonance mapping limit (reduce-dissonance' mapping limit chord))))
+    (reduce-dissonance mapping limit (reduce-dissonance' limit chord))))

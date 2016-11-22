@@ -100,10 +100,12 @@
    5 1,
    6 4})
 
-(defn apply-dissonance-filter?
-  [chord]
-  (and (:phrase-end? chord)
-       (:check-dissonance chord)))
+(defn dissonance-score
+  [intervals]
+  (->> intervals
+       chord/inversion-equivalent-pitchclasses
+       (map dissonance-map)
+       (apply +)))
 
 (defn handle-dissonance-fn'
   [limit]
@@ -111,11 +113,9 @@
     ([xs]
      (f [] xs))
     ([a b]
-     (if (apply-dissonance-filter? b)
-       (chord/reduce-dissonance dissonance-map
-                                limit
-                                (chord-seq/merge-chords a b))
-       (chord-seq/merge-chords a b)))))
+     (chord/reduce-dissonance dissonance-score
+                              limit
+                              (chord-seq/merge-chords a b)))))
 
 (defn handle-dissonance-fn
   [dissonance-limit]
@@ -124,7 +124,7 @@
 
 (defn sections
   []
-  [{:handle-dissonance-fn (handle-dissonance-fn [0 1 2])
+  [{:handle-dissonance-fn (handle-dissonance-fn [0 2 4 5])
     :tempo 144
     :melody melody
     :measure-list [measure-1]
