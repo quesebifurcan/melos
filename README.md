@@ -5,6 +5,13 @@ Status
 -------------
 Pre-alpha; expect everything to change.
 
+Dependencies
+-------------
+- [Clojure](https://clojure.org/)
+- [Python](https://www.python.org/)
+- [Abjad](http://abjad.mbrsi.org/)
+- [Lilypond](http://lilypond.org/)
+
 What is it?
 -------------
 A library of Clojure functions with which a user can compose a piece of music.
@@ -33,9 +40,16 @@ To run the example project, clone the repository:
 ```
 $ git clone git@github.com:quesebifurcan/melos.git
 ```
-Install python dependencies...
+
+First, install the library:
 ```
-$ cd melos/example
+$ cd melos
+$ lein install
+```
+
+Move to the `example` directory and install python dependencies...
+```
+$ cd example
 $ virtualenv -p $(which python3) scripts/env
 $ source scripts/env/bin/activate
 $ pip install -r scripts/requirements.txt
@@ -60,3 +74,6 @@ In the `melos.score.main` namespace, there is a function `render` which allows u
 user=> (require '[example.main :refer [render]])
 user=> (render)
 ```
+Output:
+
+![Lilypond Output](img/melos-example.png)
